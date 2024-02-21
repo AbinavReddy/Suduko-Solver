@@ -23,9 +23,9 @@ public class Board
 
     public void initializeBoard()
     {
-        for(int row = 0; row <= boardSize; row++)
+        for(int row = 0; row < boardSize; row++)
         {
-            for(int column = 0; column <= boardSize; column++)
+            for(int column = 0; column < boardSize; column++)
             {
                 board[row][column] = 0;
             }
@@ -43,6 +43,11 @@ public class Board
     public void setBoardValue(int row, int column, int value)
     {
         board[row][column] = value;
+    }
+
+    public int getBoardSize()
+    {
+        return boardSize;
     }
 
     public int[][] getBoard()
