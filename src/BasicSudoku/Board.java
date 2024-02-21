@@ -1,3 +1,4 @@
+
 package BasicSudoku;
 
 import java.lang.Math;
@@ -17,55 +18,20 @@ public class Board
 
         availableCells = boardSize * boardSize;
 
-        initializeBoard();
+        initializeBoard(PredefinedBoard.selectBoardRandomly());
     }
 
-    public void initializeBoard()
+    public void initializeBoard(int[][] predefinedBoard)
     {
         // initialize all elements to 0
         for(int row = 0; row < boardSize; row++)
         {
             for(int column = 0; column < boardSize; column++)
             {
-                board[row][column] = 0;
+                board[row][column] = predefinedBoard[row][column];
             }
         }
 
-        // row 0-2 and column 0-8
-        setBoardValue(0, 0, 5);
-        setBoardValue(0, 1, 3);
-        setBoardValue(0, 4, 7);
-        setBoardValue(1, 0, 6);
-        setBoardValue(1, 3, 1);
-        setBoardValue(1, 4, 9);
-        setBoardValue(1, 5, 5);
-        setBoardValue(2, 1, 9);
-        setBoardValue(2, 2, 8);
-        setBoardValue(2, 7, 6);
-
-        // row 3-5 and column 0-8
-        setBoardValue(3, 0, 8);
-        setBoardValue(3, 4, 6);
-        setBoardValue(3, 8, 3);
-        setBoardValue(4, 0, 4);
-        setBoardValue(4, 3, 8);
-        setBoardValue(4, 5, 3);
-        setBoardValue(4, 8, 1);
-        setBoardValue(5, 0, 7);
-        setBoardValue(5, 4, 2);
-        setBoardValue(5, 8, 6);
-
-        // row 6-8 and column 0-8
-        setBoardValue(6, 1, 6);
-        setBoardValue(6, 6, 2);
-        setBoardValue(6, 7, 8);
-        setBoardValue(7, 3, 4);
-        setBoardValue(7, 4, 1);
-        setBoardValue(7, 5, 9);
-        setBoardValue(7, 8, 5);
-        setBoardValue(8, 4, 8);
-        setBoardValue(8, 7, 7);
-        setBoardValue(8, 8, 9);
     }
 
     public int findSubBoardNumber(int row,int column)
@@ -83,6 +49,36 @@ public class Board
                 return false;
             }
         }
+        return true;
+    }
+
+    public boolean checkPlacementRow(int row, int value)
+    {
+        for (int column = 0;  column < boardSize; column++ )
+        {
+            if(board[row][column] == value)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean checkPlacementSubBoard(int row, int column, int value)
+    {
+        int sbn = findSubBoardNumber(row, column);
+
+        for(int i = 0; i < boardSize; i++ )
+        {
+            for (int j = 0;  j < boardSize; j++ )
+            {
+                if(board[i][j] == value)
+                {
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 
