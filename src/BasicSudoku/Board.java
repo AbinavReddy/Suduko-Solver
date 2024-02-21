@@ -85,7 +85,21 @@ public class Board
         }
         return true;
     }
-
+    
+    public boolean checkPlacementRow(int row, int value)
+    {
+    	
+    	for (int column = 0;  column < boardSize; column++ )
+        {
+            if(board[column][row] == value)
+            {
+                return false;
+            }
+        }
+        return true;
+    }	
+    	
+   
     public void setBoardValue(int row, int column, int value)
     {
         board[row][column] = value;
