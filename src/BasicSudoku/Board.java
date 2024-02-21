@@ -1,2 +1,6 @@
-package BasicSudoku;public class Board {
+package BasicSudoku;
+
+public class Board
+{
+
 }
