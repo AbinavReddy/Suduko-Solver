@@ -2,7 +2,6 @@ package BasicSudoku;
 
 public class Board
 {
-    private int n = 9;
     private int[][] board;
     private int boardSize = 9;
     private int availableCells;
@@ -18,4 +17,13 @@ public class Board
         }
     }
 
+    public void setBoardValue(int row, int column, int value)
+    {
+        board[row][column] = value;
+    }
+
+    public int[][] getBoard()
+    {
+        return board;
+    }
 }
