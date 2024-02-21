@@ -13,14 +13,14 @@ public class BoardDriver
     {
         for(int row = 0; row < boardToPrint.getBoardSize(); row++)
         {
-            if(row % 3 == 0)
+            if(row % Math.sqrt((int) boardToPrint.getBoardSize()) == 0)
             {
                 System.out.print("\n");
             }
 
             for(int column = 0; column < boardToPrint.getBoardSize(); column++)
             {
-                if(column % 3 == 0)
+                if(column % Math.sqrt((int) boardToPrint.getBoardSize()) == 0)
                 {
                     System.out.print(" ");
                 }
