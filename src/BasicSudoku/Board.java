@@ -39,6 +39,17 @@ public class Board
         return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards)+1;
     }
 
+    public boolean checkPlacementColumn(int column, int value)
+    {
+        for (int row = 0;  row < boardSize; row++ )
+        {
+            if(board[row][column] == value)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public void setBoardValue(int row, int column, int value)
     {
@@ -54,5 +65,7 @@ public class Board
     {
         return board;
     }
+
+
 
 }
