@@ -60,7 +60,7 @@ public class Board
         // Yahya
         for (int column = 0;  column < boardRowsColumns; column++ )
         {
-            if(board[column][row] == value)
+            if(board[row][column] == value)
             {
                 return false;
             }
