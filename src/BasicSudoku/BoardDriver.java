@@ -8,7 +8,15 @@ public class BoardDriver
 
         printBoard(testBoard);
 
+        /*
+
+        testBoard.placeValueInCell(7, 1, 8);
+
         // System.out.print("--------------------");
+
+        // testBoard.placeValueInCell(7, 1, 8);
+
+        */
     }
 
     public static void printBoard(Board boardToPrint)
