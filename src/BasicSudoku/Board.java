@@ -24,7 +24,7 @@ public class Board
 
     public void initializeBoard(int[][] predefinedBoard)
     {
-        // temp method, so no author yet
+        // Abinav
         for(int row = 0; row < boardSize; row++)
         {
             for(int column = 0; column < boardSize; column++)
