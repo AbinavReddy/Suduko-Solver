@@ -26,7 +26,7 @@ public class Board
     public void initializeBoard(int[][] predefinedBoard)
     {
         // Abinav
-        for(int row = 0; row < boardSize; row++)
+        for(int row = 0; row < boardRowsColumns; row++)
         {
             for(int column = 0; column < boardRowsColumns; column++)
             {
