@@ -4,8 +4,9 @@ import java.lang.Math;
 
 public class Board
 {
-    private int boardSize;
     private int[][] board;
+    private int boardSize;
+    private int boardRowsColumns;
     private int availableCells;
     private int filledCells = 0;
 
@@ -13,10 +14,10 @@ public class Board
     {
         // Danny
         this.boardSize = boardSize;
+        boardRowsColumns = boardSize * boardSize;
+        availableCells = boardRowsColumns * boardRowsColumns;
 
-        board = new int [boardSize][boardSize];
-
-        availableCells = boardSize * boardSize;
+        board = new int [boardRowsColumns][boardRowsColumns];
 
         initializeBoard();
     }
@@ -24,9 +25,9 @@ public class Board
     public void initializeBoard()
     {
         // temp method, so no author yet
-        for(int row = 0; row < boardSize; row++)
+        for(int row = 0; row < boardRowsColumns; row++)
         {
-            for(int column = 0; column < boardSize; column++)
+            for(int column = 0; column < boardRowsColumns; column++)
             {
                 board[row][column] = 0;
             }
@@ -72,14 +73,14 @@ public class Board
     public int findSubBoardNumber(int row,int column)
     {
         // Abinav
-        int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
+        int totalNoOfSubBoards = (int) Math.sqrt(boardRowsColumns);
         return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards)+1;
     }
 
     public boolean checkPlacementColumn(int column, int value)
     {
         // Abinav
-        for (int row = 0;  row < boardSize; row++ )
+        for (int row = 0;  row < boardRowsColumns; row++ )
         {
             if(board[row][column] == value)
             {
@@ -92,7 +93,7 @@ public class Board
     public boolean checkPlacementRow(int row, int value)
     {
     	// Yahya
-        for (int column = 0;  column < boardSize; column++ )
+        for (int column = 0;  column < boardRowsColumns; column++ )
         {
             if(board[column][row] == value)
             {
@@ -107,6 +108,14 @@ public class Board
     {
         // Danny
         board[row][column] = value;
+
+        filledCells++;
+    }
+
+    public int[][] getBoard()
+    {
+        // Danny
+        return board;
     }
 
     public int getBoardSize()
@@ -115,9 +124,9 @@ public class Board
         return boardSize;
     }
 
-    public int[][] getBoard()
+    public int getBoardRowsColumns()
     {
         // Danny
-        return board;
+        return boardRowsColumns;
     }
 }
