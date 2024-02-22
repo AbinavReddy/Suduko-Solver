@@ -51,37 +51,7 @@ public class Board
         }
         return true;
     }
-
-    public boolean checkPlacementRow(int row, int value)
-    {
-        for (int column = 0;  column < boardSize; column++ )
-        {
-            if(board[row][column] == value)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean checkPlacementSubBoard(int row, int column, int value)
-    {
-        int sbn = findSubBoardNumber(row, column);
-
-        for(int i = 0; i < boardSize; i++ )
-        {
-            for (int j = 0;  j < boardSize; j++ )
-            {
-                if(board[i][j] == value)
-                {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
+    
     public void setBoardValue(int row, int column, int value)
     {
         board[row][column] = value;
