@@ -11,6 +11,7 @@ public class Board
 
     public Board(int boardSize)
     {
+        // Danny
         this.boardSize = boardSize;
 
         board = new int [boardSize][boardSize];
@@ -22,7 +23,7 @@ public class Board
 
     public void initializeBoard()
     {
-        // initialize all elements to 0
+        // temp method, so no author yet
         for(int row = 0; row < boardSize; row++)
         {
             for(int column = 0; column < boardSize; column++)
@@ -70,12 +71,14 @@ public class Board
 
     public int findSubBoardNumber(int row,int column)
     {
+        // Abinav
         int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
         return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards)+1;
     }
 
     public boolean checkPlacementColumn(int column, int value)
     {
+        // Abinav
         for (int row = 0;  row < boardSize; row++ )
         {
             if(board[row][column] == value)
@@ -88,8 +91,8 @@ public class Board
     
     public boolean checkPlacementRow(int row, int value)
     {
-    	
-    	for (int column = 0;  column < boardSize; column++ )
+    	// Yahya
+        for (int column = 0;  column < boardSize; column++ )
         {
             if(board[column][row] == value)
             {
@@ -102,16 +105,19 @@ public class Board
    
     public void setBoardValue(int row, int column, int value)
     {
+        // Danny
         board[row][column] = value;
     }
 
     public int getBoardSize()
     {
+        // Danny
         return boardSize;
     }
 
     public int[][] getBoard()
     {
+        // Danny
         return board;
     }
 }
