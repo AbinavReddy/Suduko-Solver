@@ -79,18 +79,24 @@ public class Board
         return true;
     }
 
+    /**
+     * Checks if the sub-board already contains the given value.
+     * It works by first finding the [0][0]-point of the sub-board in question and then checks each value within this isolated
+     * sub-board for the given value, only going as many rows down and columns out as fits the dimensions of the sub-boards.
+     * @return True if value is not found, false otherwise
+     */
     private boolean checkPlacementSubBoard(int row, int column, int value)
     {
         // Danny
         int subBoard = findSubBoardNumber(row, column);
-        int startingRow = (subBoard / 3) * 3;
-        int startingColumn = (subBoard - startingRow) * 3;
+        int startingRow = (subBoard / subBoardsEachSide) * subBoardsEachSide;
+        int startingColumn = (subBoard - startingRow) * subBoardsEachSide;
 
-        for(int addToRow = 0; addToRow <= subBoardsEachSide - 1; addToRow++)
+        for(int i = 0; i <= subBoardsEachSide - 1; i++) // added to rows
         {
-            for(int addToColumn = 0; addToColumn <= subBoardsEachSide - 1; addToColumn++)
+            for(int j = 0; j <= subBoardsEachSide - 1; j++) // added to columns
             {
-                if(board[startingRow + addToRow][startingColumn + addToColumn] == value)
+                if(board[startingRow + i][startingColumn + j] == value)
                 {
                     return false;
                 }
