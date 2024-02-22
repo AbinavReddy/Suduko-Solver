@@ -45,7 +45,11 @@ public class Board
             return;
         }
 
-        setBoardValue(row, column, value);
+        // abinav
+
+        if(value > 0 && value <= boardSize*boardSize) {
+            setBoardValue(row, column, value);
+        }
     }
 
     public boolean checkPlacementRow(int row, int value)
