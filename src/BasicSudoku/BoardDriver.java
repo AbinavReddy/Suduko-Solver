@@ -4,28 +4,30 @@ public class BoardDriver
 {
     public static void main(String[] args)
     {
-        Board testBoard = new Board(9);
+        Board testBoard = new Board(3);
 
         printBoard(testBoard);
     }
 
     public static void printBoard(Board boardToPrint)
     {
-        for(int row = 0; row < boardToPrint.getBoardSize(); row++)
+        int boardRowsColumns = boardToPrint.getBoardRowsColumns();
+
+        for(int row = 0; row < boardRowsColumns; row++)
         {
-            if(row % Math.sqrt((int) boardToPrint.getBoardSize()) == 0)
+            if(row % 3 == 0)
             {
                 System.out.print("\n");
             }
 
-            for(int column = 0; column < boardToPrint.getBoardSize(); column++)
+            for(int column = 0; column < boardRowsColumns; column++)
             {
-                if(column % Math.sqrt((int) boardToPrint.getBoardSize()) == 0)
+                if(column % 3 == 0)
                 {
                     System.out.print(" ");
                 }
 
-                if(column != boardToPrint.getBoardSize() - 1)
+                if(column != boardRowsColumns - 1)
                 {
                     System.out.print(boardToPrint.getBoard()[row][column] + " ");
                 }
