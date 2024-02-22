@@ -82,14 +82,14 @@ public class Board
     {
         // Danny
         int subBoard = findSubBoardNumber(row, column);
-        int starting_row = (subBoard / 3) * 3;
-        int starting_column = (subBoard - starting_row) * 3;
+        int startingRow = (subBoard / 3) * 3;
+        int startingColumn = (subBoard - startingRow) * 3;
 
         for(int i = 0; i <= boardSize - 1; i++)
         {
             for(int j = 0; j <= boardSize - 1; j++)
             {
-                if(board[starting_row + i][starting_column + j] == value)
+                if(board[startingRow + i][startingColumn + j] == value)
                 {
                     return false;
                 }
