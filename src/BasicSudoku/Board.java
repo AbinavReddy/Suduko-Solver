@@ -81,9 +81,9 @@ public class Board
         int starting_row = (subBoard / 3) * 3;
         int starting_column = (subBoard - starting_row) * 3;
 
-        for(int i = 0; i <= 2; i++)
+        for(int i = 0; i <= boardSize - 1; i++)
         {
-            for(int j = 0; j <= 2; j++)
+            for(int j = 0; j <= boardSize - 1; j++)
             {
                 if(board[starting_row + i][starting_column + j] == value)
                 {
