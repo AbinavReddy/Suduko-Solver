@@ -44,7 +44,7 @@ public class PredefinedBoard {
 
 
     public static int[][] selectBoardRandomly (){
-        int randomNumber =  random.nextInt(3);
+        int randomNumber = 1; // random.nextInt(3);
 
         switch (randomNumber){
             case 0:

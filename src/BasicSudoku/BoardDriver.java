@@ -7,6 +7,8 @@ public class BoardDriver
         Board testBoard = new Board(3);
 
         printBoard(testBoard);
+
+        // System.out.print("--------------------");
     }
 
     public static void printBoard(Board boardToPrint)
