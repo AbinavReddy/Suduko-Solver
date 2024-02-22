@@ -1,4 +1,3 @@
-
 package BasicSudoku;
 
 import java.lang.Math;
@@ -6,29 +5,29 @@ import java.lang.Math;
 public class Board
 {
     private int[][] board;
-    private int boardSize;
-    private int boardRowsColumns;
-    private int availableCells;
+    private final int boardSize;
+    private final int subBoardsEachSide;
+    private final int availableCells;
     private int filledCells = 0;
 
-    public Board(int boardSize)
+    public Board(int size)
     {
         // Danny
-        this.boardSize = boardSize;
-        boardRowsColumns = boardSize * 3;
-        availableCells = boardRowsColumns * boardRowsColumns;
+        boardSize = size * size;
+        subBoardsEachSide = size;
+        availableCells = boardSize * boardSize;
 
-        board = new int [boardRowsColumns][boardRowsColumns];
+        board = new int [boardSize][boardSize];
 
         initializeBoard(PredefinedBoard.selectBoardRandomly());
     }
 
-    public void initializeBoard(int[][] predefinedBoard)
+    private void initializeBoard(int[][] predefinedBoard)
     {
         // Abinav
-        for(int row = 0; row < boardRowsColumns; row++)
+        for(int row = 0; row < boardSize; row++)
         {
-            for(int column = 0; column < boardRowsColumns; column++)
+            for(int column = 0; column < boardSize; column++)
             {
                 setBoardValue(row, column, predefinedBoard[row][column]);
             }
@@ -37,25 +36,27 @@ public class Board
 
     public void placeValueInCell(int row, int column, int value)
     {
-        // Danny
-        if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value))
+        // Abinav
+        if(value < 1 || value > boardSize)
         {
-            System.out.println("Invalid placement!");
+            System.out.println("ERROR: Only values from 1-" + boardSize + " are valid!");
+
+            return;
+        }
+        else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value)) // Danny
+        {
+            System.out.println("ERROR: Value already in row, column or sub-board!");
 
             return;
         }
 
-        // abinav
-
-        if(value > 0 && value <= boardSize*boardSize) {
-            setBoardValue(row, column, value);
-        }
+        setBoardValue(row, column, value);
     }
 
-    public boolean checkPlacementRow(int row, int value)
+    private boolean checkPlacementRow(int row, int value)
     {
         // Yahya
-        for (int column = 0;  column < boardRowsColumns; column++ )
+        for (int column = 0;  column < boardSize; column++ )
         {
             if(board[row][column] == value)
             {
@@ -65,10 +66,10 @@ public class Board
         return true;
     }
 
-    public boolean checkPlacementColumn(int column, int value)
+    private boolean checkPlacementColumn(int column, int value)
     {
         // Abinav
-        for (int row = 0;  row < boardRowsColumns; row++ )
+        for (int row = 0;  row < boardSize; row++ )
         {
             if(board[row][column] == value)
             {
@@ -78,18 +79,18 @@ public class Board
         return true;
     }
 
-    public boolean checkPlacementSubBoard(int row, int column, int value)
+    private boolean checkPlacementSubBoard(int row, int column, int value)
     {
         // Danny
         int subBoard = findSubBoardNumber(row, column);
         int startingRow = (subBoard / 3) * 3;
         int startingColumn = (subBoard - startingRow) * 3;
 
-        for(int i = 0; i <= boardSize - 1; i++)
+        for(int addToRow = 0; addToRow <= subBoardsEachSide - 1; addToRow++)
         {
-            for(int j = 0; j <= boardSize - 1; j++)
+            for(int addToColumn = 0; addToColumn <= subBoardsEachSide - 1; addToColumn++)
             {
-                if(board[startingRow + i][startingColumn + j] == value)
+                if(board[startingRow + addToRow][startingColumn + addToColumn] == value)
                 {
                     return false;
                 }
@@ -102,7 +103,7 @@ public class Board
     public int findSubBoardNumber(int row,int column)
     {
         // Abinav
-        int totalNoOfSubBoards = (int) Math.sqrt(boardRowsColumns);
+        int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
         return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards);
     }
 
@@ -126,9 +127,9 @@ public class Board
         return boardSize;
     }
 
-    public int getBoardRowsColumns()
+    public int getSubBoardsEachSide()
     {
         // Danny
-        return boardRowsColumns;
+        return subBoardsEachSide;
     }
 }
