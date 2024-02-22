@@ -12,27 +12,27 @@ public class BoardDriver
 
         testBoard.placeValueInCell(7, 1, 8);
 
-        // System.out.print("--------------------");
+        System.out.print("--------------------");
 
-        // testBoard.placeValueInCell(7, 1, 8);
+        printBoard(testBoard);
 
         */
     }
 
     public static void printBoard(Board boardToPrint)
     {
-        int boardRowsColumns = boardToPrint.getBoardRowsColumns();
+        int boardRowsColumns = boardToPrint.getBoardSize();
 
         for(int row = 0; row < boardRowsColumns; row++)
         {
-            if(row % 3 == 0)
+            if(row % boardToPrint.getSubBoardsEachSide() == 0)
             {
                 System.out.print("\n");
             }
 
             for(int column = 0; column < boardRowsColumns; column++)
             {
-                if(column % 3 == 0)
+                if(column % boardToPrint.getSubBoardsEachSide() == 0)
                 {
                     System.out.print(" ");
                 }
