@@ -5,16 +5,16 @@ import java.lang.Math;
 public class Board
 {
     private int[][] board;
+    private final int boardLengthWidth;
     private final int boardSize;
-    private final int subBoardsEachSide;
     private final int availableCells;
     private int filledCells = 0;
 
-    public Board(int size)
+    public Board(int boardLengthWidth)
     {
         // Danny
-        boardSize = size * size;
-        subBoardsEachSide = size;
+        this.boardLengthWidth = boardLengthWidth;
+        boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
         board = new int [boardSize][boardSize];
@@ -45,7 +45,7 @@ public class Board
         }
         else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value)) // Danny
         {
-            System.out.println("ERROR: Value already in row, column or sub-board!");
+            System.out.println("ERROR: Value " + value + " already in row, column or sub-board!");
 
             return;
         }
@@ -81,7 +81,7 @@ public class Board
 
     /**
      * Checks if the sub-board already contains the given value.
-     * It works by first finding the [0][0]-point of the sub-board in question and then checks each value within this isolated
+     * It works by first finding the [0][0]-point of the sub-board in question and then checks each cell within this isolated
      * sub-board for the given value, only going as many rows down and columns out as fits the dimensions of the sub-boards.
      * @return True if value is not found, false otherwise
      */
@@ -89,12 +89,12 @@ public class Board
     {
         // Danny
         int subBoard = findSubBoardNumber(row, column);
-        int startingRow = (subBoard / subBoardsEachSide) * subBoardsEachSide;
-        int startingColumn = (subBoard - startingRow) * subBoardsEachSide;
+        int startingRow = (subBoard / boardLengthWidth) * boardLengthWidth;
+        int startingColumn = (subBoard - startingRow) * boardLengthWidth;
 
-        for(int i = 0; i <= subBoardsEachSide - 1; i++) // added to rows
+        for(int i = 0; i <= boardLengthWidth - 1; i++) // added to rows
         {
-            for(int j = 0; j <= subBoardsEachSide - 1; j++) // added to columns
+            for(int j = 0; j <= boardLengthWidth - 1; j++) // added to columns
             {
                 if(board[startingRow + i][startingColumn + j] == value)
                 {
@@ -127,15 +127,15 @@ public class Board
         return board;
     }
 
+    public int getBoardLengthWidth()
+    {
+        // Danny
+        return boardLengthWidth;
+    }
+
     public int getBoardSize()
     {
         // Danny
         return boardSize;
-    }
-
-    public int getSubBoardsEachSide()
-    {
-        // Danny
-        return subBoardsEachSide;
     }
 }

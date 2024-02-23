@@ -10,40 +10,42 @@ public class BoardDriver
 
         /*
 
-        testBoard.placeValueInCell(7, 1, 8);
+        testBoard.placeValueInCell(0, 3, 2);
 
         System.out.print("--------------------");
 
         printBoard(testBoard);
 
-        */
+         */
     }
 
     public static void printBoard(Board boardToPrint)
     {
-        int boardRowsColumns = boardToPrint.getBoardSize();
+        int[][] board = boardToPrint.getBoard();
+        int boardSize = boardToPrint.getBoardSize();
+        int boardLengthWidth = boardToPrint.getBoardLengthWidth();
 
-        for(int row = 0; row < boardRowsColumns; row++)
+        for(int row = 0; row < boardSize; row++)
         {
-            if(row % boardToPrint.getSubBoardsEachSide() == 0)
+            if(row % boardLengthWidth == 0)
             {
                 System.out.print("\n");
             }
 
-            for(int column = 0; column < boardRowsColumns; column++)
+            for(int column = 0; column < boardSize; column++)
             {
-                if(column % boardToPrint.getSubBoardsEachSide() == 0)
+                if(column % boardLengthWidth == 0)
                 {
                     System.out.print(" ");
                 }
 
-                if(column != boardRowsColumns - 1)
+                if(column != boardSize - 1)
                 {
-                    System.out.print(boardToPrint.getBoard()[row][column] + " ");
+                    System.out.print(board[row][column] + " ");
                 }
                 else
                 {
-                    System.out.print(boardToPrint.getBoard()[row][column] + "\n");
+                    System.out.print(board[row][column] + "\n");
                 }
             }
         }
