@@ -6,6 +6,7 @@ import java.util.List;
 
 public class Solver {
 
+    
     Board board = new Board(3);
 
 

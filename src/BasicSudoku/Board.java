@@ -61,7 +61,7 @@ public class Board
         setBoardValue(row, column, value);
     }
 
-    private boolean checkPlacementRow(int row, int value)
+    public boolean checkPlacementRow(int row, int value)
     {
         // Yahya
         for (int column = 0;  column < boardSize; column++ )
@@ -74,7 +74,7 @@ public class Board
         return true;
     }
 
-    private boolean checkPlacementColumn(int column, int value)
+    public boolean checkPlacementColumn(int column, int value)
     {
         // Abinav
         for (int row = 0;  row < boardSize; row++ )
@@ -93,7 +93,7 @@ public class Board
      * sub-board for the given value, only going as many rows down and columns out as fits the dimensions of the sub-boards.
      * @return True if value is not found, false otherwise
      */
-    private boolean checkPlacementSubBoard(int row, int column, int value)
+    public boolean checkPlacementSubBoard(int row, int column, int value)
     {
         // Danny
         int subBoard = findSubBoardNumber(row, column);
@@ -165,7 +165,6 @@ public class Board
     // For testing only (deleted after)
     public void printBoard()
     {
-        // Danny
         for(int row = 0; row < boardSize; row++)
         {
             if(row % boardLengthWidth == 0)
