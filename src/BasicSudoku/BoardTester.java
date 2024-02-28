@@ -8,6 +8,14 @@ public class BoardTester
         Solver solver = new Solver(testBoard);
 
         printBoard(testBoard);
+        solver.possibleValuesInCells();
+        solver.print1();
+        solver.nakedSingles();
+        printBoard(testBoard);
+        solver.possibleValuesInCells();
+        solver.print1();
+
+
     }
 
     public static void printBoard(Board boardToPrint)

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+// Abinav & Yahya
 public class Solver
 {
     Board board;
@@ -14,6 +15,7 @@ public class Solver
         this.board = board;
     }
 
+    // Abinav & Yahya
     public HashMap<String, List<Integer>> possibleNumbers = new HashMap<String, List<Integer>>();
 
     public void possibleValuesInCells() {
@@ -34,6 +36,7 @@ public class Solver
         }
     }
 
+    // Abinav & Yahya
     public void print1() {
         for (int rows = 0; rows < board.getBoardSize(); rows++) {
             for (int columns = 0; columns < board.getBoardSize(); columns++) {
@@ -46,12 +49,8 @@ public class Solver
         }
     }
 
-    public void print() {
-        for (String i : possibleNumbers.keySet()) {
-            System.out.println("key: " + i + " value: " + possibleNumbers.get(i));
-        }
-    }
 
+    // Abinav & Yahya
     public void nakedSingles() {
         for (String key : possibleNumbers.keySet()) {
             String[] parts = key.split(",");
@@ -59,15 +58,12 @@ public class Solver
             int column = Integer.parseInt(parts[1]);
             List<Integer> values = possibleNumbers.get(key);
             if (values.size() == 1) {
-                System.out.println(row+","+column+","+values.get(0));
                 board.setBoardValue(row, column, values.get(0));
-
-                System.out.println("reached here");
             }
         }
-        possibleValuesInCells();
-
     }
+
+    
 
 }
 
