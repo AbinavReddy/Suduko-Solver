@@ -9,9 +9,6 @@ public class Board
     private final int boardSize;
     private final int availableCells;
     private int filledCells = 0;
-    private boolean gamefinished;
-    
-    
     
     
     public Board(int boardLengthWidth)
