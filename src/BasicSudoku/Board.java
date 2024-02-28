@@ -30,7 +30,14 @@ public class Board
         {
             for(int column = 0; column < boardSize; column++)
             {
-                setBoardValue(row, column, predefinedBoard[row][column]);
+                if(predefinedBoard[row][column] != 0)
+                {
+                    setBoardValue(row, column, predefinedBoard[row][column]);
+                }
+                else
+                {
+                    board[row][column] = 0;
+                }
             }
         }
     }
