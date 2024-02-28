@@ -118,38 +118,11 @@ public class Board
     
     public boolean isGameFinished() 
     {
-    	//Yahya
-        // Check for each cell if it's filled
-        for (int row = 0; row < boardSize; row++) {
-            for (int column = 0; column < boardSize; column++) {
-                if (board[row][column] == 0) {
-                    return false; // There is an unfilled cell, so the game is not enden.
-                }
-            }
-        }
-        
-        // Check if all rows, columns, and sub-boards are valid
-        for (int i = 1; i <= boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                // Check rows and columns
-                if (!checkPlacementRow(j, i) || !checkPlacementColumn(j, i)) {
-                    return false; // if a number is repeated in a row or column
-                }
-            }
-            // Check sub-boards
-            for (int row = 0; row < boardSize; row += boardLengthWidth) {
-                for (int column = 0; column < boardSize; column += boardLengthWidth) {
-                    if (!checkPlacementSubBoard(row, column, i)) {
-                        return false; // A number is repeated in an underboard
-                    }
-                }
-            }
-        }
-        
-        return true; // If there are no empty cells and no repeats, then the game is over.
-    }
-
-    
+    	    	//Yahya
+    	    	return filledCells == availableCells;
+    	    	
+    	    }
+ 
 
     public void setBoardValue(int row, int column, int value)
     {
