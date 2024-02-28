@@ -4,15 +4,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Solver {
+public class Solver
+{
+    Board board;
 
-    
-    Board board = new Board(3);
-
+    public Solver(Board board)
+    {
+        // Danny
+        this.board = board;
+    }
 
     public HashMap<String, List<Integer>> possibleNumbers = new HashMap<String, List<Integer>>();
 
     public void possibleValuesInCells() {
+
         for (int rows = 0; rows < board.getBoardSize(); rows++) {
             for (int columns = 0; columns < board.getBoardSize(); columns++) {
                 if (board.getBoard()[rows][columns] == 0) {

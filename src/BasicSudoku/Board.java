@@ -9,8 +9,7 @@ public class Board
     private final int boardSize;
     private final int availableCells;
     private int filledCells = 0;
-    
-    
+
     public Board(int boardLengthWidth)
     {
         // Danny
@@ -160,34 +159,5 @@ public class Board
     {
         // Danny
         return boardSize;
-    }
-
-    // For testing only (deleted after)
-    public void printBoard()
-    {
-        for(int row = 0; row < boardSize; row++)
-        {
-            if(row % boardLengthWidth == 0)
-            {
-                System.out.print("\n");
-            }
-
-            for(int column = 0; column < boardSize; column++)
-            {
-                if(column % boardLengthWidth == 0)
-                {
-                    System.out.print(" ");
-                }
-
-                if(column != boardSize - 1)
-                {
-                    System.out.print(board[row][column] + " ");
-                }
-                else
-                {
-                    System.out.print(board[row][column] + "\n");
-                }
-            }
-        }
     }
 }
