@@ -12,7 +12,6 @@ public class BoardTester
         solver.print1();
         solver.nakedSingles();
         printBoard(testBoard);
-        solver.possibleValuesInCells();
         solver.print1();
 
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+
 // Abinav & Yahya
 public class Solver
 {
@@ -17,6 +18,7 @@ public class Solver
 
     // Abinav & Yahya
     public HashMap<String, List<Integer>> possibleNumbers = new HashMap<String, List<Integer>>();
+    public  List<String> keysToRemove = new ArrayList<String>();
 
     public void possibleValuesInCells() {
 
@@ -50,6 +52,8 @@ public class Solver
     }
 
 
+
+
     // Abinav & Yahya
     public void nakedSingles() {
         for (String key : possibleNumbers.keySet()) {
@@ -59,11 +63,23 @@ public class Solver
             List<Integer> values = possibleNumbers.get(key);
             if (values.size() == 1) {
                 board.setBoardValue(row, column, values.get(0));
+                keysToRemove.add(key);
             }
         }
+        updateHashMap();
     }
 
-    
+    public void updateHashMap () {
+     for (String key : keysToRemove) {
+         if(!keysToRemove.isEmpty()) {
+             possibleNumbers.remove(key);
+             }
+         }
+    }
+
+    public void updateSolver(){
+
+    }
 
 }
 
