@@ -9,7 +9,11 @@ public class Board
     private final int boardSize;
     private final int availableCells;
     private int filledCells = 0;
-
+    private boolean gamefinished;
+    
+    
+    
+    
     public Board(int boardLengthWidth)
     {
         // Danny
@@ -112,6 +116,16 @@ public class Board
         int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
         return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards);
     }
+    
+    
+    
+    public boolean gamefinished() 
+    {
+    	//Yahya
+    	return filledCells == availableCells;
+    	
+    }
+    
 
     public void setBoardValue(int row, int column, int value)
     {
