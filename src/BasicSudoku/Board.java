@@ -24,7 +24,7 @@ public class Board
 
     private void initializeBoard(int[][] predefinedBoard)
     {
-        // Abinav
+        // Abinav og Danny
         for(int row = 0; row < boardSize; row++)
         {
             for(int column = 0; column < boardSize; column++)
@@ -43,14 +43,14 @@ public class Board
 
     public void placeValueInCell(int row, int column, int value)
     {
-        // Abinav
+        // Abinav og Danny
         if(value < 1 || value > boardSize)
         {
             System.out.println("ERROR: Only values from 1-" + boardSize + " are valid!");
 
             return;
         }
-        else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value)) // Danny
+        else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value))
         {
             System.out.println("ERROR: Value " + value + " already in row, column or sub-board!");
 
