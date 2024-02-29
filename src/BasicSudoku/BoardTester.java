@@ -13,13 +13,10 @@ public class BoardTester
         solver.nakedSingles();
         printBoard(testBoard);
         solver.print1();
-
-
     }
 
     public static void printBoard(Board boardToPrint)
     {
-        // Danny
         int[][] board = boardToPrint.getBoard();
         int boardLengthWidth = boardToPrint.getBoardLengthWidth();
         int boardSize = boardToPrint.getBoardSize();
