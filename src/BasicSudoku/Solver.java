@@ -1,14 +1,14 @@
-
 package BasicSudoku;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
-// Abinav & Yahya
 public class Solver
 {
     Board board;
+    public HashMap<String, List<Integer>> possibleNumbers = new HashMap<String, List<Integer>>();
+    public  List<String> keysToRemove = new ArrayList<String>();
 
     public Solver(Board board)
     {
@@ -16,12 +16,8 @@ public class Solver
         this.board = board;
     }
 
-    // Abinav & Yahya
-    public HashMap<String, List<Integer>> possibleNumbers = new HashMap<String, List<Integer>>();
-    public  List<String> keysToRemove = new ArrayList<String>();
-
     public void possibleValuesInCells() {
-
+        // Abinav & Yahya
         for (int rows = 0; rows < board.getBoardSize(); rows++) {
             for (int columns = 0; columns < board.getBoardSize(); columns++) {
                 if (board.getBoard()[rows][columns] == 0) {
@@ -38,8 +34,8 @@ public class Solver
         }
     }
 
-    // Abinav & Yahya
     public void print1() {
+        // Abinav & Yahya
         for (int rows = 0; rows < board.getBoardSize(); rows++) {
             for (int columns = 0; columns < board.getBoardSize(); columns++) {
                 String currentPosition = rows + "," + columns;
@@ -51,11 +47,8 @@ public class Solver
         }
     }
 
-
-
-
-    // Abinav & Yahya
     public void nakedSingles() {
+        // Abinav & Yahya
         for (String key : possibleNumbers.keySet()) {
             String[] parts = key.split(",");
             int row = Integer.parseInt(parts[0]);
@@ -70,6 +63,7 @@ public class Solver
     }
 
     public void updateHashMap () {
+     // Abinav
      for (String key : keysToRemove) {
          if(!keysToRemove.isEmpty()) {
              possibleNumbers.remove(key);
