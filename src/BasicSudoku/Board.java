@@ -12,7 +12,7 @@ public class Board
 
     public Board(int boardLengthWidth)
     {
-        // Danny
+        // Danny, Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
@@ -24,7 +24,7 @@ public class Board
 
     private void initializeBoard(int[][] predefinedBoard)
     {
-        // Abinav og Danny
+        // Abinav, Danny
         for(int row = 0; row < boardSize; row++)
         {
             for(int column = 0; column < boardSize; column++)
@@ -43,7 +43,7 @@ public class Board
 
     public void placeValueInCell(int row, int column, int value)
     {
-        // Abinav og Danny
+        // Danny, Abinav
         if(value < 1 || value > boardSize)
         {
             System.out.println("ERROR: Only values from 1-" + boardSize + " are valid!");
