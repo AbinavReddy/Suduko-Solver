@@ -41,23 +41,25 @@ public class Board
         }
     }
 
-    public void placeValueInCell(int row, int column, int value)
+    public boolean placeValueInCell(int row, int column, int value)
     {
         // Danny & Abinav
         if(value < 1 || value > boardSize)
         {
             System.out.println("ERROR: Only values from 1-" + boardSize + " are valid!");
 
-            return;
+            return false;
         }
         else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value))
         {
             System.out.println("ERROR: Value " + value + " already in row, column or sub-board!");
 
-            return;
+            return false;
         }
 
         setBoardValue(row, column, value);
+
+        return true;
     }
 
     public boolean checkPlacementRow(int row, int value)
