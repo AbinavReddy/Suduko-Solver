@@ -9,6 +9,9 @@ public class Board
     private final int boardSize;
     private final int availableCells;
     private int filledCells = 0;
+    private boolean[][] valueInRows;
+    private boolean[][] valueInColumns;
+    private boolean[][] valueInSubBoards;
 
     public Board(int boardLengthWidth)
     {
@@ -18,6 +21,10 @@ public class Board
         availableCells = boardSize * boardSize;
 
         board = new int [boardSize][boardSize];
+
+        valueInRows = new boolean[boardSize + 1][boardSize];
+        valueInColumns = new boolean[boardSize + 1][boardSize];
+        valueInSubBoards = new boolean[boardSize + 1][boardSize];
 
         initializeBoard(PredefinedBoard.selectBoardRandomly());
     }
@@ -138,10 +145,18 @@ public class Board
         if(value != 0)
         {
             filledCells++;
+
+            valueInRows[value][row] = true;
+            valueInColumns[value][column] = true;
+            valueInSubBoards[value][findSubBoardNumber(row, column)] = true;
         }
         else
         {
             filledCells--;
+
+            valueInRows[board[row][column]][row] = false;
+            valueInColumns[board[row][column]][column] = false;
+            valueInSubBoards[board[row][column]][findSubBoardNumber(row, column)] = false;
         }
     }
 
@@ -161,5 +176,21 @@ public class Board
     {
         // Danny
         return boardSize;
+    }
+
+    public boolean[][] getValueInRows()
+    {
+        // Danny
+        return valueInRows;
+    }
+    public boolean[][] getValueInColumns()
+    {
+        // Danny
+        return valueInColumns;
+    }
+    public boolean[][] getValueInSubBoards()
+    {
+        // Danny
+        return valueInSubBoards;
     }
 }
