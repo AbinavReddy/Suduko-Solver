@@ -9,7 +9,6 @@ public class Solver
     Board board;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<String, List<Integer>>();
     private  List<String> keysToRemove = new ArrayList<String>();
-    private int[][] valueInSubBoards;
 
     public Solver(Board board)
     {
