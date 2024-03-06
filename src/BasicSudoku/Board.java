@@ -31,7 +31,7 @@ public class Board
             {
                 if(predefinedBoard[row][column] != 0)
                 {
-                    setBoardValue(row, column, predefinedBoard[row][column]);
+                    placeValueInCell(row, column, predefinedBoard[row][column]);
                 }
                 else
                 {
