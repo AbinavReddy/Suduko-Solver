@@ -55,7 +55,7 @@ public class Solver
             int column = Integer.parseInt(parts[1]);
             List<Integer> values = possibleNumbers.get(key);
             if (values.size() == 1) {
-                board.setBoardValue(row, column, values.get(0));
+                board.placeValueInCell(row, column, values.get(0));
                 keysToRemove.add(key);
             }
         }
