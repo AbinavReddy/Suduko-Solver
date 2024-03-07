@@ -7,24 +7,25 @@ public class Board
     private int[][] board;
     private final int boardLengthWidth;
     private final int boardSize;
+    private boolean[][] valueInRows; // [value][row]
+    private boolean[][] valueInColumns; // [value][column]
+    private boolean[][] valueInSubBoards; // [value][sub-board]
     private final int availableCells;
     private int filledCells = 0;
-    private boolean[][] valueInRows;
-    private boolean[][] valueInColumns;
-    private boolean[][] valueInSubBoards;
 
     public Board(int boardLengthWidth)
     {
         // Danny & Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
-        availableCells = boardSize * boardSize;
 
         board = new int [boardSize][boardSize];
 
         valueInRows = new boolean[boardSize + 1][boardSize];
         valueInColumns = new boolean[boardSize + 1][boardSize];
         valueInSubBoards = new boolean[boardSize + 1][boardSize];
+
+        availableCells = boardSize * boardSize;
 
         initializeBoard(PredefinedBoard.selectBoardRandomly());
     }
@@ -129,8 +130,6 @@ public class Board
         return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards);
     }
     
-    
-    
     public boolean isGameFinished() 
     {
         // Yahya
@@ -140,8 +139,6 @@ public class Board
     public void setBoardValue(int row, int column, int value)
     {
         // Danny
-        board[row][column] = value;
-
         if(value != 0)
         {
             filledCells++;
@@ -158,6 +155,8 @@ public class Board
             valueInColumns[board[row][column]][column] = false;
             valueInSubBoards[board[row][column]][findSubBoardNumber(row, column)] = false;
         }
+
+        board[row][column] = value;
     }
 
     public int[][] getBoard()
