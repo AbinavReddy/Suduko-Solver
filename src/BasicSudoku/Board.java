@@ -49,6 +49,11 @@ public class Board
         }
     }
 
+    /**
+     * Checks whether the given parameters are valid/follow the rules of Sudoku, and if that is the case, inserts the value
+     * at the provided (row, column)-location.
+     * @return True if placing the value in the cell was successful, false otherwise
+     */
     public boolean placeValueInCell(int row, int column, int value)
     {
         // Danny & Abinav
@@ -136,6 +141,10 @@ public class Board
         return filledCells == availableCells;
     }
 
+    /**
+     * Sets the value of a cell at the specific (row, column)-location on the board, while registering the amount of filled
+     * cells and whether the value is in a given row, column or sub-board, for quicker algorithms.
+     */
     public void setBoardValue(int row, int column, int value)
     {
         // Danny
@@ -182,11 +191,13 @@ public class Board
         // Danny
         return valueInRows;
     }
+
     public boolean[][] getValueInColumns()
     {
         // Danny
         return valueInColumns;
     }
+
     public boolean[][] getValueInSubBoards()
     {
         // Danny
