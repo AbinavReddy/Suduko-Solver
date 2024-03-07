@@ -57,7 +57,7 @@ public class Solver
             List<Integer> values = possibleNumbers.get(key);
             if (values.size() == 1) {
                 board.placeValueInCell(row, column, values.get(0));
-                removeNumberFromOtherCandidate(key,values, row, column, subBoardNo);
+                removeNumberFromOtherCandidate(key,values);
                 keysToRemove.add(key);
             }
         }
@@ -73,8 +73,14 @@ public class Solver
          }
     }
 
-    public void removeNumberFromOtherCandidate(String key,List<Integer> values, int row, int column, int subBoardNo) {
+    public void removeNumberFromOtherCandidate(String key,List<Integer> values) {
         // Abinav
+
+        String[] part = key.split(",");
+        int row = Integer.parseInt(part[0]);
+        int column = Integer.parseInt(part[1]);
+        int subBoardNo = board.findSubBoardNumber(row,column);
+
         for (String Key2 : possibleNumbers.keySet()) {
             if(Key2 == key) continue;
             String[] parts = Key2.split(",");
