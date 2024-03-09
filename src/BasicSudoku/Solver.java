@@ -53,16 +53,18 @@ public class Solver
             String[] parts = key.split(",");
             int row = Integer.parseInt(parts[0]);
             int column = Integer.parseInt(parts[1]);
+            int subBoardNo = board.findSubBoardNumber(row, column);
             List<Integer> values = possibleNumbers.get(key);
             if (values.size() == 1) {
                 board.placeValueInCell(row, column, values.get(0));
+                removeNumberFromOtherCandidate(key,values);
                 keysToRemove.add(key);
             }
         }
-        updateHashMap();
+        removeKeysHavingEmptyList();
     }
 
-    public void updateHashMap () {
+    public void removeKeysHavingEmptyList () {
      // Abinav
      for (String key : keysToRemove) {
          if(!keysToRemove.isEmpty()) {
@@ -71,8 +73,25 @@ public class Solver
          }
     }
 
-    public void updateSolver(){
+    public void removeNumberFromOtherCandidate(String key,List<Integer> values) {
+        // Abinav
 
+        String[] part = key.split(",");
+        int row = Integer.parseInt(part[0]);
+        int column = Integer.parseInt(part[1]);
+        int subBoardNo = board.findSubBoardNumber(row,column);
+
+        for (String Key2 : possibleNumbers.keySet()) {
+            if(Key2 == key) continue;
+            String[] parts = Key2.split(",");
+            int rowOfKey2 = Integer.parseInt(parts[0]);
+            int columnOfKey2 = Integer.parseInt(parts[1]);
+            int subBoardNoOfKey2 = board.findSubBoardNumber(rowOfKey2,columnOfKey2);
+            List<Integer> valuesOfKey2 = possibleNumbers.get(Key2);
+            if((row == rowOfKey2) || (column == columnOfKey2) || (subBoardNo == subBoardNoOfKey2)){
+                valuesOfKey2.removeAll(values);
+            }
+        }
     }
 
 }
