@@ -1,5 +1,7 @@
 package BasicSudoku;
 
+import javafx.beans.binding.IntegerExpression;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +32,7 @@ public class Solver
                         if (board.checkPlacementRow(rows, number) && board.checkPlacementColumn(columns, number) && board.checkPlacementSubBoard(rows, columns, number)) {
                             listOfPosNumbers.add(number);
 
-                            valuePossibleSubBoards[number][board.findSubBoardNumber(rows, columns)]++;
+                            valuePossibleSubBoards[number][board.findSubBoardNumber(rows, columns)]++; // increase count of value possible in sub-board
                         }
                     }
                     possibleNumbers.put(currentPosition,listOfPosNumbers);
@@ -61,7 +63,7 @@ public class Solver
             List<Integer> values = possibleNumbers.get(key);
             if (values.size() == 1) {
                 board.placeValueInCell(row, column, values.get(0));
-                valuePossibleSubBoards[values.get(0)][board.findSubBoardNumber(row, column)]--;
+                valuePossibleSubBoards[values.get(0)][board.findSubBoardNumber(row, column)]--; // decrease count of value possible in sub-board
 
                 removeNumberFromOtherCandidate(key,values);
                 keysToRemove.add(key);
@@ -94,6 +96,11 @@ public class Solver
             int subBoardNoOfKey2 = board.findSubBoardNumber(rowOfKey2,columnOfKey2);
             List<Integer> valuesOfKey2 = possibleNumbers.get(Key2);
             if((row == rowOfKey2) || (column == columnOfKey2) || (subBoardNo == subBoardNoOfKey2)){
+                if(valuesOfKey2.contains(values.get(0)))
+                {
+                    valuePossibleSubBoards[values.get(0)][subBoardNoOfKey2]--; // decrease count of value possible in sub-board
+                }
+
                 valuesOfKey2.removeAll(values);
             }
         }
@@ -102,56 +109,66 @@ public class Solver
     public void pointingDuplicates()
     {
         // Danny
-        int boardSize = board.getBoardSize();
-        int targetValueCount = board.getBoardLengthWidth() - 1;
-
-        pointingDuplicatesRows(boardSize, targetValueCount);
+        pointingDuplicatesRowsColumns(true);
         nakedSingles(); // remove keys of size <= 1
-        pointingDuplicatesColumns(boardSize, targetValueCount);
+        pointingDuplicatesRowsColumns(false);
         nakedSingles();
     }
 
-    private void pointingDuplicatesRows(int boardSize, int targetValueCount)
+    private void pointingDuplicatesRowsColumns(boolean processingRows)
     {
         // Danny
-        int valueCountRow;
+        int boardSize = board.getBoardSize();
+        int targetValueCount = board.getBoardLengthWidth() - 1;
+        int valueCount;
         int valueCountSubBoard;
         int previousSubBoard;
 
+        int firstIndex; // variables used to avoid repetitive code
+        int secondIndex;
+        int thirdIndex;
+        int fourthIndex;
+
         for(int i = 1; i <= boardSize; i++) // value
         {
-            for(int j = 0; j < boardSize; j++) // row
+            for(int j = 0; j < boardSize; j++) // row or column
             {
-                if(!board.getValueInRows()[i][j]) // skip if value already present in row (no possibilities)
+                if(processingRows && !board.getValueInRows()[i][j] || !processingRows && !board.getValueInColumns()[i][j]) // skip if value already present in row or column (no possibilities)
                 {
-                    valueCountRow = 0;
+                    valueCount = 0;
                     valueCountSubBoard = 0;
-                    previousSubBoard = board.findSubBoardNumber(j, 0); // initial sub-board
+                    previousSubBoard = processingRows ? board.findSubBoardNumber(j, 0) : board.findSubBoardNumber(0, j); // initial sub-board
 
-                    for(int k = 0; k < boardSize; k++) // column
+                    for(int k = 0; k < boardSize; k++) // row or column
                     {
-                        if(possibleNumbers.get(j + "," + k) != null && possibleNumbers.get(j + "," + k).contains(i))
+                        firstIndex = processingRows ? j : k;
+                        secondIndex = processingRows ? k : j;
+
+                        if(possibleNumbers.get(firstIndex + "," + secondIndex) != null && possibleNumbers.get(firstIndex + "," + secondIndex).contains(i))
                         {
-                            if(previousSubBoard != board.findSubBoardNumber(j, k)) // reset and update if sub-board has changed
+                            if(previousSubBoard != board.findSubBoardNumber(firstIndex, secondIndex)) // reset and update if sub-board has changed
                             {
                                 valueCountSubBoard = 0;
-                                previousSubBoard = board.findSubBoardNumber(j, k);
+                                previousSubBoard = board.findSubBoardNumber(firstIndex, secondIndex);
                             }
 
-                            valueCountRow++;
+                            valueCount++;
                             valueCountSubBoard++;
 
-                            if(valueCountSubBoard >= targetValueCount && valuePossibleSubBoards[i][board.findSubBoardNumber(j, k)] == valueCountSubBoard) // pointing duplicates found in row, but on multiple sub-boards
+                            if(valueCountSubBoard >= targetValueCount && valuePossibleSubBoards[i][board.findSubBoardNumber(firstIndex, secondIndex)] == valueCountSubBoard) // pointing duplicates found, but value might be present on multiple sub-boards
                             {
-                                for(int l = 0; l < boardSize; l++) // column
+                                for(int l = 0; l < boardSize; l++) // row or column
                                 {
-                                    if(possibleNumbers.get(j + "," + l) != null)
-                                    {
-                                        if(board.findSubBoardNumber(j, l) != previousSubBoard) // remove value from row if on other sub-boards
-                                        {
-                                            possibleNumbers.get(j + "," + l).remove((Integer) i);
+                                    thirdIndex = processingRows ? j : l;
+                                    fourthIndex = processingRows ? l : j;
 
-                                            valuePossibleSubBoards[i][board.findSubBoardNumber(j, k)]--;
+                                    if(possibleNumbers.get(thirdIndex + "," + fourthIndex) != null && possibleNumbers.get(thirdIndex + "," + fourthIndex).contains(i))
+                                    {
+                                        if(board.findSubBoardNumber(thirdIndex, fourthIndex) != previousSubBoard) // remove value from row or column if on other sub-boards
+                                        {
+                                            valuePossibleSubBoards[i][board.findSubBoardNumber(thirdIndex, fourthIndex)]--; // decrease count of value possible in sub-board
+
+                                            possibleNumbers.get(thirdIndex + "," + fourthIndex).remove((Integer) i);
                                         }
                                     }
                                 }
@@ -160,29 +177,9 @@ public class Solver
 
                         if(k == boardSize - 1)
                         {
-                            if(valueCountSubBoard >= targetValueCount && valueCountRow == valueCountSubBoard) // pointing duplicates found in row, but on a single sub-board
+                            if(valueCountSubBoard >= targetValueCount && valueCount == valueCountSubBoard) // pointing duplicates found, but value is only present on a single sub-board
                             {
-                                int boardLengthWidth = board.getBoardLengthWidth();
-                                int startingRow = (previousSubBoard / boardLengthWidth) * boardLengthWidth;
-                                int startingColumn = (previousSubBoard  - startingRow) * boardLengthWidth;
-
-                                for(int m = 0; m < boardLengthWidth; m++) // added to rows
-                                {
-                                    if(startingRow + m != j)
-                                    {
-                                        for(int n = 0; n < boardLengthWidth; n++) // added to columns
-                                        {
-                                            String key = (startingRow + m) + "," + (startingColumn + n);
-
-                                            if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
-                                            {
-                                                possibleNumbers.get(key).remove((Integer) i); // remove value from the rest of the sub-board
-
-                                                valuePossibleSubBoards[i][board.findSubBoardNumber(startingRow + m, startingColumn + n)]--;
-                                            }
-                                        }
-                                    }
-                                }
+                                pointingDuplicatesSubBoards(i, j, previousSubBoard, processingRows);
                             }
                         }
                     }
@@ -191,80 +188,32 @@ public class Solver
         }
     }
 
-    private void pointingDuplicatesColumns(int boardSize, int targetValueCount)
+    private void pointingDuplicatesSubBoards(int value, int rowOrColumn, int previousSubBoard, boolean processingRows)
     {
         // Danny
-        int valueCountColumn;
-        int valueCountSubBoard;
-        int previousSubBoard;
+        int boardLengthWidth = board.getBoardLengthWidth();
+        int startingRow = (previousSubBoard / boardLengthWidth) * boardLengthWidth;
+        int startingColumn = (previousSubBoard - startingRow) * boardLengthWidth;
 
-        for(int i = 1; i <= boardSize; i++) // value
+        int firstIndex; // variables used to avoid repetitive code
+        int secondIndex;
+
+        for(int m = 0; m < boardLengthWidth; m++) // added to starting row or column
         {
-            for(int j = 0; j < boardSize; j++) // column
+            if(processingRows && startingRow + m != rowOrColumn || !processingRows && startingColumn + m != rowOrColumn)
             {
-                if(!board.getValueInColumns()[i][j]) // skip if value already present in column (no possibilities)
+                for(int n = 0; n < boardLengthWidth; n++) // added to starting row or column
                 {
-                    valueCountColumn = 0;
-                    valueCountSubBoard = 0;
-                    previousSubBoard = board.findSubBoardNumber(0, j); // initial sub-board
+                    firstIndex = processingRows ? m : n;
+                    secondIndex = processingRows ? n : m;
 
-                    for(int k = 0; k < boardSize; k++) // row
+                    String key = (startingRow + firstIndex) + "," + (startingColumn + secondIndex);
+
+                    if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(value))
                     {
-                        if(possibleNumbers.get(k + "," + j) != null && possibleNumbers.get(k + "," + j).contains(i))
-                        {
-                            if(previousSubBoard != board.findSubBoardNumber(k, j)) // reset and update if sub-board has changed
-                            {
-                                valueCountSubBoard = 0;
-                                previousSubBoard = board.findSubBoardNumber(k, j);
-                            }
+                        valuePossibleSubBoards[value][previousSubBoard]--; // decrease count of value possible in sub-board
 
-                            valueCountColumn++;
-                            valueCountSubBoard++;
-
-                            if(valueCountSubBoard >= targetValueCount && valuePossibleSubBoards[i][board.findSubBoardNumber(k, j)] == valueCountSubBoard) // pointing duplicates found in column, but on multiple sub-boards
-                            {
-                                for(int l = 0; l < boardSize; l++) // row
-                                {
-                                    if(possibleNumbers.get(l + "," + j) != null)
-                                    {
-                                        if(board.findSubBoardNumber(l, j) != previousSubBoard) // remove value from column if on other sub-boards
-                                        {
-                                            possibleNumbers.get(l + "," + j).remove((Integer) i);
-
-                                            valuePossibleSubBoards[i][board.findSubBoardNumber(j, k)]--;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if(k == boardSize - 1)
-                        {
-                            if(valueCountSubBoard >= targetValueCount && valueCountColumn == valueCountSubBoard) // pointing duplicates found in column, but on a single sub-board
-                            {
-                                int boardLengthWidth = board.getBoardLengthWidth();
-                                int startingRow = (previousSubBoard  / boardLengthWidth) * boardLengthWidth;
-                                int startingColumn = (previousSubBoard  - startingRow) * boardLengthWidth;
-
-                                for(int m = 0; m < boardLengthWidth; m++) // added to columns
-                                {
-                                    if(startingColumn + m != j)
-                                    {
-                                        for(int n = 0; n < boardLengthWidth; n++) // added to rows
-                                        {
-                                            String key = (startingRow + n) + "," + (startingColumn + m);
-
-                                            if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
-                                            {
-                                                possibleNumbers.get(key).remove((Integer) i); // remove value from the rest of the sub-board
-
-                                                valuePossibleSubBoards[i][board.findSubBoardNumber(startingRow + n, startingColumn + m)]--;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        possibleNumbers.get(key).remove((Integer) value); // remove value from the rest of the sub-board
                     }
                 }
             }
