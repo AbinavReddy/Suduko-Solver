@@ -1,7 +1,5 @@
 package BasicSudoku;
 
-import javafx.beans.binding.IntegerExpression;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -106,16 +104,16 @@ public class Solver
         }
     }
 
-    public void pointingDuplicates()
+    public void intersectionRemoval()
     {
         // Danny
-        pointingDuplicatesRowsColumns(true);
+        pointingDuplicates(true);
         nakedSingles(); // remove keys of size <= 1
-        pointingDuplicatesRowsColumns(false);
+        pointingDuplicates(false);
         nakedSingles();
     }
 
-    private void pointingDuplicatesRowsColumns(boolean processingRows)
+    private void pointingDuplicates(boolean processingRows)
     {
         // Danny
         int boardSize = board.getBoardSize();
@@ -179,7 +177,7 @@ public class Solver
                         {
                             if(valueCountSubBoard >= targetValueCount && valueCount == valueCountSubBoard) // pointing duplicates found, but value is only present on a single sub-board
                             {
-                                pointingDuplicatesSubBoards(i, j, previousSubBoard, processingRows);
+                                boxLineReduction(i, j, previousSubBoard, processingRows);
                             }
                         }
                     }
@@ -188,7 +186,7 @@ public class Solver
         }
     }
 
-    private void pointingDuplicatesSubBoards(int value, int rowOrColumn, int previousSubBoard, boolean processingRows)
+    private void boxLineReduction(int value, int rowOrColumn, int previousSubBoard, boolean processingRows)
     {
         // Danny
         int boardLengthWidth = board.getBoardLengthWidth();
