@@ -14,7 +14,7 @@ public class Main
         System.out.println("Guide:");
         System.out.println("1. Type coordinates for cells in the form of 'row column' (separated by space) and press enter.");
         System.out.println("2. Type the value you want to place in the given cell and press enter.");
-        System.out.println("3. Only use valid rows, columns and values (1-" + sudokuBoard.getBoardSize() + ").");
+        System.out.println("3. Only use valid rows, columns and values (all from 1-" + sudokuBoard.getBoardSize() + ").");
         System.out.println();
         System.out.println("Let the solving commence!");
         System.out.print("-----------------------------------------------------------------------------------------------");
@@ -52,7 +52,7 @@ public class Main
             BoardTester.printBoard(sudokuBoard);
         }
 
-        System.out.println("The Sudoku-puzzle has been solved!");
+        System.out.println("You have solved the Sudoku-puzzle!");
 
         console.close();
     }

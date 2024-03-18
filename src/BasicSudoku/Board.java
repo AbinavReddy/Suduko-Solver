@@ -1,6 +1,6 @@
 package BasicSudoku;
 
-import java.lang.Math;
+import java.lang.*;
 
 public class Board
 {
@@ -57,7 +57,13 @@ public class Board
     public boolean placeValueInCell(int row, int column, int value)
     {
         // Danny & Abinav
-        if(value < 1 || value > boardSize)
+        if((row < 0 || row > boardSize - 1) || (column < 0 || column > boardSize - 1))
+        {
+            System.out.println("ERROR: Only indices from 1-" + boardSize + " are valid!");
+
+            return false;
+        }
+        else if(value < 1 || value > boardSize)
         {
             System.out.println("ERROR: Only values from 1-" + boardSize + " are valid!");
 
@@ -65,7 +71,7 @@ public class Board
         }
         else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value))
         {
-            System.out.println("ERROR: Value " + value + " already in row, column or sub-board!");
+            System.out.println("ERROR: Value already in row, column or sub-board!");
 
             return false;
         }
