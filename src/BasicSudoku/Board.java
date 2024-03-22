@@ -1,15 +1,12 @@
 package BasicSudoku;
 
-import java.lang.*;
+import java.lang.Math;
 
 public class Board
 {
     private int[][] board;
     private final int boardLengthWidth;
     private final int boardSize;
-    private boolean[][] valueInRows; // [value][row]
-    private boolean[][] valueInColumns; // [value][column]
-    private boolean[][] valueInSubBoards; // [value][sub-board]
     private final int availableCells;
     private int filledCells = 0;
 
@@ -20,10 +17,6 @@ public class Board
         boardSize = boardLengthWidth * boardLengthWidth;
 
         board = new int [boardSize][boardSize];
-
-        valueInRows = new boolean[boardSize + 1][boardSize];
-        valueInColumns = new boolean[boardSize + 1][boardSize];
-        valueInSubBoards = new boolean[boardSize + 1][boardSize];
 
         availableCells = boardSize * boardSize;
 
@@ -147,28 +140,16 @@ public class Board
         return filledCells == availableCells;
     }
 
-    /**
-     * Sets the value of a cell at the specific (row, column)-location on the board, while registering the amount of filled
-     * cells and whether the value is in a given row, column or sub-board, for quicker algorithms.
-     */
-    public void setBoardValue(int row, int column, int value)
+    private void setBoardValue(int row, int column, int value)
     {
         // Danny
         if(value != 0)
         {
             filledCells++;
-
-            valueInRows[value][row] = true;
-            valueInColumns[value][column] = true;
-            valueInSubBoards[value][findSubBoardNumber(row, column)] = true;
         }
         else
         {
             filledCells--;
-
-            valueInRows[board[row][column]][row] = false;
-            valueInColumns[board[row][column]][column] = false;
-            valueInSubBoards[board[row][column]][findSubBoardNumber(row, column)] = false;
         }
 
         board[row][column] = value;
@@ -190,23 +171,5 @@ public class Board
     {
         // Danny
         return boardSize;
-    }
-
-    public boolean[][] getValueInRows()
-    {
-        // Danny
-        return valueInRows;
-    }
-
-    public boolean[][] getValueInColumns()
-    {
-        // Danny
-        return valueInColumns;
-    }
-
-    public boolean[][] getValueInSubBoards()
-    {
-        // Danny
-        return valueInSubBoards;
     }
 }
