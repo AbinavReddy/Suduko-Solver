@@ -113,9 +113,9 @@ public class Board
         int startingRow = (subBoard / boardLengthWidth) * boardLengthWidth;
         int startingColumn = (subBoard - startingRow) * boardLengthWidth;
 
-        for(int i = 0; i <= boardLengthWidth - 1; i++) // added to rows
+        for(int i = 0; i < boardLengthWidth; i++) // added to rows
         {
-            for(int j = 0; j <= boardLengthWidth - 1; j++) // added to columns
+            for(int j = 0; j < boardLengthWidth; j++) // added to columns
             {
                 if(board[startingRow + i][startingColumn + j] == value)
                 {
