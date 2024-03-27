@@ -10,10 +10,10 @@ public class Solver
     final int boardSize;
     final int boardLengthWidth;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<String, List<Integer>>();
-    private  List<String> keysToRemove = new ArrayList<String>();
     private int[][] valuePossibleCountRows; // [value][row], these are used for simpler and quicker algorithms
     private int[][] valuePossibleCountColumns; // [value][column]
     private int[][] valuePossibleCountSubBoards; // [value][sub-board]
+    private  List<String> keysToRemove = new ArrayList<String>();
 
     public Solver(Board board)
     {
@@ -47,19 +47,6 @@ public class Solver
         }
     }
 
-    public void print1() {
-        // Abinav & Yahya
-        for (int rows = 0; rows < boardSize; rows++) {
-            for (int columns = 0; columns < boardSize; columns++) {
-                String currentPosition = rows + "," + columns;
-                List<Integer> values = possibleNumbers.get(currentPosition);
-                if (values != null) {
-                    System.out.println("Position: (" + rows + "," + columns + ") Possible Values: " + values);
-                }
-            }
-        }
-    }
-
     public void updatePossibleCounts(int value, int row, int column, boolean increase)
     {
         // Danny
@@ -74,6 +61,19 @@ public class Solver
             valuePossibleCountRows[value][row]--;
             valuePossibleCountColumns[value][column]--;
             valuePossibleCountSubBoards[value][board.findSubBoardNumber(row, column)]--;
+        }
+    }
+
+    public void print1() {
+        // Abinav & Yahya
+        for (int rows = 0; rows < boardSize; rows++) {
+            for (int columns = 0; columns < boardSize; columns++) {
+                String currentPosition = rows + "," + columns;
+                List<Integer> values = possibleNumbers.get(currentPosition);
+                if (values != null) {
+                    System.out.println("Position: (" + rows + "," + columns + ") Possible Values: " + values);
+                }
+            }
         }
     }
 
@@ -132,19 +132,21 @@ public class Solver
     public void intersectionRemoval()
     {
         // Danny
-        pointingDuplicates(true);
+        pointingDuplicatesWithBLR(true);
         nakedSingles(); // remove keys of size <= 1
-        pointingDuplicates(false);
+        pointingDuplicatesWithBLR(false);
         nakedSingles();
     }
 
-    private void pointingDuplicates(boolean processingRows)
+    private void pointingDuplicatesWithBLR(boolean processingRows)
     {
         // Danny
         int targetValueCount = boardLengthWidth - 1;
         int valuePossibleCount;
         int valueSubBoardCount;
         int previousSubBoard;
+        int startingRowBLR;
+        int startingColumnBLR;
 
         int substituteA; // variables used to avoid repetitive code
         int substituteB;
@@ -199,42 +201,33 @@ public class Solver
 
                         if(k == boardSize - 1)
                         {
-                            if(valueSubBoardCount >= targetValueCount && valuePossibleCount == valueSubBoardCount) // pointing duplicates found, but value is only present on a single sub-board
+                            if(valueSubBoardCount >= targetValueCount && valuePossibleCount == valueSubBoardCount) // pointing duplicates found, but value is only present on a single sub-board (perform BLR)
                             {
-                                boxLineReduction(i, j, previousSubBoard, processingRows);
+                                startingRowBLR = (previousSubBoard / boardLengthWidth) * boardLengthWidth;
+                                startingColumnBLR = (previousSubBoard - startingRowBLR) * boardLengthWidth;
+
+                                for(int m = 0; m < boardLengthWidth; m++) // added to starting row or column
+                                {
+                                    if(processingRows && startingRowBLR + m != j || !processingRows && startingColumnBLR + m != j)
+                                    {
+                                        for(int n = 0; n < boardLengthWidth; n++) // added to starting row or column
+                                        {
+                                            substituteA = processingRows ? m : n;
+                                            substituteB = processingRows ? n : m;
+
+                                            String key = (startingRowBLR + substituteA) + "," + (startingColumnBLR + substituteB);
+
+                                            if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
+                                            {
+                                                updatePossibleCounts(i, substituteA, substituteB,false);
+
+                                                possibleNumbers.get(key).remove((Integer) i); // remove value from the rest of the sub-board
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
-                    }
-                }
-            }
-        }
-    }
-
-    private void boxLineReduction(int value, int rowOrColumn, int previousSubBoard, boolean processingRows)
-    {
-        // Danny
-        int startingRow = (previousSubBoard / boardLengthWidth) * boardLengthWidth;
-        int startingColumn = (previousSubBoard - startingRow) * boardLengthWidth;
-
-        int substituteA; // variables used to avoid repetitive code
-        int substituteB;
-
-        for(int m = 0; m < boardLengthWidth; m++) // added to starting row or column
-        {
-            if(processingRows && startingRow + m != rowOrColumn || !processingRows && startingColumn + m != rowOrColumn)
-            {
-                for(int n = 0; n < boardLengthWidth; n++) // added to starting row or column
-                {
-                    substituteA = processingRows ? m : n;
-                    substituteB = processingRows ? n : m;
-
-                    String key = (startingRow + substituteA) + "," + (startingColumn + substituteB);
-
-                    if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(value))
-                    {
-                        updatePossibleCounts(value, substituteA, substituteB,false);
-
-                        possibleNumbers.get(key).remove((Integer) value); // remove value from the rest of the sub-board
                     }
                 }
             }
@@ -248,9 +241,9 @@ public class Solver
         nakedSingles(); // remove keys of size <= 1
         xWing(false);
         nakedSingles();
-        yWing();
+        yWingWithXYZExtension(false);
         nakedSingles();
-        xYZWing();
+        yWingWithXYZExtension(true);
         nakedSingles();
     }
 
@@ -342,165 +335,7 @@ public class Solver
         }
     }
 
-    private void yWing()
-    {
-        // Danny
-        List<int[]> cellsContainingValuePositions;
-        List<int[]> hingeValues;
-        List<int[]> hingePositions;
-        List<int[]> observerCandidateValues;
-        List<int[]> observerCandidatePositions;
-        List<int[]> observerValues;
-        List<int[]> observerPositions;
-        List<String> observedByBoth;
-        List<String> observedByObserverA;
-        List<String> observedByObserverB;
-
-        int hingeValue1;
-        int hingeValue2;
-        int observerCandidateValue1;
-        int observerCandidateValue2;
-        int cellWithValueRow;
-        int cellWithValueColumn;
-        int hingeRow;
-        int hingeColumn;
-        int observerCandidateRow;
-        int observerCandidateColumn;
-        int observerRow;
-        int observerColumn;
-
-        int substituteA; // variables used to avoid repetitive code
-        int substituteB;
-
-        for(int i = 1; i <= boardSize; i++) // value
-        {
-            cellsContainingValuePositions = new ArrayList<>();
-            hingeValues = new ArrayList<>();
-            hingePositions = new ArrayList<>();
-            observerCandidateValues = new ArrayList<>();
-            observerCandidatePositions = new ArrayList<>();
-
-            for(int j = 0; j < boardSize; j++) // row
-            {
-                for(int k = 0; k < boardSize; k++) // column
-                {
-                    String key = (j + "," + k);
-
-                    if(possibleNumbers.get(key) != null)
-                    {
-                        if(possibleNumbers.get(key).contains(i)) // save all keys that contains value regardless of size
-                        {
-                            cellsContainingValuePositions.add(new int[] {j, k});
-                        }
-
-                        if(possibleNumbers.get(key).size() == 2)
-                        {
-                            if(!possibleNumbers.get(key).contains(i)) // save all keys of size 2 that doesn't contain value ("hinges")
-                            {
-                                hingeValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
-                                hingePositions.add(new int[] {j, k});
-                            }
-                            else // save all keys of size 2 that contains value ("observer candidates")
-                            {
-                                observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
-                                observerCandidatePositions.add(new int[] {j, k});
-                            }
-                        }
-                    }
-                }
-            }
-
-            for(int j = 0; j < hingeValues.size(); j++) // hingeValues index
-            {
-                observerValues = new ArrayList<>();
-                observerPositions = new ArrayList<>();
-
-                hingeValue1 = hingeValues.get(j)[0];
-                hingeValue2 = hingeValues.get(j)[1];
-
-                for(int k = 0; k < observerCandidateValues.size(); k++) // observerCandidateValues index
-                {
-                    observerCandidateValue1 = observerCandidateValues.get(k)[0];
-                    observerCandidateValue2 = observerCandidateValues.get(k)[1];
-
-                    if(observerCandidateValue1 == hingeValue1 || observerCandidateValue1 == hingeValue2 || observerCandidateValue2 == hingeValue1 || observerCandidateValue2 == hingeValue2)
-                    {
-                        hingeRow = hingePositions.get(j)[0];;
-                        hingeColumn = hingePositions.get(j)[1];
-                        observerCandidateRow = observerCandidatePositions.get(k)[0];
-                        observerCandidateColumn = observerCandidatePositions.get(k)[1];
-
-                        if(hingeRow == observerCandidateRow || hingeColumn == observerCandidateColumn || board.findSubBoardNumber(hingeRow, hingeColumn) == board.findSubBoardNumber(observerCandidateRow, observerCandidateColumn)) // save all observers visible from key
-                        {
-                            observerValues.add(new int[] {observerCandidateValue1, observerCandidateValue2});
-                            observerPositions.add(new int[] {observerCandidateRow, observerCandidateColumn});
-                        }
-                    }
-                }
-
-                if(observerValues.size() == 2) // enough observers found, find all visible cells from observers with value
-                {
-                    String key;
-                    observedByBoth = new ArrayList<>();
-                    observedByObserverA = new ArrayList<>();
-                    observedByObserverB = new ArrayList<>();
-
-                    for(int k = 0; k < 2; k++) // observer index
-                    {
-                        observerRow = observerPositions.get(k)[0];
-                        observerColumn = observerPositions.get(k)[1];
-
-                        substituteA = k == 0 ? observerPositions.get(1)[0] : observerPositions.get(0)[0];
-                        substituteB = k == 0 ? observerPositions.get(1)[1] : observerPositions.get(0)[1];
-
-                        for(int[] positions : cellsContainingValuePositions)
-                        {
-                            cellWithValueRow = positions[0];
-                            cellWithValueColumn = positions[1];
-
-                            if(cellWithValueRow == observerRow && cellWithValueColumn == observerColumn || cellWithValueRow == substituteA && cellWithValueColumn == substituteB) // skip if cell is an observer
-                            {
-                                continue;
-                            }
-
-                            if(observerRow == cellWithValueRow || observerColumn == cellWithValueColumn || board.findSubBoardNumber(observerRow, observerColumn) == board.findSubBoardNumber(cellWithValueRow, cellWithValueColumn)) // add non-observer observable cells to list
-                            {
-                                key = (cellWithValueRow + "," + cellWithValueColumn);
-
-                                if(!observedByBoth.contains(key)) // add cells to a list of collectively observed cells (no duplicates)
-                                {
-                                    observedByBoth.add(key);
-                                }
-
-                                if(k == 0)
-                                {
-                                    observedByObserverA.add(key);
-                                }
-                                else
-                                {
-                                    observedByObserverB.add(key);
-                                }
-                            }
-                        }
-                    }
-
-                    for(String observedKey : observedByBoth) // remove value from cells that are observable by both observers
-                    {
-                        if(observedByObserverA.contains(observedKey) && observedByObserverB.contains(observedKey))
-                        {
-                            String[] parts = observedKey.split(",");
-
-                            updatePossibleCounts(i, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
-
-                            possibleNumbers.get(observedKey).remove((Integer) i);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void xYZWing()
+    private void yWingWithXYZExtension(boolean runWithExtension)
     {
         // Danny
         List<int[]> cellsContainingValuePositions;
@@ -543,26 +378,48 @@ public class Solver
 
             for(int j = 0; j < boardSize; j++) // row
             {
-                for(int k = 0; k < boardSize; k++) // column
+                for (int k = 0; k < boardSize; k++) // column
                 {
                     String key = (j + "," + k);
 
-                    if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
+                    if(possibleNumbers.get(key) != null)
                     {
-                        cellsContainingValuePositions.add(new int[] {j, k}); // save all keys that contains value regardless of size
-
-                        if(possibleNumbers.get(key).size() == 3) // save all keys of size 3 that contains value ("hinges")
+                        if(possibleNumbers.get(key).contains(i)) // save all keys that contains value regardless of size or runWithExtension
                         {
-                            substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
-                            substituteB = !possibleNumbers.get(key).get(substituteA).equals(possibleNumbers.get(key).get(1)) && possibleNumbers.get(key).get(1) != i ? 1 : 2;
-
-                            hingeValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB)});
-                            hingePositions.add(new int[] {j, k});
+                            cellsContainingValuePositions.add(new int[] {j, k});
                         }
-                        else if(possibleNumbers.get(key).size() == 2) // save all keys of size 2 that contains value ("observer candidates")
+
+                        if(!runWithExtension)
                         {
-                            observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
-                            observerCandidatePositions.add(new int[] {j, k});
+                            if(possibleNumbers.get(key).size() == 2)
+                            {
+                                if(!possibleNumbers.get(key).contains(i)) // save all keys of size 2 that doesn't contain value ("hinges")
+                                {
+                                    hingeValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
+                                    hingePositions.add(new int[] {j, k});
+                                }
+                                else // save all keys of size 2 that contains value ("observer candidates")
+                                {
+                                    observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
+                                    observerCandidatePositions.add(new int[] {j, k});
+                                }
+                            }
+                        }
+                        else if(possibleNumbers.get(key).contains(i)) // runWithExtension is true
+                        {
+                            if(possibleNumbers.get(key).size() == 3) // save all keys of size 3 that contains value ("hinges"), omitting value
+                            {
+                                substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
+                                substituteB = !possibleNumbers.get(key).get(substituteA).equals(possibleNumbers.get(key).get(1)) && possibleNumbers.get(key).get(1) != i ? 1 : 2;
+
+                                hingeValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB)});
+                                hingePositions.add(new int[] {j, k});
+                            }
+                            else if(possibleNumbers.get(key).size() == 2) // save all keys of size 2 that contains value ("observer candidates")
+                            {
+                                observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
+                                observerCandidatePositions.add(new int[] {j, k});
+                            }
                         }
                     }
                 }
@@ -588,9 +445,9 @@ public class Solver
                         observerCandidateRow = observerCandidatePositions.get(k)[0];
                         observerCandidateColumn = observerCandidatePositions.get(k)[1];
 
-                        if(hingeRow == observerCandidateRow || hingeColumn == observerCandidateColumn || board.findSubBoardNumber(hingeRow, hingeColumn) == board.findSubBoardNumber(observerCandidateRow, observerCandidateColumn)) // save all observers visible from key
+                        if(hingeRow == observerCandidateRow || hingeColumn == observerCandidateColumn || board.findSubBoardNumber(hingeRow, hingeColumn) == board.findSubBoardNumber(observerCandidateRow, observerCandidateColumn)) // save all observers visible from hinge
                         {
-                            if(observerValues.isEmpty()) // the key itself is always an observer
+                            if(runWithExtension && observerValues.isEmpty()) // in xYZWing the hinge itself is always an observer
                             {
                                 observerValues.add(new int[] {hingeValue1, hingeValue2});
                                 observerPositions.add(new int[] {hingeRow, hingeColumn});
@@ -602,39 +459,39 @@ public class Solver
                     }
                 }
 
-                if(observerValues.size() == 3) // enough observers found, find all visible cells from observers with value
+                if(!runWithExtension && observerValues.size() == 2 || runWithExtension && observerValues.size() == 3) // enough observers found, find all visible cells with value from observers
                 {
                     String key;
                     observedByAll = new ArrayList<>();
                     observedByObserverA = new ArrayList<>();
                     observedByObserverB = new ArrayList<>();
-                    observedByObserverC = new ArrayList<>();
+                    observedByObserverC = !runWithExtension ? null : new ArrayList<>();
 
-                    for(int k = 0; k < 3; k++) // observer index
+                    for(int k = 0; k < observerValues.size(); k++) // observer index
                     {
                         observerRow = observerPositions.get(k)[0];
                         observerColumn = observerPositions.get(k)[1];
 
                         substituteA = k == 0 ? observerPositions.get(1)[0] : observerPositions.get(0)[0];
                         substituteB = k == 0 ? observerPositions.get(1)[1] : observerPositions.get(0)[1];
-                        substituteC = substituteA != observerPositions.get(1)[0] && k != 1 ? observerPositions.get(1)[0] : observerPositions.get(2)[0];
-                        substituteD = substituteB != observerPositions.get(1)[1] && k != 1 ? observerPositions.get(1)[1] : observerPositions.get(2)[1];
+                        substituteC = !runWithExtension ? 0 : substituteA != observerPositions.get(1)[0] && k != 1 ? observerPositions.get(1)[0] : observerPositions.get(2)[0];
+                        substituteD = !runWithExtension ? 0 : substituteB != observerPositions.get(1)[1] && k != 1 ? observerPositions.get(1)[1] : observerPositions.get(2)[1];
 
                         for(int[] positions : cellsContainingValuePositions)
                         {
                             cellWithValueRow = positions[0];
                             cellWithValueColumn = positions[1];
 
-                            if(cellWithValueRow == observerRow && cellWithValueColumn == observerColumn || cellWithValueRow == substituteA && cellWithValueColumn == substituteB || cellWithValueRow == substituteC && cellWithValueColumn == substituteD) // skip if cell is an observer
+                            if(cellWithValueRow == observerRow && cellWithValueColumn == observerColumn || cellWithValueRow == substituteA && cellWithValueColumn == substituteB || runWithExtension && cellWithValueRow == substituteC && cellWithValueColumn == substituteD) // skip if cell is an observer
                             {
                                 continue;
                             }
 
-                            if(observerRow == cellWithValueRow || observerColumn == cellWithValueColumn || board.findSubBoardNumber(observerRow, observerColumn) == board.findSubBoardNumber(cellWithValueRow, cellWithValueColumn)) // add non-observer observable cells to list
+                            if(observerRow == cellWithValueRow || observerColumn == cellWithValueColumn || board.findSubBoardNumber(observerRow, observerColumn) == board.findSubBoardNumber(cellWithValueRow, cellWithValueColumn)) // add non-observer observable cells with value to list
                             {
                                 key = (cellWithValueRow + "," + cellWithValueColumn);
 
-                                if(!observedByAll.contains(key)) // add cells to a list of collectively observed cells (no duplicates)
+                                if(!observedByAll.contains(key)) // add cells with value to a list of collectively observed cells (no duplicates)
                                 {
                                     observedByAll.add(key);
                                 }
@@ -647,7 +504,7 @@ public class Solver
                                 {
                                     observedByObserverB.add(key);
                                 }
-                                else
+                                else // runWithExtension is true
                                 {
                                     observedByObserverC.add(key);
                                 }
@@ -657,7 +514,7 @@ public class Solver
 
                     for(String observedKey : observedByAll) // remove value from cells that are observable by all observers
                     {
-                        if(observedByObserverA.contains(observedKey) && observedByObserverB.contains(observedKey) && observedByObserverC.contains(observedKey))
+                        if(!runWithExtension && observedByObserverA.contains(observedKey) && observedByObserverB.contains(observedKey) || runWithExtension && observedByObserverA.contains(observedKey) && observedByObserverB.contains(observedKey) && observedByObserverC.contains(observedKey))
                         {
                             String[] parts = observedKey.split(",");
 

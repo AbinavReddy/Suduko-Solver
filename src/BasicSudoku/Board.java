@@ -15,10 +15,9 @@ public class Board
         // Danny & Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
+        availableCells = boardSize * boardSize;
 
         board = new int [boardSize][boardSize];
-
-        availableCells = boardSize * boardSize;
 
         initializeBoard(PredefinedBoard.selectBoardRandomly());
     }
