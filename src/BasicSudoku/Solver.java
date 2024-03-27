@@ -102,6 +102,16 @@ public class Solver
                 possibleNumbers.remove(key);
             }
         }
+
+        for (String key : possibleNumbers.keySet()) {
+            String[] parts = key.split(",");
+            int row = Integer.parseInt(parts[0]);
+            int column = Integer.parseInt(parts[1]);
+            List<Integer> values = possibleNumbers.get(key);
+            if(values.isEmpty()){
+                possibleNumbers.remove(key);
+            }
+        }
     }
 
     public void removeNumberFromOtherCandidate(String key,List<Integer> values) {
