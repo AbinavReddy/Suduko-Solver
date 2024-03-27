@@ -37,11 +37,10 @@ public class Solver
                     for (int number = 1; number <= boardSize; number++) {
                         if (board.checkPlacementRow(rows, number) && board.checkPlacementColumn(columns, number) && board.checkPlacementSubBoard(rows, columns, number)) {
                             listOfPosNumbers.add(number);
-
                             updatePossibleCounts(number, rows, columns, true);
                         }
                     }
-                    possibleNumbers.put(currentPosition,listOfPosNumbers);
+                   if(!listOfPosNumbers.isEmpty()) possibleNumbers.put(currentPosition,listOfPosNumbers);
                 }
             }
         }
