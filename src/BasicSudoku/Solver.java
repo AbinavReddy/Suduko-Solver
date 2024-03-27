@@ -91,6 +91,8 @@ public class Solver
                 removeNumberFromOtherCandidate(key,values);
                 keysToRemove.add(key);
             }
+
+            if (values.isEmpty()) keysToRemove.add(key);
         }
         removeKeysHavingEmptyList();
     }
@@ -99,16 +101,6 @@ public class Solver
         // Abinav
         for (String key : keysToRemove) {
             if(!keysToRemove.isEmpty()) {
-                possibleNumbers.remove(key);
-            }
-        }
-
-        for (String key : possibleNumbers.keySet()) {
-            String[] parts = key.split(",");
-            int row = Integer.parseInt(parts[0]);
-            int column = Integer.parseInt(parts[1]);
-            List<Integer> values = possibleNumbers.get(key);
-            if(values.isEmpty()){
                 possibleNumbers.remove(key);
             }
         }
