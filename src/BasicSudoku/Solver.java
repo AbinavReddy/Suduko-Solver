@@ -21,6 +21,7 @@ public class Solver
         boardSize = board.getBoardSize();
         boardLengthWidth = board.getBoardLengthWidth();
 
+        possibleNumbersCount = 0;
         valuePossibleCountRows = new int[boardSize + 1][boardSize];
         valuePossibleCountColumns = new int[boardSize + 1][boardSize];
         valuePossibleCountSubBoards = new int[boardSize + 1][boardSize];
