@@ -8,8 +8,10 @@ public class BoardTester
         Solver testSolver = testBoard.getSolver();
 
         printBoard(testBoard);
-        testSolver.print1();
+        testSolver.printPossibilities();
         testSolver.nakedSingles();
+        printBoard(testBoard);
+        testSolver.printPossibilities();
     }
 
     public static void printBoard(Board boardToPrint)
