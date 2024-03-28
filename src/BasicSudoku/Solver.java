@@ -124,10 +124,6 @@ public class Solver
                 removeNumberFromOtherCandidate(key,values);
                 keysToRemove.add(key);
             }
-
-            else if (values.isEmpty()){
-                keysToRemove.add(key);
-            }
         }
         removeKeysHavingEmptyList();
     }
@@ -162,6 +158,7 @@ public class Solver
                 }
 
                 valuesOfKey2.removeAll(values);
+                if(valuesOfKey2.isEmpty()) keysToRemove.add(Key2);
             }
         }
     }
