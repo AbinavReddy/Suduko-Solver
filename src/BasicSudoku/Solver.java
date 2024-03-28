@@ -130,7 +130,7 @@ public class Solver
         }
 
         for (String key : keysToRemove) {
-            if(!keysToRemove.isEmpty()) possibleNumbers.remove(key);
+            possibleNumbers.remove(key);
         }
 
         EliminateEmptyLists();
@@ -164,7 +164,7 @@ public class Solver
         int subBoardNo = board.findSubBoardNumber(row,column);
 
         for (String Key2 : possibleNumbers.keySet()) {
-            if(Key2 == key) continue;
+            if(Key2.equals(key) ) continue;
             String[] parts = Key2.split(",");
             int rowOfKey2 = Integer.parseInt(parts[0]);
             int columnOfKey2 = Integer.parseInt(parts[1]);
