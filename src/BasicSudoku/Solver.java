@@ -27,8 +27,8 @@ public class Solver
         valuePossibleCountSubBoards = new int[boardSize + 1][boardSize];
     }
 
-    public void possibleValuesInCells() {
-        // Abinav & Yahya
+    public boolean possibleValuesInCells() {
+        // Abinav, Yahya & Danny
         for (int rows = 0; rows < boardSize; rows++) {
             for (int columns = 0; columns < boardSize; columns++) {
                 if (board.getBoard()[rows][columns] == 0) {
@@ -40,10 +40,19 @@ public class Solver
                             updatePossibleCounts(number, rows, columns, true);
                         }
                     }
-                   if(!listOfPosNumbers.isEmpty()) possibleNumbers.put(currentPosition,listOfPosNumbers);
+                   if(!listOfPosNumbers.isEmpty())
+                   {
+                       possibleNumbers.put(currentPosition,listOfPosNumbers);
+                   }
+                   else
+                   {
+                       return false;
+                   }
                 }
             }
         }
+
+        return true;
     }
 
     public void updatePossibleCounts(int value, int row, int column, boolean increase)

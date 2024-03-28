@@ -1,6 +1,6 @@
 package BasicSudoku;
 
-import java.lang.Math;
+import java.util.Random;
 
 public class Board
 {
@@ -8,21 +8,89 @@ public class Board
     private final int boardLengthWidth;
     private final int boardSize;
     private final int availableCells;
-    private int filledCells = 0;
+    private int filledCells;
+    private String errorMessage;
+    private Solver solver;
 
-    public Board(int boardLengthWidth)
+    public Board(int boardLengthWidth, int initialClues, boolean emptySubBoardsAllowed)
     {
         // Danny & Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
-        board = new int [boardSize][boardSize];
+        /*
+        do
+        {
+            solver = new Solver(this);
 
-        initializeBoard(PredefinedBoard.selectBoardRandomly());
+            initializeBoard(initialClues, emptySubBoardsAllowed);
+        }
+        while(!solver.possibleValuesInCells()); // generate new board till not obviously unsolvable
+        */
+
+        // temp
+        board = new int[boardSize][boardSize];
+        filledCells = 0;
+
+        solver = new Solver(this);
+
+        initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
+
+        solver.possibleValuesInCells();
     }
 
-    private void initializeBoard(int[][] predefinedBoard)
+    private void initializeBoard(int filledFromStart, boolean subBoardsCanBeEmpty)
+    {
+        // Danny & Abinav
+        board = new int[boardSize][boardSize];
+        filledCells = 0;
+
+        Random randomNumber = new Random();
+        int value;
+        int row;
+        int column;
+
+        if(!subBoardsCanBeEmpty)
+        {
+            int[] filledInSubBoards = new int[boardSize];
+            int startingRow;
+            int startingColumn;
+            int endingRow;
+            int endingColumn;
+
+            for(int i = 0; i < boardSize; i++) // sub-board
+            {
+                while(filledInSubBoards[i] == 0) // make sure there is at least one filled cell in each sub-board
+                {
+                    startingRow = (i / boardLengthWidth) * boardLengthWidth;
+                    startingColumn = (i - startingRow) * boardLengthWidth;
+                    endingRow = startingRow + (boardLengthWidth - 1);
+                    endingColumn = startingColumn + (boardLengthWidth - 1);
+
+                    value = randomNumber.nextInt(1, boardSize + 1);
+                    row = randomNumber.nextInt(startingRow, endingRow);
+                    column = randomNumber.nextInt(startingColumn, endingColumn);
+
+                    if(placeValueInCell(row, column, value))
+                    {
+                        filledInSubBoards[findSubBoardNumber(row, column)]++;
+                    }
+                }
+            }
+        }
+
+        while(filledCells != filledFromStart) // fill cells randomly until reaching the wanted amount of filled cells
+        {
+            value = randomNumber.nextInt(1, boardSize + 1);
+            row = randomNumber.nextInt(0, boardSize);
+            column = randomNumber.nextInt(0, boardSize);
+
+            placeValueInCell(row, column, value);
+        }
+    }
+
+    private void initializeBoardTemp(int[][] predefinedBoard)
     {
         // Abinav & Danny
         for(int row = 0; row < boardSize; row++)
@@ -51,19 +119,25 @@ public class Board
         // Danny & Abinav
         if((row < 0 || row > boardSize - 1) || (column < 0 || column > boardSize - 1))
         {
-            System.out.println("ERROR: Only indices from 1-" + boardSize + " are valid!");
+            errorMessage = "ERROR: Only indices from 1-" + boardSize + " are valid!";
 
             return false;
         }
         else if(value < 1 || value > boardSize)
         {
-            System.out.println("ERROR: Only values from 1-" + boardSize + " are valid!");
+            errorMessage = "ERROR: Only values from 1-" + boardSize + " are valid!";
+
+            return false;
+        }
+        else if(board[row][column] != 0)
+        {
+            errorMessage = "ERROR: Can't place a value in a filled cell!";
 
             return false;
         }
         else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value))
         {
-            System.out.println("ERROR: Value already in row, column or sub-board!");
+            errorMessage = "ERROR: Value already in row, column or sub-board!";
 
             return false;
         }
@@ -139,7 +213,7 @@ public class Board
         return filledCells == availableCells;
     }
 
-    private void setBoardValue(int row, int column, int value)
+    public void setBoardValue(int row, int column, int value)
     {
         // Danny
         if(value != 0)
@@ -170,5 +244,17 @@ public class Board
     {
         // Danny
         return boardSize;
+    }
+
+    public String getErrorMessage()
+    {
+        // Danny
+        return errorMessage;
+    }
+
+    public Solver getSolver()
+    {
+        // Danny
+        return solver;
     }
 }
