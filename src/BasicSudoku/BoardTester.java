@@ -5,10 +5,11 @@ public class BoardTester
     public static void main(String[] args)
     {
         Board testBoard = new Board(3, 30, false);
-        Solver testSolver = testBoard.getBoardSolver();
+        Solver testSolver = testBoard.getSolver();
 
         printBoard(testBoard);
         testSolver.print1();
+        testSolver.nakedSingles();
     }
 
     public static void printBoard(Board boardToPrint)

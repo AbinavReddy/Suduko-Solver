@@ -7,7 +7,7 @@ public class Main
     public static void main(String[] args)
     {
         Board sudokuBoard = new Board(3, 30, false);
-        Solver sudokuSolver = sudokuBoard.getBoardSolver();
+        Solver sudokuSolver = sudokuBoard.getSolver();
         int value;
         int row;
         int column;

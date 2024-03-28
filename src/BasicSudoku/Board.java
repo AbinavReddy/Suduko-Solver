@@ -8,7 +8,7 @@ public class Board
     private final int boardLengthWidth;
     private final int boardSize;
     private final int availableCells;
-    private int filledCells = 0;
+    private int filledCells;
     private String errorMessage;
     private Solver solver;
 
@@ -17,19 +17,35 @@ public class Board
         // Danny & Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
-        board = new int [boardSize][boardSize];
         availableCells = boardSize * boardSize;
 
-        initializeBoard(initialClues, emptySubBoardsAllowed);
+        /*
+        do
+        {
+            solver = new Solver(this);
+
+            initializeBoard(initialClues, emptySubBoardsAllowed);
+        }
+        while(!solver.possibleValuesInCells()); // generate new board till not obviously unsolvable
+        */
+
+        // temp
+        board = new int[boardSize][boardSize];
+        filledCells = 0;
 
         solver = new Solver(this);
 
-        //initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
+        initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
+
+        solver.possibleValuesInCells();
     }
 
     private void initializeBoard(int filledFromStart, boolean subBoardsCanBeEmpty)
     {
         // Danny & Abinav
+        board = new int[boardSize][boardSize];
+        filledCells = 0;
+
         Random randomNumber = new Random();
         int value;
         int row;
@@ -236,7 +252,7 @@ public class Board
         return errorMessage;
     }
 
-    public Solver getBoardSolver()
+    public Solver getSolver()
     {
         // Danny
         return solver;
