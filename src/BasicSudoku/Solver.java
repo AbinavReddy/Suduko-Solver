@@ -177,7 +177,6 @@ public class Solver
                 }
 
                 valuesOfKey2.removeAll(values);
-                if(valuesOfKey2.isEmpty()) keysToRemove.add(Key2);
             }
         }
     }
