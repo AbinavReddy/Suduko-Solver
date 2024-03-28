@@ -12,7 +12,7 @@ public class Solver
     private int[][] valuePossibleCountRows; // [value][row]
     private int[][] valuePossibleCountColumns; // [value][column]
     private int[][] valuePossibleCountSubBoards; // [value][sub-board]
-    private  List<String> keysToRemove = new ArrayList<>();
+
 
     public Solver(Board board)
     {
@@ -112,6 +112,9 @@ public class Solver
 
     public void nakedSingles() {
         // Abinav & Yahya
+
+        List<String> keysToRemove = new ArrayList<>();
+
         for (String key : possibleNumbers.keySet()) {
             String[] parts = key.split(",");
             int row = Integer.parseInt(parts[0]);
@@ -125,17 +128,33 @@ public class Solver
                 keysToRemove.add(key);
             }
         }
-        removeKeysHavingEmptyList();
+
+        for (String key : keysToRemove) {
+            if(!keysToRemove.isEmpty()) possibleNumbers.remove(key);
+        }
+
+        EliminateEmptyLists();
     }
 
-    public void removeKeysHavingEmptyList () {
+    public void EliminateEmptyLists(){
         // Abinav
-        for (String key : keysToRemove) {
-            if(!keysToRemove.isEmpty()) {
-                possibleNumbers.remove(key);
-            }
+        List<String> removeKeys = new ArrayList<>();
+
+        for (String key : possibleNumbers.keySet()){
+            String[] parts = key.split(",");
+            int row = Integer.parseInt(parts[0]);
+            int column = Integer.parseInt(parts[1]);
+            List<Integer> values = possibleNumbers.get(key);
+            if(values.isEmpty()) removeKeys.add(key);
         }
+
+        for (String keys : removeKeys) {
+            possibleNumbers.remove(keys);
+        }
+
     }
+
+
 
     public void removeNumberFromOtherCandidate(String key,List<Integer> values) {
         // Abinav
