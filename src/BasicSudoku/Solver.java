@@ -37,11 +37,10 @@ public class Solver
                     for (int number = 1; number <= boardSize; number++) {
                         if (board.checkPlacementRow(rows, number) && board.checkPlacementColumn(columns, number) && board.checkPlacementSubBoard(rows, columns, number)) {
                             listOfPosNumbers.add(number);
-
                             updatePossibleCounts(number, rows, columns, true);
                         }
                     }
-                    possibleNumbers.put(currentPosition,listOfPosNumbers);
+                   if(!listOfPosNumbers.isEmpty()) possibleNumbers.put(currentPosition,listOfPosNumbers);
                 }
             }
         }
@@ -91,6 +90,8 @@ public class Solver
                 removeNumberFromOtherCandidate(key,values);
                 keysToRemove.add(key);
             }
+
+            if (values.isEmpty()) keysToRemove.add(key);
         }
         removeKeysHavingEmptyList();
     }
@@ -99,16 +100,6 @@ public class Solver
         // Abinav
         for (String key : keysToRemove) {
             if(!keysToRemove.isEmpty()) {
-                possibleNumbers.remove(key);
-            }
-        }
-
-        for (String key : possibleNumbers.keySet()) {
-            String[] parts = key.split(",");
-            int row = Integer.parseInt(parts[0]);
-            int column = Integer.parseInt(parts[1]);
-            List<Integer> values = possibleNumbers.get(key);
-            if(values.isEmpty()){
                 possibleNumbers.remove(key);
             }
         }
