@@ -26,7 +26,7 @@ public class Board
 
             initializeBoard(initialClues, emptySubBoardsAllowed);
         }
-        while(!solver.possibleValuesInCells()); // generate new board till not obviously unsolvable
+        while(!solver.possibleValuesInCells()); // generate new board until not obviously unsolvable
         */
 
         // temp
@@ -205,6 +205,19 @@ public class Board
         // Abinav
         int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
         return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards);
+    }
+
+    public boolean solveBoard()
+    {
+        // Danny
+        if(!solver.solveWithStrategies())
+        {
+            errorMessage = "ERROR: The solver was unable to solve the puzzle!";
+
+            return false;
+        }
+
+        return true;
     }
     
     public boolean isGameFinished() 

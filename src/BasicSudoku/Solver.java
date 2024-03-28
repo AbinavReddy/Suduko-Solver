@@ -1,19 +1,18 @@
 package BasicSudoku;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Solver
 {
     Board board;
     final int boardSize;
     final int boardLengthWidth;
-    private HashMap<String, List<Integer>> possibleNumbers = new HashMap<String, List<Integer>>();
-    private int[][] valuePossibleCountRows; // [value][row], these are used for simpler and quicker algorithms
+    private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
+    private int possibleNumbersCount;
+    private int[][] valuePossibleCountRows; // [value][row]
     private int[][] valuePossibleCountColumns; // [value][column]
     private int[][] valuePossibleCountSubBoards; // [value][sub-board]
-    private  List<String> keysToRemove = new ArrayList<String>();
+    private  List<String> keysToRemove = new ArrayList<>();
 
     public Solver(Board board)
     {
@@ -60,19 +59,21 @@ public class Solver
         // Danny
         if(increase)
         {
+            possibleNumbersCount++;
             valuePossibleCountRows[value][row]++;
             valuePossibleCountColumns[value][column]++;
             valuePossibleCountSubBoards[value][board.findSubBoardNumber(row, column)]++;
         }
         else
         {
+            possibleNumbersCount--;
             valuePossibleCountRows[value][row]--;
             valuePossibleCountColumns[value][column]--;
             valuePossibleCountSubBoards[value][board.findSubBoardNumber(row, column)]--;
         }
     }
 
-    public void print1() {
+    public void printPossibilities() {
         // Abinav & Yahya
         for (int rows = 0; rows < boardSize; rows++) {
             for (int columns = 0; columns < boardSize; columns++) {
@@ -83,6 +84,29 @@ public class Solver
                 }
             }
         }
+    }
+
+    public boolean solveWithStrategies()
+    {
+        // to do
+        while(!board.isGameFinished())
+        {
+            int possibleCountBefore = possibleNumbersCount;
+
+            // solving strategies go here
+            nakedSingles();
+            intersectionRemoval();
+            nakedSingles();
+            wingStrategies();
+            nakedSingles();
+
+            if(possibleCountBefore == possibleNumbersCount) // board is unsolvable with strategies, try backtracking
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public void nakedSingles() {
@@ -145,9 +169,7 @@ public class Solver
     {
         // Danny
         pointingDuplicatesWithBLR(true);
-        nakedSingles(); // remove keys of size <= 1
         pointingDuplicatesWithBLR(false);
-        nakedSingles();
     }
 
     private void pointingDuplicatesWithBLR(boolean processingRows)
@@ -250,13 +272,9 @@ public class Solver
     {
         // Danny
         xWing(true);
-        nakedSingles(); // remove keys of size <= 1
         xWing(false);
-        nakedSingles();
         yWingWithXYZExtension(false);
-        nakedSingles();
         yWingWithXYZExtension(true);
-        nakedSingles();
     }
 
     private void xWing(boolean processingRows)
