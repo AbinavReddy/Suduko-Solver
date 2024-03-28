@@ -91,7 +91,9 @@ public class Solver
                 keysToRemove.add(key);
             }
 
-            if (values.isEmpty()) keysToRemove.add(key);
+            else if (values.isEmpty()){
+                keysToRemove.add(key);
+            }
         }
         removeKeysHavingEmptyList();
     }
