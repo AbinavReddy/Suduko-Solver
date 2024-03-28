@@ -4,15 +4,11 @@ public class BoardTester
 {
     public static void main(String[] args)
     {
-        Board testBoard = new Board(3);
-        Solver solver = new Solver(testBoard);
+        Board testBoard = new Board(3, 30, false);
+        Solver testSolver = testBoard.getBoardSolver();
 
         printBoard(testBoard);
-        solver.possibleValuesInCells();
-        solver.print1();
-        solver.nakedSingles();
-        printBoard(testBoard);
-        solver.print1();
+        testSolver.print1();
     }
 
     public static void printBoard(Board boardToPrint)

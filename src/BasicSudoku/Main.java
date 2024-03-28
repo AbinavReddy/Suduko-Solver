@@ -6,7 +6,14 @@ public class Main
 {
     public static void main(String[] args)
     {
-        Board sudokuBoard = new Board(3);
+        Board sudokuBoard = new Board(3, 30, false);
+        Solver sudokuSolver = sudokuBoard.getBoardSolver();
+        int value;
+        int row;
+        int column;
+        int previousValue = 0;
+        int previousRow = 0;
+        int previousColumn = 0;
 
         System.out.println();
         System.out.println("WELCOME TO SUDOKU!");
@@ -15,6 +22,7 @@ public class Main
         System.out.println("1. Type coordinates for cells in the form of 'row column' (separated by space) and press enter.");
         System.out.println("2. Type the value you want to place in the given cell and press enter.");
         System.out.println("3. Only use valid rows, columns and values (all from 1-" + sudokuBoard.getBoardSize() + ").");
+        System.out.println("4. Type 0 0 and press enter when typing coordinates to revert your latest placement.");
         System.out.println();
         System.out.println("Let the solving commence!");
         System.out.print("-----------------------------------------------------------------------------------------------");
@@ -29,13 +37,37 @@ public class Main
             System.out.println();
             System.out.println("Cell:");
 
-            int row = console.nextInt() - 1;
-            int column = console.nextInt() - 1;
+            row = console.nextInt() - 1;
+            column = console.nextInt() - 1;
+
+            if(row == -1 && column == -1)
+            {
+                if(previousValue != 0)
+                {
+                    sudokuBoard.setBoardValue(previousRow, previousColumn, 0);
+                    sudokuSolver.possibleValuesInCells();
+                    sudokuSolver.updatePossibleCounts(previousValue, previousRow, previousColumn, true);
+
+                    previousValue = 0;
+
+                    System.out.println("Previous placement reversed!");
+                    System.out.println("------------------------");
+                }
+                else
+                {
+                    System.out.println("You haven't made a placement to reverse yet!");
+                    System.out.println("------------------------");
+                }
+
+                BoardTester.printBoard(sudokuBoard);
+
+                continue;
+            }
 
             System.out.println();
             System.out.println("Value:");
 
-            int value = console.nextInt();
+            value = console.nextInt();
 
             System.out.println();
 
@@ -46,8 +78,14 @@ public class Main
             }
             else
             {
+                System.out.println(sudokuBoard.getErrorMessage());
+
                 continue;
             }
+
+            previousValue = value;
+            previousRow = row;
+            previousColumn = column;
 
             BoardTester.printBoard(sudokuBoard);
         }
