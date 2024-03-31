@@ -12,20 +12,6 @@ public class BoardTester
         testSolver.nakedSingles();
         printBoard(testBoard);
         testSolver.printPossibilities();
-        testSolver.nakedSingles();
-        printBoard(testBoard);
-        testSolver.printPossibilities();
-        testSolver.nakedSingles();
-        printBoard(testBoard);
-        testSolver.printPossibilities();
-        testSolver.nakedSingles();
-        printBoard(testBoard);
-        testSolver.printPossibilities();
-        testSolver.nakedSingles();
-        printBoard(testBoard);
-        testSolver.printPossibilities();
-
-        System.out.println();
     }
 
     public static void printBoard(Board boardToPrint)
