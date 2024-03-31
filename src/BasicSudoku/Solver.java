@@ -408,7 +408,7 @@ public class Solver
 
         int observersNeeded = !runWithExtension ? 2 : 3;
         int currentHingeValue;
-        int previousHingeValue;
+        int firstHingeValue;
         int hingeValue1;
         int hingeValue2;
         int observerCandidateValue1;
@@ -489,7 +489,7 @@ public class Solver
                 observerValues = new ArrayList<>();
                 observerPositions = new ArrayList<>();
 
-                previousHingeValue = 0;
+                firstHingeValue = 0;
                 hingeValue1 = hingeValues.get(j)[0];
                 hingeValue2 = hingeValues.get(j)[1];
 
@@ -509,7 +509,7 @@ public class Solver
                         {
                             currentHingeValue = observerCandidateValue1 != i ? observerCandidateValue1 : observerCandidateValue2;
 
-                            if(currentHingeValue != previousHingeValue) // make sure observers contain different hinge values
+                            if(currentHingeValue != firstHingeValue) // make sure observers contain different hinge values
                             {
                                 if(runWithExtension && observerValues.isEmpty()) // in xYZWing the hinge itself is always an observer
                                 {
@@ -525,7 +525,7 @@ public class Solver
                                     break;
                                 }
 
-                                previousHingeValue = currentHingeValue;
+                                firstHingeValue = currentHingeValue;
                             }
                         }
                     }
@@ -593,8 +593,6 @@ public class Solver
                             updatePossibleCounts(i, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
 
                             possibleNumbers.get(observedKey).remove((Integer) i);
-
-                            System.out.println(i);
                         }
                     }
                 }
@@ -620,6 +618,9 @@ public class Solver
         List<String> observedByObserverC;
         List<String> observedByObserverD;
 
+        int currentHingeValue;
+        int firstHingeValue;
+        int secondHingeValue;
         int hingeValue1;
         int hingeValue2;
         int hingeValue3;
@@ -653,23 +654,31 @@ public class Solver
                 {
                     String key = (j + "," + k);
 
-                    if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
+                    if(possibleNumbers.get(key) != null)
                     {
-                        cellsContainingValuePositions.add(new int[] {j, k}); // save all keys that contains value regardless of size or runWithExtension
-
-                        if(possibleNumbers.get(key).size() == 4) // save all keys of size 4 that contains value ("hinges"), omitting value
+                        if(possibleNumbers.get(key).contains(i))
                         {
-                            substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
-                            substituteB = !possibleNumbers.get(key).get(substituteA).equals(possibleNumbers.get(key).get(1)) && possibleNumbers.get(key).get(1) != i ? 1 : 2;
-                            substituteC = !possibleNumbers.get(key).get(substituteB).equals(possibleNumbers.get(key).get(2)) && possibleNumbers.get(key).get(2) != i ? 2 : 3;
+                            cellsContainingValuePositions.add(new int[] {j, k}); // save all keys that contains value regardless of size or runWithExtension
 
-                            hingeValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB), possibleNumbers.get(key).get(substituteC)});
-                            hingePositions.add(new int[] {j, k});
+                            if(possibleNumbers.get(key).size() == 4) // save all keys of size 4 that contains value ("hinges"), omitting value
+                            {
+                                substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
+                                substituteB = !possibleNumbers.get(key).get(substituteA).equals(possibleNumbers.get(key).get(1)) && possibleNumbers.get(key).get(1) != i ? 1 : 2;
+                                substituteC = !possibleNumbers.get(key).get(substituteB).equals(possibleNumbers.get(key).get(2)) && possibleNumbers.get(key).get(2) != i ? 2 : 3;
+
+                                hingeValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB), possibleNumbers.get(key).get(substituteC)});
+                                hingePositions.add(new int[] {j, k});
+                            }
+                            else if(possibleNumbers.get(key).size() == 2) // save all keys of size 2 that contains value ("observer candidates")
+                            {
+                                observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
+                                observerCandidatePositions.add(new int[] {j, k});
+                            }
                         }
-                        else if(possibleNumbers.get(key).size() == 2) // save all keys of size 2 that contains value ("observer candidates")
+                        else if(possibleNumbers.get(key).size() == 3) // save all keys of size 3 that doesn't contain value ("hinges")
                         {
-                            observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
-                            observerCandidatePositions.add(new int[] {j, k});
+                            hingeValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1), possibleNumbers.get(key).get(2)});
+                            hingePositions.add(new int[] {j, k});
                         }
                     }
                 }
@@ -682,6 +691,8 @@ public class Solver
                 nonRestrictedValues = new ArrayList<>();
                 nonRestrictedPositions = new ArrayList<>();
 
+                firstHingeValue = 0;
+                secondHingeValue = 0;
                 hingeValue1 = hingeValues.get(j)[0];
                 hingeValue2 = hingeValues.get(j)[1];
                 hingeValue3 = hingeValues.get(j)[2];
@@ -691,7 +702,7 @@ public class Solver
                     observerCandidateValue1 = observerCandidateValues.get(k)[0];
                     observerCandidateValue2 = observerCandidateValues.get(k)[1];
 
-                    if(observerCandidateValue1 == hingeValue1 || observerCandidateValue1 == hingeValue2 || observerCandidateValue1 == hingeValue3 || observerCandidateValue2 == hingeValue1 || observerCandidateValue2 == hingeValue2  || observerCandidateValue2 == hingeValue3)
+                    if(hingeValue1 == observerCandidateValue1 || hingeValue1 == observerCandidateValue2 || hingeValue2 == observerCandidateValue1 || hingeValue2 == observerCandidateValue2 || hingeValue3 == observerCandidateValue1 || hingeValue3 == observerCandidateValue2)
                     {
                         hingeRow = hingePositions.get(j)[0];;
                         hingeColumn = hingePositions.get(j)[1];
@@ -700,8 +711,26 @@ public class Solver
 
                         if(hingeRow == observerCandidateRow || hingeColumn == observerCandidateColumn || board.findSubBoardNumber(hingeRow, hingeColumn) == board.findSubBoardNumber(observerCandidateRow, observerCandidateColumn)) // save all observers visible from hinge
                         {
-                            observerValues.add(new int[] {observerCandidateValue1, observerCandidateValue2});
-                            observerPositions.add(new int[] {observerCandidateRow, observerCandidateColumn});
+                            currentHingeValue = observerCandidateValue1 != i ? observerCandidateValue1 : observerCandidateValue2;
+
+                            if(currentHingeValue != firstHingeValue && currentHingeValue != secondHingeValue) // make sure observers contain different hinge values
+                            {
+                                observerValues.add(new int[] {observerCandidateValue1, observerCandidateValue2});
+                                observerPositions.add(new int[] {observerCandidateRow, observerCandidateColumn});
+
+                                if(observerValues.size() == 1)
+                                {
+                                    firstHingeValue = currentHingeValue;
+                                }
+                                else if(observerValues.size() == 2)
+                                {
+                                    secondHingeValue = currentHingeValue;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -724,8 +753,6 @@ public class Solver
 
                         nonRestrictedValues.add(observerValues.get(k));
                         nonRestrictedPositions.add(observerPositions.get(k));
-
-                        System.out.println();
                     }
                 }
 

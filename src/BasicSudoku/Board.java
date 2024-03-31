@@ -20,15 +20,6 @@ public class Board
         availableCells = boardSize * boardSize;
 
         /*
-        do
-        {
-            solver = new Solver(this);
-
-            initializeBoard(initialClues, emptySubBoardsAllowed);
-        }
-        while(!solver.possibleValuesInCells()); // generate new board until not obviously unsolvable
-        */
-
         // temp
         board = new int[boardSize][boardSize];
         filledCells = 0;
@@ -38,6 +29,17 @@ public class Board
         initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
 
         solver.possibleValuesInCells();
+        */
+
+
+        do
+        {
+            solver = new Solver(this);
+
+            initializeBoard(initialClues, emptySubBoardsAllowed);
+        }
+        while(!solver.possibleValuesInCells()); // generate new board until not obviously unsolvable
+
     }
 
     private void initializeBoard(int filledFromStart, boolean subBoardsCanBeEmpty)
