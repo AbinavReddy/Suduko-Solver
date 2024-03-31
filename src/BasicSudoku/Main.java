@@ -46,7 +46,7 @@ public class Main
                 {
                     sudokuBoard.setBoardValue(previousRow, previousColumn, 0);
                     sudokuSolver.possibleValuesInCells();
-                    sudokuSolver.updatePossibleCounts(previousValue, previousRow, previousColumn, true);
+                    sudokuSolver.updatePossibleCounts(previousValue, null, previousRow, previousColumn, true);
 
                     previousValue = 0;
 

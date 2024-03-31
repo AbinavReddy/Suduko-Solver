@@ -37,7 +37,7 @@ public class Solver
                     for (int number = 1; number <= boardSize; number++) {
                         if (board.checkPlacementRow(rows, number) && board.checkPlacementColumn(columns, number) && board.checkPlacementSubBoard(rows, columns, number)) {
                             listOfPosNumbers.add(number);
-                            updatePossibleCounts(number, rows, columns, true);
+                            updatePossibleCounts(number, null, rows, columns, true);
                         }
                     }
                    if(!listOfPosNumbers.isEmpty())
@@ -55,7 +55,7 @@ public class Solver
         return true;
     }
 
-    public void updatePossibleCounts(int value, int row, int column, boolean increase)
+    public void updatePossibleCounts(int value, List<Integer> valueList, int row, int column, boolean increase)
     {
         // Danny
         if(increase)
@@ -65,12 +65,22 @@ public class Solver
             valuePossibleCountColumns[value][column]++;
             valuePossibleCountSubBoards[value][board.findSubBoardNumber(row, column)]++;
         }
-        else
+        else if(valueList == null)
         {
             possibleNumbersCount--;
             valuePossibleCountRows[value][row]--;
             valuePossibleCountColumns[value][column]--;
             valuePossibleCountSubBoards[value][board.findSubBoardNumber(row, column)]--;
+        }
+        else
+        {
+            for(Integer valueInList : valueList)
+            {
+                possibleNumbersCount--;
+                valuePossibleCountRows[valueInList][row]--;
+                valuePossibleCountColumns[valueInList][column]--;
+                valuePossibleCountSubBoards[valueInList][board.findSubBoardNumber(row, column)]--;
+            }
         }
     }
 
@@ -122,7 +132,7 @@ public class Solver
             List<Integer> values = possibleNumbers.get(key);
             if (values.size() == 1) {
                 board.placeValueInCell(row, column, values.get(0));
-                updatePossibleCounts(values.get(0), row, column,false);
+                updatePossibleCounts(values.get(0), null, row, column,false);
 
                 removeNumberFromOtherCandidate(key,values);
                 keysToRemove.add(key);
@@ -173,7 +183,7 @@ public class Solver
             if((row == rowOfKey2) || (column == columnOfKey2) || (subBoardNo == subBoardNoOfKey2)){
                 if(valuesOfKey2.contains(values.get(0)))
                 {
-                    updatePossibleCounts(values.get(0), rowOfKey2, columnOfKey2,false);
+                    updatePossibleCounts(values.get(0), null, rowOfKey2, columnOfKey2,false);
                 }
 
                 valuesOfKey2.removeAll(values);
@@ -240,7 +250,7 @@ public class Solver
                                     {
                                         if(board.findSubBoardNumber(substituteA, substituteB) != previousSubBoard) // remove value from row or column if on other sub-boards
                                         {
-                                            updatePossibleCounts(i, substituteA, substituteB,false);
+                                            updatePossibleCounts(i, null, substituteA, substituteB,false);
 
                                             possibleNumbers.get(key).remove((Integer) i);
                                         }
@@ -269,7 +279,7 @@ public class Solver
 
                                             if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
                                             {
-                                                updatePossibleCounts(i, substituteA, substituteB,false);
+                                                updatePossibleCounts(i, null, substituteA, substituteB,false);
 
                                                 possibleNumbers.get(key).remove((Integer) i); // remove value from the rest of the sub-board
                                             }
@@ -361,7 +371,7 @@ public class Solver
 
                                         if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
                                         {
-                                            updatePossibleCounts(i, substituteC, substituteD,false);
+                                            updatePossibleCounts(i, null, substituteC, substituteD,false);
 
                                             possibleNumbers.get(key).remove((Integer) i);
                                         }
@@ -564,7 +574,7 @@ public class Solver
                         {
                             String[] parts = observedKey.split(",");
 
-                            updatePossibleCounts(i, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
+                            updatePossibleCounts(i, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
 
                             possibleNumbers.get(observedKey).remove((Integer) i);
                         }
