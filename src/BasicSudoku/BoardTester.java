@@ -9,16 +9,7 @@ public class BoardTester
 
         printBoard(testBoard);
         testSolver.printPossibilities();
-
-        if(testSolver.solveWithStrategies())
-        {
-            System.out.println("Could be solved!");
-        }
-        else
-        {
-            System.out.println("Couldn't be solved...");
-        }
-
+        testSolver.solveWithStrategies();
         printBoard(testBoard);
         testSolver.printPossibilities();
     }

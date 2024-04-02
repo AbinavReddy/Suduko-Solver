@@ -971,15 +971,6 @@ public class Solver
                                     updatePossibleCounts(i, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
 
                                     possibleNumbers.get(collectiveKey).remove((Integer) i);
-
-                                    if(!runWithExtension)
-                                    {
-                                        System.out.println("pos: " + possibleNumbers.get(collectiveKey) + " " + parts[0] + "," + parts[1] + " (" + i + ")");
-                                    }
-                                    else
-                                    {
-                                        System.out.println("pos: " + possibleNumbers.get(collectiveKey) + " " + parts[0] + "," + parts[1] + " (" + i + ")*");
-                                    }
                                 }
                             }
                         }
