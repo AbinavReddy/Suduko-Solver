@@ -9,7 +9,7 @@ public class BoardTester
 
         printBoard(testBoard);
         testSolver.printPossibilities();
-        testSolver.wXYZWing();
+        testSolver.wXYZWingExtended(false);
         printBoard(testBoard);
         testSolver.printPossibilities();
     }
