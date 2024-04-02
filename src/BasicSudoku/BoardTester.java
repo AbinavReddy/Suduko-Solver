@@ -9,7 +9,16 @@ public class BoardTester
 
         printBoard(testBoard);
         testSolver.printPossibilities();
-        testSolver.wXYZWingExtended(false);
+
+        if(testSolver.solveWithStrategies())
+        {
+            System.out.println("Could be solved!");
+        }
+        else
+        {
+            System.out.println("Couldn't be solved...");
+        }
+
         printBoard(testBoard);
         testSolver.printPossibilities();
     }
