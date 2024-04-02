@@ -19,6 +19,16 @@ public class Board
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
+        // temp
+        board = new int[boardSize][boardSize];
+        filledCells = 0;
+
+        solver = new Solver(this);
+
+        initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
+
+        solver.possibleValuesInCells();
+
         /*
         do
         {
@@ -29,15 +39,6 @@ public class Board
         while(!solver.possibleValuesInCells()); // generate new board until not obviously unsolvable
         */
 
-        // temp
-        board = new int[boardSize][boardSize];
-        filledCells = 0;
-
-        solver = new Solver(this);
-
-        initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
-
-        solver.possibleValuesInCells();
     }
 
     private void initializeBoard(int filledFromStart, boolean subBoardsCanBeEmpty)
@@ -210,11 +211,14 @@ public class Board
     public boolean solveBoard()
     {
         // Danny
-        if(!solver.solveWithStrategies())
+        if(!solver.solveWithStrategies()) // if true, try backtracking
         {
-            errorMessage = "ERROR: The solver was unable to solve the puzzle!";
+            if(!solver.solveWithBacktracking()) // if true, board is unsolvable
+            {
+                errorMessage = "ERROR: The solver was unable to solve the puzzle!";
 
-            return false;
+                return false;
+            }
         }
 
         return true;
