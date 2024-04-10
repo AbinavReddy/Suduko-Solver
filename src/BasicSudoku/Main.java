@@ -6,8 +6,9 @@ public class Main
 {
     public static void main(String[] args)
     {
-        Board sudokuBoard = new Board(3, 30, false);
+        Board sudokuBoard = new Board(3, false, 30, false);
         Solver sudokuSolver = sudokuBoard.getSolver();
+        boolean solvedBySolver = false;
         int value;
         int row;
         int column;
@@ -63,6 +64,16 @@ public class Main
 
                 continue;
             }
+            else if(row == -2 && column == -2)
+            {
+                sudokuBoard.solveBoard();
+
+                BoardTester.printBoard(sudokuBoard);
+
+                solvedBySolver = true;
+
+                break;
+            }
 
             System.out.println();
             System.out.println("Value:");
@@ -90,7 +101,14 @@ public class Main
             BoardTester.printBoard(sudokuBoard);
         }
 
-        System.out.println("You have solved the Sudoku-puzzle!");
+        if(!solvedBySolver)
+        {
+            System.out.println("You have solved the Sudoku-puzzle!");
+        }
+        else
+        {
+            System.out.println("The solver successfully solved the Sudoku-puzzle!");
+        }
 
         console.close();
     }
