@@ -14,12 +14,11 @@ public class Board
 
     public Board(int boardLengthWidth, boolean canBeUnsolvable, int initialClues, boolean emptySubBoardsAllowed)
     {
-        // Danny & Abinav
+        // Danny, Abinav & Yahya
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
-        /*
         // temp
         board = new int[boardSize][boardSize];
         filledCells = 0;
@@ -29,26 +28,25 @@ public class Board
         initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
 
         solver.possibleValuesInCells();
-        */
 
+        /*
         do
         {
             initializeBoard(initialClues, emptySubBoardsAllowed);
             solver = new Solver(this);
         }
-        while(!solver.possibleValuesInCells() || !canBeUnsolvable && !solver.isBoardSolvable()); // generate new board until not obviously unsolvable
+        while(!solver.possibleValuesInCells() || !canBeUnsolvable && !solver.isBoardSolvable());
+        */
     }
 
     public Board(Board boardToCopy)
     {
+        // Danny
         board = new int[boardToCopy.boardSize][boardToCopy.boardSize];
 
         for(int row = 0; row < boardToCopy.boardSize; row++)
         {
-            for(int column = 0; column < boardToCopy.boardSize; column++)
-            {
-                board[row][column] = boardToCopy.board[row][column];
-            }
+            System.arraycopy(boardToCopy.board[row], 0, board[row], 0, boardToCopy.boardSize);
         }
 
         boardLengthWidth = boardToCopy.boardLengthWidth;
@@ -228,6 +226,7 @@ public class Board
 
     public boolean solveBoard()
     {
+        // Danny
         if(!solver.solveWithStrategies())
         {
             errorMessage = "ERROR: The solver was unable to solve the puzzle!";
@@ -257,11 +256,6 @@ public class Board
         }
 
         board[row][column] = value;
-    }
-
-    public void setBoard(int[][] board)
-    {
-        this.board = board;
     }
 
     public int[][] getBoard()

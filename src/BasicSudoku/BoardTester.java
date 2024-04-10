@@ -9,7 +9,7 @@ public class BoardTester
 
         printBoard(testBoard);
         testSolver.printPossibilities();
-        //testSolver.solveWithStrategies();
+        testSolver.solveWithStrategies();
         printBoard(testBoard);
         testSolver.printPossibilities();
     }

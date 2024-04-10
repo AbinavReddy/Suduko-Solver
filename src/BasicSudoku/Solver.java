@@ -5,6 +5,7 @@ import java.util.*;
 public class Solver
 {
     Board board;
+    Board boardBackup; // for resolvability test
     final int boardSize;
     final int boardLengthWidth;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
@@ -28,7 +29,9 @@ public class Solver
 
     public Solver(Solver solverToCopy)
     {
+        // Danny
         board = solverToCopy.board;
+        boardBackup = solverToCopy.boardBackup;
         boardSize = solverToCopy.boardSize;
         boardLengthWidth = solverToCopy.boardLengthWidth;
         possibleNumbers = new HashMap<>(solverToCopy.possibleNumbers);
@@ -107,7 +110,11 @@ public class Solver
 
     public boolean isBoardSolvable()
     {
-        return false;
+        // Danny, Abinav & Yahya
+        boardBackup = new Board(board);
+        boardBackup.getSolver().board = boardBackup;
+
+        return boardBackup.solveBoard();
     }
 
     public void printPossibilities() {
@@ -125,10 +132,10 @@ public class Solver
 
     public boolean solveWithStrategies()
     {
-        /*
+        // Danny, Abinav & Yahya
         while(!board.isGameFinished())
         {
-            int possibleCountBefore = possibleNumbersCount;
+            int possibleCountBefore;
 
             do
             {
@@ -136,12 +143,10 @@ public class Solver
 
                 nakedSingles();
             }
-            while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size = 1
+            while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
 
-            // solving strategies go here (nakedSingles surrounding)
+            // solving strategies go here (nakedSingles after each)
             intersectionRemoval();
-            nakedSingles();
-            wingStrategies();
             nakedSingles();
 
             if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking
@@ -149,14 +154,13 @@ public class Solver
                 return solveWithBacktracking();
             }
         }
-        */
 
-        return solveWithBacktracking();
+        return true;
     }
 
     public boolean solveWithBacktracking()
     {
-        // Danny, Abinav, Yahya
+        // Danny, Abinav & Yahya
         for(int row = 0; row < boardSize; row++)
         {
             for(int column = 0; column < boardSize; column++)
@@ -168,7 +172,6 @@ public class Solver
                         if(board.checkPlacementRow(row, valueToTry) && board.checkPlacementColumn(column, valueToTry) && board.checkPlacementSubBoard(row, column, valueToTry))
                         {
                             board.setBoardValue(row, column, valueToTry);
-                            //updatePossibleCounts(valueToTry, null, row, column, false);
 
                             if(solveWithBacktracking())
                             {
@@ -177,7 +180,6 @@ public class Solver
                             else
                             {
                                 board.setBoardValue(row, column, 0);
-                                //updatePossibleCounts(valueToTry, null, row, column, true);
                             }
                         }
                     }
@@ -233,8 +235,6 @@ public class Solver
         }
 
     }
-
-
 
     public void removeNumberFromOtherCandidate(String key,List<Integer> values) {
         // Abinav
