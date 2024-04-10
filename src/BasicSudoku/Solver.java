@@ -13,7 +13,6 @@ public class Solver
     private int[][] valuePossibleCountColumns; // [value][column]
     private int[][] valuePossibleCountSubBoards; // [value][sub-board]
 
-
     public Solver(Board board)
     {
         // Danny
@@ -25,6 +24,28 @@ public class Solver
         valuePossibleCountRows = new int[boardSize + 1][boardSize];
         valuePossibleCountColumns = new int[boardSize + 1][boardSize];
         valuePossibleCountSubBoards = new int[boardSize + 1][boardSize];
+    }
+
+    public Solver(Solver solverToCopy)
+    {
+        board = solverToCopy.board;
+        boardSize = solverToCopy.boardSize;
+        boardLengthWidth = solverToCopy.boardLengthWidth;
+        possibleNumbers = new HashMap<>(solverToCopy.possibleNumbers);
+        possibleNumbersCount = solverToCopy.possibleNumbersCount;
+        valuePossibleCountRows = new int[boardSize + 1][boardSize];
+        valuePossibleCountColumns = new int[boardSize + 1][boardSize];;
+        valuePossibleCountSubBoards = new int[boardSize + 1][boardSize];;
+
+        for(int value = 1; value < boardSize; value++)
+        {
+            for(int rowColumnSubBoard = 0; rowColumnSubBoard < boardSize; rowColumnSubBoard++)
+            {
+                valuePossibleCountRows[value][rowColumnSubBoard] = solverToCopy.valuePossibleCountRows[value][rowColumnSubBoard];
+                valuePossibleCountColumns[value][rowColumnSubBoard] = solverToCopy.valuePossibleCountColumns[value][rowColumnSubBoard];
+                valuePossibleCountSubBoards[value][rowColumnSubBoard] = solverToCopy.valuePossibleCountSubBoards[value][rowColumnSubBoard];
+            }
+        }
     }
 
     public boolean possibleValuesInCells() {
@@ -84,6 +105,11 @@ public class Solver
         }
     }
 
+    public boolean isBoardSolvable()
+    {
+        return false;
+    }
+
     public void printPossibilities() {
         // Abinav & Yahya
         for (int rows = 0; rows < boardSize; rows++) {
@@ -99,10 +125,10 @@ public class Solver
 
     public boolean solveWithStrategies()
     {
-        // to do
+        /*
         while(!board.isGameFinished())
         {
-            int possibleCountBefore;
+            int possibleCountBefore = possibleNumbersCount;
 
             do
             {
@@ -113,24 +139,54 @@ public class Solver
             while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size = 1
 
             // solving strategies go here (nakedSingles surrounding)
-            nakedSingles();
             intersectionRemoval();
             nakedSingles();
             wingStrategies();
             nakedSingles();
 
-            if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies
+            if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking
             {
-                return false;
+                return solveWithBacktracking();
             }
         }
+        */
 
-        return true;
+        return solveWithBacktracking();
     }
 
     public boolean solveWithBacktracking()
     {
-        // to do
+        // Danny, Abinav, Yahya
+        for(int row = 0; row < boardSize; row++)
+        {
+            for(int column = 0; column < boardSize; column++)
+            {
+                if(board.getBoard()[row][column] == 0)
+                {
+                    for(int valueToTry = 1; valueToTry <= boardSize; valueToTry++)
+                    {
+                        if(board.checkPlacementRow(row, valueToTry) && board.checkPlacementColumn(column, valueToTry) && board.checkPlacementSubBoard(row, column, valueToTry))
+                        {
+                            board.setBoardValue(row, column, valueToTry);
+                            //updatePossibleCounts(valueToTry, null, row, column, false);
+
+                            if(solveWithBacktracking())
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                board.setBoardValue(row, column, 0);
+                                //updatePossibleCounts(valueToTry, null, row, column, true);
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 

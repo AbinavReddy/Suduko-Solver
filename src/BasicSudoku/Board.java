@@ -12,13 +12,14 @@ public class Board
     private String errorMessage;
     private Solver solver;
 
-    public Board(int boardLengthWidth, int initialClues, boolean emptySubBoardsAllowed)
+    public Board(int boardLengthWidth, boolean canBeUnsolvable, int initialClues, boolean emptySubBoardsAllowed)
     {
         // Danny & Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
+        /*
         // temp
         board = new int[boardSize][boardSize];
         filledCells = 0;
@@ -28,17 +29,34 @@ public class Board
         initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
 
         solver.possibleValuesInCells();
-
-        /*
-        do
-        {
-            solver = new Solver(this);
-
-            initializeBoard(initialClues, emptySubBoardsAllowed);
-        }
-        while(!solver.possibleValuesInCells()); // generate new board until not obviously unsolvable
         */
 
+        do
+        {
+            initializeBoard(initialClues, emptySubBoardsAllowed);
+            solver = new Solver(this);
+        }
+        while(!solver.possibleValuesInCells() || !canBeUnsolvable && !solver.isBoardSolvable()); // generate new board until not obviously unsolvable
+    }
+
+    public Board(Board boardToCopy)
+    {
+        board = new int[boardToCopy.boardSize][boardToCopy.boardSize];
+
+        for(int row = 0; row < boardToCopy.boardSize; row++)
+        {
+            for(int column = 0; column < boardToCopy.boardSize; column++)
+            {
+                board[row][column] = boardToCopy.board[row][column];
+            }
+        }
+
+        boardLengthWidth = boardToCopy.boardLengthWidth;
+        boardSize = boardToCopy.boardSize;
+        availableCells = boardToCopy.availableCells;
+        filledCells = boardToCopy.filledCells;
+        errorMessage = boardToCopy.errorMessage;
+        solver = new Solver(boardToCopy.solver);
     }
 
     private void initializeBoard(int filledFromStart, boolean subBoardsCanBeEmpty)
@@ -210,15 +228,11 @@ public class Board
 
     public boolean solveBoard()
     {
-        // Danny
-        if(!solver.solveWithStrategies()) // if true, try backtracking
+        if(!solver.solveWithStrategies())
         {
-            if(!solver.solveWithBacktracking()) // if true, board is unsolvable
-            {
-                errorMessage = "ERROR: The solver was unable to solve the puzzle!";
+            errorMessage = "ERROR: The solver was unable to solve the puzzle!";
 
-                return false;
-            }
+            return false;
         }
 
         return true;
@@ -243,6 +257,11 @@ public class Board
         }
 
         board[row][column] = value;
+    }
+
+    public void setBoard(int[][] board)
+    {
+        this.board = board;
     }
 
     public int[][] getBoard()
