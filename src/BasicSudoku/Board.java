@@ -14,7 +14,7 @@ public class Board
 
     public Board(int boardLengthWidth, boolean canBeUnsolvable, int initialClues, boolean emptySubBoardsAllowed)
     {
-        // Danny, Abinav & Yahya
+        // Danny & Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
@@ -41,7 +41,7 @@ public class Board
 
     public Board(Board boardToCopy)
     {
-        // Danny
+        // Danny & Abinav
         board = new int[boardToCopy.boardSize][boardToCopy.boardSize];
 
         for(int row = 0; row < boardToCopy.boardSize; row++)

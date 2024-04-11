@@ -5,7 +5,7 @@ import java.util.*;
 public class Solver
 {
     Board board;
-    Board boardBackup; // for resolvability test
+    Board solvableTestBoard;
     final int boardSize;
     final int boardLengthWidth;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
@@ -29,9 +29,9 @@ public class Solver
 
     public Solver(Solver solverToCopy)
     {
-        // Danny
+        // Danny & Abinav
         board = solverToCopy.board;
-        boardBackup = solverToCopy.boardBackup;
+        solvableTestBoard = solverToCopy.solvableTestBoard;
         boardSize = solverToCopy.boardSize;
         boardLengthWidth = solverToCopy.boardLengthWidth;
         possibleNumbers = new HashMap<>(solverToCopy.possibleNumbers);
@@ -108,13 +108,13 @@ public class Solver
         }
     }
 
-    public boolean isBoardSolvable()
+    public boolean isBoardSoluble()
     {
-        // Danny, Abinav & Yahya
-        boardBackup = new Board(board);
-        boardBackup.getSolver().board = boardBackup;
+        // Danny, Yahya & Abinav
+        solvableTestBoard = new Board(board);
+        solvableTestBoard.getSolver().board = solvableTestBoard;
 
-        return boardBackup.solveBoard();
+        return solvableTestBoard.solveBoard();
     }
 
     public void printPossibilities() {
@@ -146,7 +146,9 @@ public class Solver
             while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
 
             // solving strategies go here (nakedSingles after each)
-            intersectionRemoval();
+            pointingDuplicatesWithBLR(false);
+            nakedSingles();
+            pointingDuplicatesWithBLR(true);
             nakedSingles();
 
             if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking
@@ -193,7 +195,7 @@ public class Solver
     }
 
     public void nakedSingles() {
-        // Abinav & Yahya
+        // Abinav, Yahya & Danny
 
         List<String> keysToRemove = new ArrayList<>();
 
@@ -259,13 +261,6 @@ public class Solver
                 valuesOfKey2.removeAll(values);
             }
         }
-    }
-
-    public void intersectionRemoval()
-    {
-        // Danny
-        pointingDuplicatesWithBLR(true);
-        pointingDuplicatesWithBLR(false);
     }
 
     private void pointingDuplicatesWithBLR(boolean processingRows)
@@ -362,17 +357,6 @@ public class Solver
                 }
             }
         }
-    }
-
-    public void wingStrategies()
-    {
-        // Danny
-        xWing(true);
-        xWing(false);
-        yWingWithXYZExtension(false);
-        yWingWithXYZExtension(true);
-        wXYZWingWithExtension(false);
-        wXYZWingWithExtension(true);
     }
 
     private void xWing(boolean processingRows)
