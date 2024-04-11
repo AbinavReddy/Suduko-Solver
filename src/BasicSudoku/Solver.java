@@ -108,7 +108,7 @@ public class Solver
         }
     }
 
-    public boolean isBoardSoluble()
+    public boolean isBoardSolvable()
     {
         // Danny, Yahya & Abinav
         solvableTestBoard = new Board(board);
@@ -149,6 +149,10 @@ public class Solver
             pointingDuplicatesWithBLR(false);
             nakedSingles();
             pointingDuplicatesWithBLR(true);
+            nakedSingles();
+            wXYZWingWithExtension(false);
+            nakedSingles();
+            wXYZWingWithExtension(true);
             nakedSingles();
 
             if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking
@@ -270,8 +274,6 @@ public class Solver
         int valuePossibleCount;
         int valueSubBoardCount;
         int previousSubBoard;
-        int startingRowBLR;
-        int startingColumnBLR;
 
         int substituteA; // variables used to avoid repetitive code
         int substituteB;
@@ -328,19 +330,19 @@ public class Solver
                         {
                             if(valueSubBoardCount >= targetValueCount && valuePossibleCount == valueSubBoardCount) // pointing duplicates found, but value is only present on a single sub-board (perform BLR)
                             {
-                                startingRowBLR = (previousSubBoard / boardLengthWidth) * boardLengthWidth;
-                                startingColumnBLR = (previousSubBoard - startingRowBLR) * boardLengthWidth;
+                                int startingRow = (previousSubBoard / boardLengthWidth) * boardLengthWidth;
+                                int startingColumn = (previousSubBoard - startingRow) * boardLengthWidth;
 
                                 for(int m = 0; m < boardLengthWidth; m++) // added to starting row or column
                                 {
-                                    if(processingRows && startingRowBLR + m != j || !processingRows && startingColumnBLR + m != j)
+                                    if(processingRows && startingRow + m != j || !processingRows && startingColumn + m != j)
                                     {
                                         for(int n = 0; n < boardLengthWidth; n++) // added to starting row or column
                                         {
                                             substituteA = processingRows ? m : n;
                                             substituteB = processingRows ? n : m;
 
-                                            String key = (startingRowBLR + substituteA) + "," + (startingColumnBLR + substituteB);
+                                            String key = (startingRow + substituteA) + "," + (startingColumn + substituteB);
 
                                             if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
                                             {
@@ -359,662 +361,390 @@ public class Solver
         }
     }
 
-    private void xWing(boolean processingRows)
-    {
-        // Danny
-        int valuePossibleCount;
-        List<int[]> rowColumnPositions;
-        List<List<int[]>> processedForXWings;
-
-        int substituteA; // variables used to avoid repetitive code
-        int substituteB;
-        int substituteC;
-        int substituteD;
-
-        for(int i = 1; i <= boardSize; i++) // value
-        {
-            processedForXWings = new ArrayList<>();
-
-            for (int j = 0; j < boardSize; j++) // row or column
-            {
-                valuePossibleCount = processingRows ? valuePossibleCountRows[i][j] : valuePossibleCountColumns[i][j];
-                rowColumnPositions = new ArrayList<>();
-
-                if(valuePossibleCount == 2) // skip if value already present or possible more than 2 places in row or column
-                {
-                    for(int k = 0; k < boardSize; k++) // row or column
-                    {
-                        substituteA = processingRows ? j : k;
-                        substituteB = processingRows ? k : j;
-
-                        String key = (substituteA + "," + substituteB);
-
-                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
-                        {
-                            rowColumnPositions.add(new int[] {substituteA, substituteB}); // store position of value
-                        }
-
-                        if(k == boardSize - 1)
-                        {
-                            processedForXWings.add(rowColumnPositions); // x-wing candidate found
-                        }
-                    }
-                }
-            }
-
-            if(processedForXWings.size() >= 2) // enough candidates found
-            {
-                substituteA = processingRows ? 1 : 0; // 0 = row index, 1 = column index
-
-                for(int j = 0; j < processedForXWings.size() - 1; j++)
-                {
-                    for(int k = j + 1; k < processedForXWings.size(); k++)
-                    {
-                        if(processedForXWings.get(j).get(0)[substituteA] == processedForXWings.get(k).get(0)[substituteA] && processedForXWings.get(j).get(1)[substituteA] == processedForXWings.get(k).get(1)[substituteA]) // check if there is an x-wing
-                        {
-                            substituteB = processingRows ? 0 : 1; // 0 = row index, 1 = column index
-
-                            for(int l = 0; l < boardSize; l++)
-                            {
-                                if(l != processedForXWings.get(j).get(0)[substituteB] && l != processedForXWings.get(k).get(1)[substituteB]) // don't remove value from x-wing rows or columns
-                                {
-                                    substituteC = processingRows ? l : processedForXWings.get(j).get(0)[substituteA];
-                                    substituteD = processingRows ? processedForXWings.get(j).get(0)[substituteA] : l;
-
-                                    for(int m = 1; m <= 2; m++) // remove value elsewhere in both rows or columns
-                                    {
-                                        String key = (substituteC + "," + substituteD);
-
-                                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
-                                        {
-                                            updatePossibleCounts(i, null, substituteC, substituteD,false);
-
-                                            possibleNumbers.get(key).remove((Integer) i);
-                                        }
-
-                                        if(m == 1)
-                                        {
-                                            substituteC = processingRows ? l : processedForXWings.get(k).get(1)[substituteA];
-                                            substituteD = processingRows ? processedForXWings.get(k).get(1)[substituteA] : l;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public void yWingWithXYZExtension(boolean runWithExtension)
-    {
-        // Danny
-        List<int[]> cellsContainingValuePositions;
-        List<int[]> hingeValues;
-        List<int[]> hingePositions;
-        List<int[]> observerCandidateValues;
-        List<int[]> observerCandidatePositions;
-        List<int[]> observerValues;
-        List<int[]> observerPositions;
-        List<String> observedCollectively;
-        List<List<String>> observedIndividually;
-
-        int observersNeeded = !runWithExtension ? 2 : 3;
-        int hingeValue1;
-        int hingeValue2;
-        int observerCandidateValue;
-        int observerCandidateRow;
-        int observerCandidateColumn;
-        int cellWithValueRow;
-        int cellWithValueColumn;
-        int hingeRow;
-        int hingeColumn;
-        int observerRow;
-        int observerColumn;
-
-        int substituteA; // variables used to avoid repetitive code
-        int substituteB;
-        int substituteC;
-        int substituteD;
-
-        for(int i = 1; i <= boardSize; i++) // value
-        {
-            cellsContainingValuePositions = new ArrayList<>();
-            hingeValues = new ArrayList<>();
-            hingePositions = new ArrayList<>();
-            observerCandidateValues = new ArrayList<>();
-            observerCandidatePositions = new ArrayList<>();
-
-            for(int j = 0; j < boardSize; j++) // row
-            {
-                for (int k = 0; k < boardSize; k++) // column
-                {
-                    String key = (j + "," + k);
-
-                    if(possibleNumbers.get(key) != null)
-                    {
-                        if(possibleNumbers.get(key).contains(i)) // save all keys that contains value regardless of size or runWithExtension
-                        {
-                            cellsContainingValuePositions.add(new int[] {j, k});
-                        }
-
-                        if(!runWithExtension)
-                        {
-                            if(possibleNumbers.get(key).size() == 2)
-                            {
-                                if(!possibleNumbers.get(key).contains(i)) // save all keys of size 2 that doesn't contain value ("hinges")
-                                {
-                                    hingeValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
-                                    hingePositions.add(new int[] {j, k});
-                                }
-                                else // save all keys of size 2 that contains value ("observer candidates"), omitting value
-                                {
-                                    substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
-
-                                    observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(substituteA)});
-                                    observerCandidatePositions.add(new int[] {j, k});
-                                }
-                            }
-                        }
-                        else if(possibleNumbers.get(key).contains(i)) // runWithExtension is true
-                        {
-                            if(possibleNumbers.get(key).size() == 3) // save all keys of size 3 that contains value ("hinges"), omitting value
-                            {
-                                substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
-                                substituteB = !possibleNumbers.get(key).get(substituteA).equals(possibleNumbers.get(key).get(1)) && possibleNumbers.get(key).get(1) != i ? 1 : 2;
-
-                                hingeValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB)});
-                                hingePositions.add(new int[] {j, k});
-                            }
-                            else if(possibleNumbers.get(key).size() == 2) // save all keys of size 2 that contains value ("observer candidates"), omitting value
-                            {
-                                substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
-
-                                observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(substituteA)});
-                                observerCandidatePositions.add(new int[] {j, k});
-                            }
-                        }
-                    }
-                }
-            }
-
-            for(int j = 0; j < hingeValues.size(); j++) // hingeValues index
-            {
-                observerValues = new ArrayList<>();
-                observerPositions = new ArrayList<>();
-
-                hingeValue1 = hingeValues.get(j)[0];
-                hingeValue2 = hingeValues.get(j)[1];
-
-                for(int k = 0; k < observerCandidateValues.size(); k++) // observerCandidateValues index
-                {
-                    observerCandidateValue = observerCandidateValues.get(k)[0];
-
-                    if(hingeValue1 == observerCandidateValue || hingeValue2 == observerCandidateValue)
-                    {
-                        hingeRow = hingePositions.get(j)[0];;
-                        hingeColumn = hingePositions.get(j)[1];
-                        observerCandidateRow = observerCandidatePositions.get(k)[0];
-                        observerCandidateColumn = observerCandidatePositions.get(k)[1];
-
-                        if(hingeRow == observerCandidateRow || hingeColumn == observerCandidateColumn || board.findSubBoardNumber(hingeRow, hingeColumn) == board.findSubBoardNumber(observerCandidateRow, observerCandidateColumn)) // save all observers visible from hinge
-                        {
-                            if(runWithExtension && observerValues.isEmpty()) // in extended xYZWing the hinge itself is always an observer
-                            {
-                                observerValues.add(new int[] {hingeValue1, hingeValue2});
-                                observerPositions.add(new int[] {hingeRow, hingeColumn});
-                            }
-
-                            observerValues.add(new int[] {observerCandidateValue});
-                            observerPositions.add(new int[] {observerCandidateRow, observerCandidateColumn});
-
-                            if(observerValues.size() == observersNeeded)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if(!runWithExtension && observerValues.size() == 2 || runWithExtension && observerValues.size() == 3) // enough observers found, find all visible cells with value from observers
-                {
-                    String key;
-                    observedCollectively = new ArrayList<>();
-                    observedIndividually = new ArrayList<>();
-
-                    for(int k = 0; k < observerValues.size(); k++) // observer index
-                    {
-                        observerRow = observerPositions.get(k)[0];
-                        observerColumn = observerPositions.get(k)[1];
-
-                        observedIndividually.add(new ArrayList<>());
-
-                        substituteA = k == 0 ? observerPositions.get(1)[0] : observerPositions.get(0)[0];
-                        substituteB = k == 0 ? observerPositions.get(1)[1] : observerPositions.get(0)[1];
-                        substituteC = !runWithExtension ? 0 : k == 0 || k == 1 ? observerPositions.get(2)[0] : observerPositions.get(1)[0];
-                        substituteD = !runWithExtension ? 0 : k == 0 || k == 1 ? observerPositions.get(2)[1] : observerPositions.get(1)[1];
-
-                        for(int[] positions : cellsContainingValuePositions)
-                        {
-                            cellWithValueRow = positions[0];
-                            cellWithValueColumn = positions[1];
-
-                            if(cellWithValueRow == observerRow && cellWithValueColumn == observerColumn || cellWithValueRow == substituteA && cellWithValueColumn == substituteB || runWithExtension && cellWithValueRow == substituteC && cellWithValueColumn == substituteD) // skip if cell is an observer
-                            {
-                                continue;
-                            }
-
-                            if(observerRow == cellWithValueRow || observerColumn == cellWithValueColumn || board.findSubBoardNumber(observerRow, observerColumn) == board.findSubBoardNumber(cellWithValueRow, cellWithValueColumn)) // add non-observer observable cells with value to list
-                            {
-                                key = (cellWithValueRow + "," + cellWithValueColumn);
-
-                                if(!observedCollectively.contains(key)) // add cells with value to a list of collectively observed cells (no duplicates)
-                                {
-                                    observedCollectively.add(key);
-                                }
-
-                                observedIndividually.get(observedIndividually.size() - 1).add(key);
-                            }
-                        }
-                    }
-
-                    for(String collectiveKey : observedCollectively) // remove value from cells that are observable by all observers
-                    {
-                        for(List<String> individualKeys : observedIndividually)
-                        {
-                            if(!individualKeys.contains(collectiveKey))
-                            {
-                                break;
-                            }
-                            else if(individualKeys.equals(observedIndividually.get(observedIndividually.size() - 1)))
-                            {
-                                String[] parts = collectiveKey.split(",");
-
-                                updatePossibleCounts(i, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
-
-                                possibleNumbers.get(collectiveKey).remove((Integer) i);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     public void wXYZWingWithExtension(boolean runWithExtension)
     {
         // Danny
-        List<int[]> cellsContainingValuePositions;
-        List<int[]> hingeValues;
-        List<int[]> hingePositions;
-        List<int[]> observerCandidateValues;
-        List<int[]> observerCandidatePositions;
-        List<int[]> observerValues;
-        List<int[]> observerPositions;
-        Set<Integer> unionCandidateValues;
-        List<String> observedCollectively;
-        List<List<String>> observedIndividually;
+        List<int[]> cellsWithValue;
+        List<int[]> hingeCells;
+        List<int[]> pincerCandidateCells;
+        List<int[]> pincerCells;
+        List<int[]> pincersProcessed;
+        Set<Integer> unionValues;
 
-        int observerValuesNeeded = !runWithExtension ? 4 : 5;
-        int unionValuesNeeded = !runWithExtension ? 3 : 4;
-        int hingeValuesContained;
-        int observerValuesContained;
-        int hingeValue1;
-        int hingeValue2;
-        int hingeValue3;
-        int hingeValue4;
-        int observerCandidateValue1;
-        int observerCandidateValue2;
-        int observerCandidateValue3;
-        int observerCandidateValue4;
-        int observerCandidateRow;
-        int observerCandidateColumn;
-        boolean observersPassedCheck;
-        boolean nonRestrictedPresent;
-        int cellWithValueRow;
-        int cellWithValueColumn;
-        int hingeRow;
-        int hingeColumn;
-        int observerRow;
-        int observerColumn;
+        int pincersValuesNeeded = !runWithExtension ? 4 : 5;
 
-        int substituteA; // variables used to avoid repetitive code
-        int substituteB;
-        int substituteC;
-        int substituteD;
-        int substituteE;
-        int substituteF;
-        int substituteG;
-        int substituteH;
-
-        for(int i = 1; i <= boardSize; i++) // value
+        for(int value = 1; value <= boardSize; value++)
         {
-            cellsContainingValuePositions = new ArrayList<>();
-            hingeValues = new ArrayList<>();
-            hingePositions = new ArrayList<>();
-            observerCandidateValues = new ArrayList<>();
-            observerCandidatePositions = new ArrayList<>();
+            cellsWithValue = new ArrayList<>();
+            hingeCells = new ArrayList<>();
+            pincerCandidateCells = new ArrayList<>();
 
-            for(int j = 0; j < boardSize; j++) // row
+            // Find all positions of cells with value, hinges and pincer candidates
+            for(int row = 0; row < boardSize; row++)
             {
-                for (int k = 0; k < boardSize; k++) // column
+                for (int column = 0; column < boardSize; column++)
                 {
-                    String key = (j + "," + k);
+                    String key = (row + "," + column);
 
                     if(possibleNumbers.get(key) != null)
                     {
-                        if(possibleNumbers.get(key).contains(i))
+                        if(possibleNumbers.get(key).contains(value))
                         {
-                            cellsContainingValuePositions.add(new int[] {j, k}); // save positions of all keys that contains value
+                            cellsWithValue.add(new int[] {row, column});
 
-                            if(possibleNumbers.get(key).size() == 2) // save all keys of size 2 that contains value ("observer candidates"), omitting value
+                            if(possibleNumbers.get(key).size() == 2) // save keys of size 2 that contains value (pincer candidates)
                             {
-                                substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
-
-                                observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(substituteA)});
-                                observerCandidatePositions.add(new int[] {j, k});
+                                pincerCandidateCells.add(new int[] {row, column});
                             }
-                            else if(possibleNumbers.get(key).size() == 3) // save all keys of size 3 that contains value ("hinges"/"observer candidates"), omitting value
+                            else if(possibleNumbers.get(key).size() == 3 || possibleNumbers.get(key).size() == 4 || (runWithExtension && possibleNumbers.get(key).size() == 5)) // save keys of size 3-5 that contains value (both)
                             {
-                                substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
-                                substituteB = !possibleNumbers.get(key).get(substituteA).equals(possibleNumbers.get(key).get(1)) && possibleNumbers.get(key).get(1) != i ? 1 : 2;
-
-                                hingeValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB)});
-                                hingePositions.add(new int[] {j, k});
-                                observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB)});
-                                observerCandidatePositions.add(new int[] {j, k});
-                            }
-                            else if(possibleNumbers.get(key).size() == 4) // save all keys of size 4 that contains value ("hinges"/"observer candidates"), omitting value
-                            {
-                                substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
-                                substituteB = possibleNumbers.get(key).get(0) == i || possibleNumbers.get(key).get(1) == i ? 2 : 1;
-                                substituteC = possibleNumbers.get(key).get(0) == i || possibleNumbers.get(key).get(1) == i || possibleNumbers.get(key).get(2) == i  ? 3 : 2;
-
-                                hingeValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB), possibleNumbers.get(key).get(substituteC)});
-                                hingePositions.add(new int[] {j, k});
-                                observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB), possibleNumbers.get(key).get(substituteC)});
-                                observerCandidatePositions.add(new int[] {j, k});
-                            }
-                            else if(runWithExtension && possibleNumbers.get(key).size() == 5) // save all keys of size 5 that contains value ("hinges"/"observer candidates"), omitting value
-                            {
-                                substituteA = possibleNumbers.get(key).get(0) == i ? 1 : 0;
-                                substituteB = possibleNumbers.get(key).get(0) == i || possibleNumbers.get(key).get(1) == i ? 2 : 1;
-                                substituteC = possibleNumbers.get(key).get(0) == i || possibleNumbers.get(key).get(1) == i || possibleNumbers.get(key).get(2) == i  ? 3 : 2;
-                                substituteD = possibleNumbers.get(key).get(0) == i || possibleNumbers.get(key).get(1) == i || possibleNumbers.get(key).get(2) == i || possibleNumbers.get(key).get(3) == i ? 4 : 3;
-
-                                hingeValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB), possibleNumbers.get(key).get(substituteC), possibleNumbers.get(key).get(substituteD)});
-                                hingePositions.add(new int[] {j, k});
-                                observerCandidateValues.add(new int[] {possibleNumbers.get(key).get(substituteA), possibleNumbers.get(key).get(substituteB), possibleNumbers.get(key).get(substituteC), possibleNumbers.get(key).get(substituteD)});
-                                observerCandidatePositions.add(new int[] {j, k});
+                                hingeCells.add(new int[] {row, column});
+                                pincerCandidateCells.add(new int[] {row, column});
                             }
                         }
                         else
                         {
-                            if(possibleNumbers.get(key).size() == 2) // save all keys of size 2 that doesn't contain value ("hinges")
+                            if(possibleNumbers.get(key).size() == 2 || possibleNumbers.get(key).size() == 3 || (runWithExtension && possibleNumbers.get(key).size() == 4)) // save keys of size 2-4 that doesn't contain value (hinges)
                             {
-                                hingeValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1)});
-                                hingePositions.add(new int[] {j, k});
-                            }
-                            else if(possibleNumbers.get(key).size() == 3) // save all keys of size 3 that contains value ("hinges")
-                            {
-                                hingeValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1), possibleNumbers.get(key).get(2)});
-                                hingePositions.add(new int[] {j, k});
-                            }
-                            else if(runWithExtension && possibleNumbers.get(key).size() == 4) // save all keys of size 4 that contains value ("hinges")
-                            {
-                                hingeValues.add(new int[] {possibleNumbers.get(key).get(0), possibleNumbers.get(key).get(1), possibleNumbers.get(key).get(2), possibleNumbers.get(key).get(3)});
-                                hingePositions.add(new int[] {j, k});
+                                hingeCells.add(new int[] {row, column});
                             }
                         }
                     }
                 }
             }
 
-            for(int j = 0; j < hingeValues.size(); j++) // hingeValues index
+            // Process all hinges (1-2) and pincers (3-4) for value elimination
+            for(int firstHinge = 0; firstHinge < hingeCells.size(); firstHinge++)
             {
-                observerValues = new ArrayList<>();
-                observerPositions = new ArrayList<>();
-                unionCandidateValues = new HashSet<>();
-
-                hingeValuesContained = hingeValues.get(j).length;
-                hingeValue1 = hingeValues.get(j)[0];
-                hingeValue2 = hingeValues.get(j)[1];
-                hingeValue3 = hingeValuesContained == 3 ? hingeValues.get(j)[2] : 0;
-                hingeValue4 = hingeValuesContained == 4 ? hingeValues.get(j)[3] : 0;
-
-                for(int k = 0; k < observerCandidateValues.size(); k++) // observerCandidateValues index
+                for(int secondHinge = firstHinge; secondHinge < hingeCells.size(); secondHinge++)
                 {
-                    observerValuesContained = observerCandidateValues.get(k).length;
-                    observerCandidateValue1 = observerCandidateValues.get(k)[0];
-                    observerCandidateValue2 = observerValuesContained == 2 || observerValuesContained == 3 ? observerCandidateValues.get(k)[1] : 0;
-                    observerCandidateValue3 = observerValuesContained == 3 ? observerCandidateValues.get(k)[2] : 0;
-                    observerCandidateValue4 = observerValuesContained == 4 ? observerCandidateValues.get(k)[3] : 0;
-
-                    if(hingeValue1 == observerCandidateValue1 || hingeValue1 == observerCandidateValue2  || hingeValue1 == observerCandidateValue3  || hingeValue1 == observerCandidateValue4 || hingeValue2 == observerCandidateValue1 || hingeValue2 == observerCandidateValue2  || hingeValue2 == observerCandidateValue3 || hingeValue2 == observerCandidateValue4 || hingeValue3 == observerCandidateValue1 || hingeValue3 == observerCandidateValue2  || hingeValue3 == observerCandidateValue3 || hingeValue3 == observerCandidateValue4 || hingeValue4 == observerCandidateValue1 || hingeValue4 == observerCandidateValue2  || hingeValue4 == observerCandidateValue3 || hingeValue4 == observerCandidateValue4)
+                    if(hingeCells.get(firstHinge)[0] != hingeCells.get(secondHinge)[0] && hingeCells.get(firstHinge)[1] != hingeCells.get(secondHinge)[1] && board.findSubBoardNumber(hingeCells.get(firstHinge)[0], hingeCells.get(firstHinge)[1]) != board.findSubBoardNumber(hingeCells.get(secondHinge)[0], hingeCells.get(secondHinge)[1]))
                     {
-                        hingeRow = hingePositions.get(j)[0];
-                        hingeColumn = hingePositions.get(j)[1];
-                        observerCandidateRow = observerCandidatePositions.get(k)[0];
-                        observerCandidateColumn = observerCandidatePositions.get(k)[1];
+                        continue;
+                    }
 
-                        if(hingeRow != observerCandidateRow || hingeColumn != observerCandidateColumn)
+                    pincerCells = new ArrayList<>();
+                    unionValues = new HashSet<>();
+
+                    boolean multipleHinges = firstHinge != secondHinge;
+
+                    for(int[] pincer : pincerCandidateCells)
+                    {
+                        String hingeKeyA = hingeCells.get(firstHinge)[0] + "," + hingeCells.get(firstHinge)[1];
+                        String hingeKeyB = !multipleHinges ? null : hingeCells.get(secondHinge)[0] + "," + hingeCells.get(secondHinge)[1];
+                        String pincerKey = pincer[0] + "," + pincer[1];
+
+                        // Make sure the hinges and the pincer have at least one value in common
+                        boolean valuesInCommon = false;
+                        int hingesInvolved = !multipleHinges ? 1 : 2;
+
+                        nestedLoop: // label, allows breaking out of nested loops easily
                         {
-                            if(hingeRow == observerCandidateRow || hingeColumn == observerCandidateColumn || board.findSubBoardNumber(hingeRow, hingeColumn) == board.findSubBoardNumber(observerCandidateRow, observerCandidateColumn)) // save all observers visible from hinge
+                            for(int hinge = 0; hinge < hingesInvolved; hinge++)
                             {
-                                if(observerValues.isEmpty()) // in wXYZWing the hinge itself is always an observer
+                                String currentHingeKey = hinge == 0 ? hingeKeyA : hingeKeyB;
+
+                                for(int hingeValue = 0; hingeValue < possibleNumbers.get(currentHingeKey).size(); hingeValue++)
                                 {
-                                    if(hingeValuesContained == 2)
+                                    if(possibleNumbers.get(pincerKey).contains(possibleNumbers.get(currentHingeKey).get(hingeValue)))
                                     {
-                                        observerValues.add(new int[] {hingeValue1, hingeValue2});
-
-                                        unionCandidateValues.add(hingeValue1);
-                                        unionCandidateValues.add(hingeValue2);
+                                        valuesInCommon = true;
                                     }
-                                    else if(hingeValuesContained == 3)
-                                    {
-                                        observerValues.add(new int[] {hingeValue1, hingeValue2, hingeValue3});
+                                }
 
-                                        unionCandidateValues.add(hingeValue3);
+                                if(valuesInCommon)
+                                {
+                                    if(hinge != hingesInvolved - 1) // pincer doesn't have a value in common with at least one hinge
+                                    {
+                                        valuesInCommon = false;
                                     }
                                     else
                                     {
-                                        observerValues.add(new int[] {hingeValue1, hingeValue2, hingeValue3, hingeValue4});
+                                        break nestedLoop;
+                                    }
+                                }
+                                else if(hinge == hingesInvolved - 1)
+                                {
+                                    break nestedLoop;
+                                }
+                            }
+                        }
 
-                                        unionCandidateValues.add(hingeValue4);
+                        // Find all pincers visible from and not equal to hinges
+                        if(valuesInCommon)
+                        {
+                            int hingeRowA = hingeCells.get(firstHinge)[0];
+                            int hingeColumnA = hingeCells.get(firstHinge)[1];
+                            int hingeRowB = hingeCells.get(secondHinge)[0];
+                            int hingeColumnB = hingeCells.get(secondHinge)[1];
+                            int pincerCandidateRow = pincer[0];
+                            int pincerCandidateColumn = pincer[1];
+
+                            if((hingeRowA != pincerCandidateRow || hingeColumnA != pincerCandidateColumn) && (!multipleHinges || hingeRowB != pincerCandidateRow || hingeColumnB != pincerCandidateColumn)) // pincer can't be the same as the hinges
+                            {
+                                if(hingeRowA == pincerCandidateRow || hingeColumnA == pincerCandidateColumn || board.findSubBoardNumber(hingeRowA, hingeColumnA) == board.findSubBoardNumber(pincerCandidateRow, pincerCandidateColumn)) // pincer has to be visible from first hinge
+                                {
+                                    if(!multipleHinges || hingeRowB == pincerCandidateRow || hingeColumnB == pincerCandidateColumn || board.findSubBoardNumber(hingeRowB, hingeColumnB) == board.findSubBoardNumber(pincerCandidateRow, pincerCandidateColumn)) // pincer has to be visible from second hinge
+                                    {
+                                        if(pincerCells.isEmpty()) // in wXYZWing the hinges themselves are always pincers
+                                        {
+                                            pincerCells.add(hingeCells.get(firstHinge));
+                                            unionValues.addAll(possibleNumbers.get(hingeKeyA));
+
+                                            if(multipleHinges)
+                                            {
+                                                pincerCells.add(hingeCells.get(secondHinge));
+                                                unionValues.addAll(possibleNumbers.get(hingeKeyB));
+                                            }
+                                        }
+
+                                        pincerCells.add(pincer);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Process every combination of found pincer cells for potential value elimination
+                    if(pincerCells.size() >= pincersValuesNeeded)
+                    {
+                        pincersProcessed = new ArrayList<>();
+                        pincersProcessed.add(pincerCells.get(0)); // always add first hinge cell (pincerA)
+
+                        if(multipleHinges) // possibly add second hinge cell (then pincerB)
+                        {
+                            pincersProcessed.add(pincerCells.get(1));
+                        }
+
+                        List<int[]> processedBeforeB; // variables for resetting instead of removing (less intensive and faster)
+                        List<int[]> processedBeforeC;
+                        List<int[]> processedBeforeD;
+                        List<int[]> processedBeforeE;
+                        Set<Integer> unionBeforeB;
+                        Set<Integer> unionBeforeC;
+                        Set<Integer> unionBeforeD;
+                        Set<Integer> unionBeforeE;
+
+                        for(int pincerB = 1; pincerB < (!multipleHinges ? (pincerCells.size() - (!runWithExtension ? 2 : 3)) : 2); pincerB++)
+                        {
+                            processedBeforeB = !multipleHinges ? new ArrayList<>(pincersProcessed) : null; // resetting for pincerB only necessary when there is one hinge
+                            unionBeforeB = !multipleHinges ? new HashSet<>(unionValues) : null;
+
+                            if(!multipleHinges)
+                            {
+                                pincersProcessed.add(pincerCells.get(pincerB));
+                                unionValues.addAll(possibleNumbers.get(pincerCells.get(pincerB)[0] + "," + pincerCells.get(pincerB)[1]));
+                            }
+
+                            for(int pincerC = pincerB + 1; pincerC < pincerCells.size() - (!runWithExtension ? 1 : 2); pincerC++)
+                            {
+                                processedBeforeC = new ArrayList<>(pincersProcessed);
+                                pincersProcessed.add(pincerCells.get(pincerC));
+                                unionBeforeC = new HashSet<>(unionValues);
+                                unionValues.addAll(possibleNumbers.get(pincerCells.get(pincerC)[0] + "," + pincerCells.get(pincerC)[1]));
+
+                                for(int pincerD = pincerC + 1; pincerD < pincerCells.size() - (!runWithExtension ? 0 : 1); pincerD++)
+                                {
+                                    processedBeforeD = new ArrayList<>(pincersProcessed);
+                                    pincersProcessed.add(pincerCells.get(pincerD));
+                                    unionBeforeD = new HashSet<>(unionValues);
+                                    unionValues.addAll(possibleNumbers.get(pincerCells.get(pincerD)[0] + "," + pincerCells.get(pincerD)[1]));
+
+                                    for(int pincerE = pincerD + 1; pincerE < (!runWithExtension ? pincerCells.size() + 1 : pincerCells.size()); pincerE++)
+                                    {
+                                        processedBeforeE = !runWithExtension ? null : new ArrayList<>(pincersProcessed);
+                                        unionBeforeE = !runWithExtension ? null : new HashSet<>(unionValues);
+
+                                        if(runWithExtension)
+                                        {
+                                            pincersProcessed.add(pincerCells.get(pincerE));
+                                            unionValues.addAll(possibleNumbers.get(pincerCells.get(pincerE)[0] + "," + pincerCells.get(pincerE)[1]));
+                                        }
+
+                                        // Perform final checks of the pincer combination
+                                        if(unionValues.size() == pincersValuesNeeded)
+                                        {
+                                            boolean hasNonRestricted = false;
+                                            boolean allValuesObservable = true; // has to be true for all, so it is easier to detect a negative
+
+                                            nestedLoops:
+                                            {
+                                                for(Integer unionValue : unionValues)
+                                                {
+                                                    // Check if there is at least one non-restricted pincer with value and none with other values
+                                                    if(unionValue == value)
+                                                    {
+                                                        for(int nonRestrictedPincer = !multipleHinges ? 1 : 2; nonRestrictedPincer < (pincersValuesNeeded - 1); nonRestrictedPincer++) // skip hinges because they are always observable
+                                                        {
+                                                            for(int otherPincer = !multipleHinges ? 1 : 2; otherPincer < pincersProcessed.size(); otherPincer++)
+                                                            {
+                                                                if(otherPincer == nonRestrictedPincer)
+                                                                {
+                                                                    continue;
+                                                                }
+
+                                                                if(pincersProcessed.get(nonRestrictedPincer)[0] == (pincersProcessed.get(otherPincer)[0]) || pincersProcessed.get(nonRestrictedPincer)[1] == (pincersProcessed.get(otherPincer)[1]) || board.findSubBoardNumber(pincersProcessed.get(nonRestrictedPincer)[0], pincersProcessed.get(nonRestrictedPincer)[1]) == board.findSubBoardNumber(pincersProcessed.get(otherPincer)[0], pincersProcessed.get(otherPincer)[1]))
+                                                                {
+                                                                    continue;
+                                                                }
+
+                                                                if(possibleNumbers.get(pincersProcessed.get(nonRestrictedPincer)[0] + "," + pincersProcessed.get(nonRestrictedPincer)[1]).contains(value))
+                                                                {
+                                                                    hasNonRestricted = true;
+                                                                }
+                                                                else // non restricted pincer without value found (not allowed)
+                                                                {
+                                                                    break nestedLoops;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        if(!hasNonRestricted)
+                                                        {
+                                                            break nestedLoops;
+                                                        }
+                                                        else
+                                                        {
+                                                            continue; // value doesn't need the check below
+                                                        }
+                                                    }
+
+                                                    // Check if all pincers with same union values (except value) are observable by each other
+                                                    List<int[]> unionValuePresent = new ArrayList<>();
+
+                                                    for(int pincer = !multipleHinges ? 1 : 2; pincer < pincersProcessed.size(); pincer++) // skip hinges because they are always observable
+                                                    {
+                                                        if(possibleNumbers.get(pincersProcessed.get(pincer)[0] + "," + pincersProcessed.get(pincer)[1]).contains(unionValue))
+                                                        {
+                                                            unionValuePresent.add(pincersProcessed.get(pincer));
+                                                        }
+                                                    }
+
+                                                    if(unionValuePresent.size() > 1)
+                                                    {
+                                                        for(int observingPincer = 0; observingPincer < unionValuePresent.size() - 1; observingPincer++)
+                                                        {
+                                                            for(int observedPincer = 0; observedPincer < unionValuePresent.size(); observedPincer++)
+                                                            {
+                                                                if(observingPincer == observedPincer)
+                                                                {
+                                                                    continue;
+                                                                }
+
+                                                                if(unionValuePresent.get(observingPincer)[0] != unionValuePresent.get(observedPincer)[0] && unionValuePresent.get(observingPincer)[1] != unionValuePresent.get(observedPincer)[1] && board.findSubBoardNumber(unionValuePresent.get(observingPincer)[0], unionValuePresent.get(observingPincer)[1]) != board.findSubBoardNumber(unionValuePresent.get(observedPincer)[0], unionValuePresent.get(observedPincer)[1]))
+                                                                {
+                                                                    allValuesObservable = false;
+
+                                                                    break nestedLoops;
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Find all collectively and individually observed non-pincer cells with value
+                                            if(hasNonRestricted && allValuesObservable)
+                                            {
+                                                List<String> observedCollectively = new ArrayList<>();
+                                                List<List<String>> observedIndividually = new ArrayList<>();
+
+                                                int[] pincerAKey = pincersProcessed.get(0);
+                                                int[] pincerBKey = pincersProcessed.get(1);
+                                                int[] pincerCKey = pincersProcessed.get(2);
+                                                int[] pincerDKey = pincersProcessed.get(3);
+                                                int[] pincerEKey = !runWithExtension ? null : pincersProcessed.get(4);
+
+                                                for(int[] pincerKey : pincersProcessed)
+                                                {
+                                                    int pincerRow = pincerKey[0];
+                                                    int pincerColumn = pincerKey[1];
+
+                                                    if(!possibleNumbers.get(pincerRow + "," + pincerColumn).contains(value)) // only pincers containing value matters
+                                                    {
+                                                        continue;
+                                                    }
+
+                                                    observedIndividually.add(new ArrayList<>());
+
+                                                    for(int[] cellKey : cellsWithValue)
+                                                    {
+                                                        if(Arrays.equals(cellKey, pincerAKey) || Arrays.equals(cellKey, pincerBKey) || Arrays.equals(cellKey, pincerCKey) || Arrays.equals(cellKey, pincerDKey) || runWithExtension && Arrays.equals(cellKey, pincerEKey)) // skip if pincer cell
+                                                        {
+                                                            continue;
+                                                        }
+
+                                                        int cellRow = cellKey[0];
+                                                        int cellColumn = cellKey[1];
+
+                                                        if(cellRow == pincerRow || cellColumn == pincerColumn || board.findSubBoardNumber(cellRow, cellColumn) == board.findSubBoardNumber(pincerRow, pincerColumn)) // cell with value is observable from pincer
+                                                        {
+                                                            String key = (cellRow + "," + cellColumn);
+
+                                                            if(!observedCollectively.contains(key)) // add to list of collectively observed cells (without duplicates)
+                                                            {
+                                                                observedCollectively.add(key);
+                                                            }
+
+                                                            observedIndividually.get(observedIndividually.size() - 1).add(key); // add to list of individually observed cells
+                                                        }
+                                                    }
+                                                }
+
+                                                // Eliminate value from universally observed non-pincer cells
+                                                wingElimination(value, observedCollectively, observedIndividually);
+                                            }
+                                        }
+
+                                        if(runWithExtension)
+                                        {
+                                            // resetting
+                                            pincersProcessed = processedBeforeE;
+                                            unionValues = unionBeforeE;
+                                        }
+                                        else // only run once if extension is not running
+                                        {
+                                            break;
+                                        }
                                     }
 
-                                    observerPositions.add(new int[] {hingeRow, hingeColumn});
+                                    pincersProcessed = processedBeforeD;
+                                    unionValues = unionBeforeD;
                                 }
 
-                                if(observerValuesContained == 1)
-                                {
-                                    observerValues.add(new int[] {observerCandidateValue1});
+                                pincersProcessed = processedBeforeC;
+                                unionValues = unionBeforeC;
+                            }
 
-                                    unionCandidateValues.add(observerCandidateValue1);
-                                }
-                                else if(observerValuesContained == 2)
-                                {
-                                    observerValues.add(new int[] {observerCandidateValue1, observerCandidateValue2});
-
-                                    unionCandidateValues.add(observerCandidateValue1);
-                                    unionCandidateValues.add(observerCandidateValue2);
-                                }
-                                else if(observerValuesContained == 3)
-                                {
-                                    observerValues.add(new int[] {observerCandidateValue1, observerCandidateValue2, observerCandidateValue3});
-
-                                    unionCandidateValues.add(observerCandidateValue1);
-                                    unionCandidateValues.add(observerCandidateValue2);
-                                    unionCandidateValues.add(observerCandidateValue3);
-                                }
-                                else
-                                {
-                                    observerValues.add(new int[] {observerCandidateValue1, observerCandidateValue2, observerCandidateValue3, observerCandidateValue4});
-
-                                    unionCandidateValues.add(observerCandidateValue1);
-                                    unionCandidateValues.add(observerCandidateValue2);
-                                    unionCandidateValues.add(observerCandidateValue3);
-                                    unionCandidateValues.add(observerCandidateValue4);
-                                }
-
-                                observerPositions.add(new int[] {observerCandidateRow, observerCandidateColumn});
-
-                                if(observerValues.size() == observerValuesNeeded)
-                                {
-                                    break;
-                                }
+                            if(!multipleHinges)
+                            {
+                                pincersProcessed = processedBeforeB;
+                                unionValues = unionBeforeB;
                             }
                         }
                     }
                 }
+            }
+        }
+    }
 
-                if(observerValues.size() == observerValuesNeeded && unionCandidateValues.size() == unionValuesNeeded) // enough observers and the right amount of union values found
+    private void wingElimination(int value, List<String> observedCollectively, List<List<String>> observedIndividually)
+    {
+        // Danny
+        for(String collectiveKey : observedCollectively)
+        {
+            for(List<String> individualKeys : observedIndividually)
+            {
+                if(!individualKeys.contains(collectiveKey)) // if cell is not visible from all pincers, skip cell
                 {
-                    observersPassedCheck = true;
-                    nonRestrictedPresent = false;
+                    break;
+                }
+                else if(individualKeys.equals(observedIndividually.get(observedIndividually.size() - 1))) // last iteration, we can eliminate value from cell
+                {
+                    String[] parts = collectiveKey.split(",");
 
-                    for(int unionValue : unionCandidateValues) // find observers with same values
-                    {
-                        List<int[]> positions = new ArrayList<>();
-
-                        for(int k = 1; k < observerValues.size(); k++) // skip the hinge because it is always observable
-                        {
-                            for(int l = 0; l < observerValues.get(k).length; l++)
-                            {
-                                if(observerValues.get(k)[l] == unionValue)
-                                {
-                                    positions.add(observerPositions.get(k));
-                                }
-                            }
-                        }
-
-                        if(positions.size() > 1) // check if all observers with same values can see each other
-                        {
-                            for(int k = 0; k < positions.size() - 1; k++)
-                            {
-                                if(positions.get(k)[0] != positions.get(k + 1)[0] && positions.get(k)[1] != positions.get(k + 1)[1] && board.findSubBoardNumber(positions.get(k)[0], positions.get(k)[1]) != board.findSubBoardNumber(positions.get(k + 1)[0], positions.get(k + 1)[1])) // save all observers visible from hinge
-                                {
-                                    observersPassedCheck = false;
-
-                                    break;
-                                }
-                                else if((k == 0 && positions.size() == 3) && positions.get(k)[0] != positions.get(k + 2)[0] && positions.get(k)[1] != positions.get(k + 2)[1] && board.findSubBoardNumber(positions.get(k)[0], positions.get(k)[1]) != board.findSubBoardNumber(positions.get(k + 2)[0], positions.get(k + 2)[1]))
-                                {
-                                    observersPassedCheck = false;
-
-                                    break;
-                                }
-                                else if(runWithExtension && k == 0 && positions.size() == 4 && positions.get(k)[0] != positions.get(k + 3)[0] && positions.get(k)[1] != positions.get(k + 3)[1] && board.findSubBoardNumber(positions.get(k)[0], positions.get(k)[1]) != board.findSubBoardNumber(positions.get(k + 3)[0], positions.get(k + 3)[1]))
-                                {
-                                    observersPassedCheck = false;
-
-                                    break;
-                                }
-                            }
-                        }
-
-                        if(!observersPassedCheck)
-                        {
-                            break;
-                        }
-                    }
-
-                    if(observersPassedCheck) // valid observers confirmed, check if there is a non-restricted observer
-                    {
-                        for(int k = 1; k < observerValues.size(); k++) // skip the hinge because it is always observable
-                        {
-                            substituteA = k == 1 ? 2 : 1;
-                            substituteB = substituteA != 2 && k != 2 ? 2 : 3;
-                            substituteC = substituteB != 3 && k != 3 ? 3 : 4;
-
-                            if(observerPositions.get(k)[0] == observerPositions.get(substituteA)[0] || observerPositions.get(k)[1] == observerPositions.get(substituteA)[1] || board.findSubBoardNumber(observerPositions.get(k)[0], observerPositions.get(k)[1]) == board.findSubBoardNumber(observerPositions.get(substituteA)[0], observerPositions.get(substituteA)[1]))
-                            {
-                                continue;
-                            }
-                            else if(observerPositions.get(k)[0] == observerPositions.get(substituteB)[0] || observerPositions.get(k)[1] == observerPositions.get(substituteB)[1] || board.findSubBoardNumber(observerPositions.get(k)[0], observerPositions.get(k)[1]) == board.findSubBoardNumber(observerPositions.get(substituteB)[0], observerPositions.get(substituteB)[1]))
-                            {
-                                continue;
-                            }
-                            else if(runWithExtension && (observerPositions.get(k)[0] == observerPositions.get(substituteC)[0] || observerPositions.get(k)[1] == observerPositions.get(substituteC)[1] || board.findSubBoardNumber(observerPositions.get(k)[0], observerPositions.get(k)[1]) == board.findSubBoardNumber(observerPositions.get(substituteC)[0], observerPositions.get(substituteC)[1])))
-                            {
-                                continue;
-                            }
-
-                            nonRestrictedPresent = true;
-                        }
-                    }
-
-                    if(nonRestrictedPresent) // removing value with wXYZWing() is allowed, continue
-                    {
-                        String key;
-                        observedCollectively = new ArrayList<>();
-                        observedIndividually = new ArrayList<>();
-
-                        for(int k = 0; k < observerValues.size(); k++) // observer index
-                        {
-                            observerRow = observerPositions.get(k)[0];
-                            observerColumn = observerPositions.get(k)[1];
-
-                            if(!possibleNumbers.get(observerRow + "," + observerColumn).contains(i)) // only observers containing value matters
-                            {
-                                continue;
-                            }
-
-                            observedIndividually.add(new ArrayList<>());
-
-                            substituteA = k == 0 ? observerPositions.get(1)[0] : observerPositions.get(0)[0];
-                            substituteB = k == 0 ? observerPositions.get(1)[1] : observerPositions.get(0)[1];
-                            substituteC = k == 0 || k == 1 ? observerPositions.get(2)[0] : observerPositions.get(1)[0];
-                            substituteD = k == 0 || k == 1 ? observerPositions.get(2)[1] : observerPositions.get(1)[1];
-                            substituteE = k == 0 || k == 1 || k == 2 ? observerPositions.get(3)[0] : observerPositions.get(2)[0];
-                            substituteF = k == 0 || k == 1 || k == 2 ? observerPositions.get(3)[1] : observerPositions.get(2)[1];
-                            substituteG = !runWithExtension ? 0 : k == 0 || k == 1 || k == 2 || k == 3 ? observerPositions.get(4)[0] : observerPositions.get(3)[0];
-                            substituteH = !runWithExtension ? 0 : k == 0 || k == 1 || k == 2 || k == 3 ? observerPositions.get(4)[1] : observerPositions.get(3)[1];
-
-                            for(int[] positions : cellsContainingValuePositions)
-                            {
-                                cellWithValueRow = positions[0];
-                                cellWithValueColumn = positions[1];
-
-                                if(cellWithValueRow == observerRow && cellWithValueColumn == observerColumn || cellWithValueRow == substituteA && cellWithValueColumn == substituteB || cellWithValueRow == substituteC && cellWithValueColumn == substituteD || cellWithValueRow == substituteE && cellWithValueColumn == substituteF || cellWithValueRow == substituteG && cellWithValueColumn == substituteH) // skip if cell is an observer
-                                {
-                                    continue;
-                                }
-
-                                if(observerRow == cellWithValueRow || observerColumn == cellWithValueColumn || board.findSubBoardNumber(observerRow, observerColumn) == board.findSubBoardNumber(cellWithValueRow, cellWithValueColumn)) // add non-observer observable cells with value to list
-                                {
-                                    key = (cellWithValueRow + "," + cellWithValueColumn);
-
-                                    if(!observedCollectively.contains(key)) // add cells with value to a list of collectively observed cells (no duplicates)
-                                    {
-                                        observedCollectively.add(key);
-                                    }
-
-                                    observedIndividually.get(observedIndividually.size() - 1).add(key);
-                                }
-                            }
-                        }
-
-                        for(String collectiveKey : observedCollectively) // remove value from cells that are observable by all observers containing value
-                        {
-                            for(List<String> individualKeys : observedIndividually)
-                            {
-                                if(!individualKeys.contains(collectiveKey))
-                                {
-                                    break;
-                                }
-                                else if(individualKeys.equals(observedIndividually.get(observedIndividually.size() - 1)))
-                                {
-                                    String[] parts = collectiveKey.split(",");
-
-                                    updatePossibleCounts(i, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
-
-                                    possibleNumbers.get(collectiveKey).remove((Integer) i);
-                                }
-                            }
-                        }
-                    }
+                    updatePossibleCounts(value, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
+                    possibleNumbers.get(collectiveKey).remove((Integer) value);
                 }
             }
         }

@@ -19,6 +19,7 @@ public class Board
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
+        /*
         // temp
         board = new int[boardSize][boardSize];
         filledCells = 0;
@@ -28,15 +29,14 @@ public class Board
         initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
 
         solver.possibleValuesInCells();
+        */
 
-        /*
         do
         {
             initializeBoard(initialClues, emptySubBoardsAllowed);
             solver = new Solver(this);
         }
         while(!solver.possibleValuesInCells() || !canBeUnsolvable && !solver.isBoardSolvable());
-        */
     }
 
     public Board(Board boardToCopy)
