@@ -114,7 +114,7 @@ public class Solver
         solvableTestBoard = new Board(board);
         solvableTestBoard.getSolver().board = solvableTestBoard;
 
-        return solvableTestBoard.solveBoard();
+        return solvableTestBoard.getSolver().solveWithBacktracking(); // has to be with backtracking to avoid singular strategy boards
     }
 
     public void printPossibilities() {
@@ -267,9 +267,11 @@ public class Solver
         }
     }
 
+    /**
+     * @author Danny
+     */
     private void pointingDuplicatesWithBLR(boolean processingRows)
     {
-        // Danny
         int targetValueCount = boardLengthWidth - 1;
         int valuePossibleCount;
         int valueSubBoardCount;
@@ -361,9 +363,156 @@ public class Solver
         }
     }
 
+    /**
+     * @author Danny
+     */
+    public void yWingWithXYZExtension(boolean runWithExtension)
+    {
+        List<int[]> cellsWithValue;
+        List<int[]> hingeCells;
+        List<int[]> pincerCandidateCells;
+        List<int[]> pincerCells;
+        List<int[]> pincersProcessed;
+
+        int pincersNeeded = !runWithExtension ? 2 : 3;
+
+        for(int value = 1; value <= boardSize; value++)
+        {
+            cellsWithValue = new ArrayList<>();
+            hingeCells = new ArrayList<>();
+            pincerCandidateCells = new ArrayList<>();
+
+            // Find all positions of cells with value, hinges and pincer candidates
+            for(int row = 0; row < boardSize; row++)
+            {
+                for (int column = 0; column < boardSize; column++)
+                {
+                    String key = (row + "," + column);
+
+                    if(possibleNumbers.get(key) != null)
+                    {
+                        if(possibleNumbers.get(key).contains(value))
+                        {
+                            cellsWithValue.add(new int[]{row, column}); // save keys that contains value regardless of size
+
+                            if(possibleNumbers.get(key).size() == 2) // save keys of size 2 that contains value (pincer candidates)
+                            {
+                                pincerCandidateCells.add(new int[]{row, column});
+                            }
+                            else if(runWithExtension && possibleNumbers.get(key).size() == 3) // save keys of size 3 that contains value (hinges)
+                            {
+                                hingeCells.add(new int[]{row, column});
+                            }
+                        }
+                        else if(!runWithExtension && possibleNumbers.get(key).size() == 2) // save keys of size 2 that doesn't contain value (hinges)
+                        {
+                            hingeCells.add(new int[] {row, column});
+                        }
+                    }
+                }
+            }
+
+            for(int[] hinge : hingeCells)
+            {
+                pincerCells = new ArrayList<>();
+
+                String hingeKey = hinge[0] + "," + hinge[1];
+
+                int hingeValuesInHinge = possibleNumbers.get(hingeKey).size();
+                int hingeValuesInPincers = 0;
+                boolean[] hingeValuesPresent = new boolean[hingeValuesInHinge];
+
+                for(int[] pincer : pincerCandidateCells)
+                {
+                    String pincerKey = pincer[0] + "," + pincer[1];
+
+                    // Make sure the hinge and the pincer has at least one value in common
+                    for(int hingeValue = 0; hingeValue < hingeValuesInHinge; hingeValue++)
+                    {
+                        if(runWithExtension && possibleNumbers.get(hingeKey).get(hingeValue) == value) // value is always observable when it needs to be
+                        {
+                            if(!hingeValuesPresent[hingeValue])
+                            {
+                                hingeValuesInPincers++;
+                                hingeValuesPresent[hingeValue] = true;
+                            }
+
+                            continue;
+                        }
+
+                        if(possibleNumbers.get(pincerKey).contains(possibleNumbers.get(hingeKey).get(hingeValue)))
+                        {
+                            // Find all pincers visible from and not equal to the hinge
+                            int hingeRow = hinge[0];
+                            int hingeColumn = hinge[1];
+                            int pincerCandidateRow = pincer[0];
+                            int pincerCandidateColumn = pincer[1];
+
+                            if(hingeRow != pincerCandidateRow || hingeColumn != pincerCandidateColumn) // pincer can't be the same as the hinge
+                            {
+                                if(hingeRow == pincerCandidateRow || hingeColumn == pincerCandidateColumn || board.findSubBoardNumber(hingeRow, hingeColumn) == board.findSubBoardNumber(pincerCandidateRow, pincerCandidateColumn)) // pincer has to be visible from the hinge
+                                {
+                                    if(runWithExtension && pincerCells.isEmpty()) // in extended yWing (XYZWing) the hinge itself is always a pincer
+                                    {
+                                        pincerCells.add(hinge);
+                                    }
+
+                                    pincerCells.add(pincer);
+
+                                    if(!hingeValuesPresent[hingeValue]) // register hinge value presence in pincers (need to all be there)
+                                    {
+                                        hingeValuesInPincers++;
+                                        hingeValuesPresent[hingeValue] = true;
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Process every combination of found pincer cells (with or without hinge) for potential value elimination
+                if(hingeValuesInHinge == hingeValuesInPincers && pincerCells.size() >= pincersNeeded)
+                {
+                    pincersProcessed = new ArrayList<>();
+
+                    if(runWithExtension) // possibly add the hinge cell
+                    {
+                        pincersProcessed.add(pincerCells.get(0));
+                    }
+
+                    List<int[]> processedBeforeA; // variables for resetting instead of removing (less intensive and faster)
+                    List<int[]> processedBeforeB;
+
+                    for(int pincerA = (!runWithExtension ? 0 : 1); pincerA < pincerCells.size() - 1; pincerA++)
+                    {
+                        processedBeforeA = new ArrayList<>(pincersProcessed);
+                        pincersProcessed.add(pincerCells.get(pincerA));
+
+                        for(int pincerB = pincerA + 1; pincerB < pincerCells.size(); pincerB++)
+                        {
+                            processedBeforeB = new ArrayList<>(pincersProcessed);
+                            pincersProcessed.add(pincerCells.get(pincerB));
+
+                            // Find universally observed non-pincer cells with value and eliminate value from them
+                            advancedWingElimination(value, cellsWithValue, pincersProcessed);
+
+                            pincersProcessed = processedBeforeB; // resetting
+                        }
+
+                        pincersProcessed = processedBeforeA;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Danny
+     */
     public void wXYZWingWithExtension(boolean runWithExtension)
     {
-        // Danny
         List<int[]> cellsWithValue;
         List<int[]> hingeCells;
         List<int[]> pincerCandidateCells;
@@ -390,7 +539,7 @@ public class Solver
                     {
                         if(possibleNumbers.get(key).contains(value))
                         {
-                            cellsWithValue.add(new int[] {row, column});
+                            cellsWithValue.add(new int[] {row, column}); // save keys that contains value regardless of size
 
                             if(possibleNumbers.get(key).size() == 2) // save keys of size 2 that contains value (pincer candidates)
                             {
@@ -427,11 +576,11 @@ public class Solver
                     unionValues = new HashSet<>();
 
                     boolean multipleHinges = firstHinge != secondHinge;
+                    String hingeKeyA = hingeCells.get(firstHinge)[0] + "," + hingeCells.get(firstHinge)[1];
+                    String hingeKeyB = !multipleHinges ? null : hingeCells.get(secondHinge)[0] + "," + hingeCells.get(secondHinge)[1];
 
                     for(int[] pincer : pincerCandidateCells)
                     {
-                        String hingeKeyA = hingeCells.get(firstHinge)[0] + "," + hingeCells.get(firstHinge)[1];
-                        String hingeKeyB = !multipleHinges ? null : hingeCells.get(secondHinge)[0] + "," + hingeCells.get(secondHinge)[1];
                         String pincerKey = pincer[0] + "," + pincer[1];
 
                         // Make sure the hinges and the pincer have at least one value in common
@@ -505,7 +654,7 @@ public class Solver
                         }
                     }
 
-                    // Process every combination of found pincer cells for potential value elimination
+                    // Process every combination of found pincer cells (with hinges) for potential value elimination
                     if(pincerCells.size() >= pincersValuesNeeded)
                     {
                         pincersProcessed = new ArrayList<>();
@@ -643,56 +792,10 @@ public class Solver
                                                 }
                                             }
 
-                                            // Find all collectively and individually observed non-pincer cells with value
+                                            // Find universally observed non-pincer cells with value and eliminate value from them
                                             if(hasNonRestricted && allValuesObservable)
                                             {
-                                                List<String> observedCollectively = new ArrayList<>();
-                                                List<List<String>> observedIndividually = new ArrayList<>();
-
-                                                int[] pincerAKey = pincersProcessed.get(0);
-                                                int[] pincerBKey = pincersProcessed.get(1);
-                                                int[] pincerCKey = pincersProcessed.get(2);
-                                                int[] pincerDKey = pincersProcessed.get(3);
-                                                int[] pincerEKey = !runWithExtension ? null : pincersProcessed.get(4);
-
-                                                for(int[] pincerKey : pincersProcessed)
-                                                {
-                                                    int pincerRow = pincerKey[0];
-                                                    int pincerColumn = pincerKey[1];
-
-                                                    if(!possibleNumbers.get(pincerRow + "," + pincerColumn).contains(value)) // only pincers containing value matters
-                                                    {
-                                                        continue;
-                                                    }
-
-                                                    observedIndividually.add(new ArrayList<>());
-
-                                                    for(int[] cellKey : cellsWithValue)
-                                                    {
-                                                        if(Arrays.equals(cellKey, pincerAKey) || Arrays.equals(cellKey, pincerBKey) || Arrays.equals(cellKey, pincerCKey) || Arrays.equals(cellKey, pincerDKey) || runWithExtension && Arrays.equals(cellKey, pincerEKey)) // skip if pincer cell
-                                                        {
-                                                            continue;
-                                                        }
-
-                                                        int cellRow = cellKey[0];
-                                                        int cellColumn = cellKey[1];
-
-                                                        if(cellRow == pincerRow || cellColumn == pincerColumn || board.findSubBoardNumber(cellRow, cellColumn) == board.findSubBoardNumber(pincerRow, pincerColumn)) // cell with value is observable from pincer
-                                                        {
-                                                            String key = (cellRow + "," + cellColumn);
-
-                                                            if(!observedCollectively.contains(key)) // add to list of collectively observed cells (without duplicates)
-                                                            {
-                                                                observedCollectively.add(key);
-                                                            }
-
-                                                            observedIndividually.get(observedIndividually.size() - 1).add(key); // add to list of individually observed cells
-                                                        }
-                                                    }
-                                                }
-
-                                                // Eliminate value from universally observed non-pincer cells
-                                                wingElimination(value, observedCollectively, observedIndividually);
+                                                advancedWingElimination(value, cellsWithValue, pincersProcessed);
                                             }
                                         }
 
@@ -728,9 +831,58 @@ public class Solver
         }
     }
 
-    private void wingElimination(int value, List<String> observedCollectively, List<List<String>> observedIndividually)
+    /**
+     * @author Danny
+     */
+    private void advancedWingElimination(int value, List<int[]> cellsWithValue, List<int[]> pincersProcessed)
     {
-        // Danny
+        // Find collectively and individually observed non-pincer cells with value
+        List<String> observedCollectively = new ArrayList<>();
+        List<List<String>> observedIndividually = new ArrayList<>();
+
+        int[] pincerAKey = pincersProcessed.get(0);
+        int[] pincerBKey = pincersProcessed.get(1);
+        int[] pincerCKey = pincersProcessed.size() >= 3 ? pincersProcessed.get(2) : null;
+        int[] pincerDKey = pincersProcessed.size() >= 4 ? pincersProcessed.get(3) : null;
+        int[] pincerEKey = pincersProcessed.size() == 5 ? pincersProcessed.get(4) : null;
+
+        for(int[] pincerKey : pincersProcessed)
+        {
+            int pincerRow = pincerKey[0];
+            int pincerColumn = pincerKey[1];
+
+            if(!possibleNumbers.get(pincerRow + "," + pincerColumn).contains(value)) // only pincers containing value matters
+            {
+                continue;
+            }
+
+            observedIndividually.add(new ArrayList<>());
+
+            for(int[] cellKey : cellsWithValue)
+            {
+                if(Arrays.equals(cellKey, pincerAKey) || Arrays.equals(cellKey, pincerBKey) || pincerCKey != null && Arrays.equals(cellKey, pincerCKey) || pincerDKey != null && Arrays.equals(cellKey, pincerDKey) || pincerEKey != null && Arrays.equals(cellKey, pincerEKey)) // skip if pincer cell
+                {
+                    continue;
+                }
+
+                int cellRow = cellKey[0];
+                int cellColumn = cellKey[1];
+
+                if(cellRow == pincerRow || cellColumn == pincerColumn || board.findSubBoardNumber(cellRow, cellColumn) == board.findSubBoardNumber(pincerRow, pincerColumn)) // cell with value is observable from pincer
+                {
+                    String key = (cellRow + "," + cellColumn);
+
+                    if(!observedCollectively.contains(key)) // add to list of collectively observed cells (without duplicates)
+                    {
+                        observedCollectively.add(key);
+                    }
+
+                    observedIndividually.get(observedIndividually.size() - 1).add(key); // add to list of individually observed cells
+                }
+            }
+        }
+
+        // Eliminate value from universally observed non-pincer cells
         for(String collectiveKey : observedCollectively)
         {
             for(List<String> individualKeys : observedIndividually)
@@ -741,13 +893,19 @@ public class Solver
                 }
                 else if(individualKeys.equals(observedIndividually.get(observedIndividually.size() - 1))) // last iteration, we can eliminate value from cell
                 {
-                    String[] parts = collectiveKey.split(",");
+                    if(possibleNumbers.get(collectiveKey).contains(value)) // only remove if not already removed by another pincer combination
+                    {
+                        String[] parts = collectiveKey.split(",");
 
-                    updatePossibleCounts(value, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
-                    possibleNumbers.get(collectiveKey).remove((Integer) value);
+                        updatePossibleCounts(value, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
+                        possibleNumbers.get(collectiveKey).remove((Integer) value);
+
+                        System.out.println("pos: " + " " + parts[0] + "," + parts[1] + " (" + value + ") " + possibleNumbers.get(collectiveKey));
+                    }
                 }
             }
         }
     }
 }
+
 
