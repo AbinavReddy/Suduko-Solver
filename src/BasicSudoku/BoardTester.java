@@ -9,9 +9,7 @@ public class BoardTester
 
         printBoard(testBoard);
         testSolver.printPossibilities();
-        testSolver.yWingWithXYZExtension(false);
-        testSolver.yWingWithXYZExtension(true);
-        testSolver.solveWithBacktracking();
+        testSolver.solveWithStrategies();
         printBoard(testBoard);
         testSolver.printPossibilities();
     }

@@ -79,6 +79,19 @@ public class Solver
         return true;
     }
 
+    public void printPossibilities() {
+        // Abinav & Yahya
+        for (int rows = 0; rows < boardSize; rows++) {
+            for (int columns = 0; columns < boardSize; columns++) {
+                String currentPosition = rows + "," + columns;
+                List<Integer> values = possibleNumbers.get(currentPosition);
+                if (values != null) {
+                    System.out.println("Position: (" + rows + "," + columns + ") Possible Values: " + values);
+                }
+            }
+        }
+    }
+
     public void updatePossibleCounts(int value, List<Integer> valueList, int row, int column, boolean increase)
     {
         // Danny
@@ -117,19 +130,6 @@ public class Solver
         return solvableTestBoard.getSolver().solveWithBacktracking(); // has to be with backtracking to avoid singular strategy boards
     }
 
-    public void printPossibilities() {
-        // Abinav & Yahya
-        for (int rows = 0; rows < boardSize; rows++) {
-            for (int columns = 0; columns < boardSize; columns++) {
-                String currentPosition = rows + "," + columns;
-                List<Integer> values = possibleNumbers.get(currentPosition);
-                if (values != null) {
-                    System.out.println("Position: (" + rows + "," + columns + ") Possible Values: " + values);
-                }
-            }
-        }
-    }
-
     public boolean solveWithStrategies()
     {
         // Danny, Abinav & Yahya
@@ -146,14 +146,18 @@ public class Solver
             while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
 
             // solving strategies go here (nakedSingles after each)
-            pointingDuplicatesWithBLR(false);
-            nakedSingles();
             pointingDuplicatesWithBLR(true);
             nakedSingles();
-            wXYZWingWithExtension(false);
+            pointingDuplicatesWithBLR(false);
             nakedSingles();
-            wXYZWingWithExtension(true);
+            xWing(true);
             nakedSingles();
+            xWing(false);
+            nakedSingles();
+            //wXYZWingWithExtension(false);
+            //nakedSingles();
+            //wXYZWingWithExtension(true);
+            //nakedSingles();
 
             if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking
             {
@@ -286,7 +290,7 @@ public class Solver
             {
                 valuePossibleCount = processingRows ? valuePossibleCountRows[i][j] : valuePossibleCountColumns[i][j];
 
-                if(valuePossibleCount >= 2) // skip if value already present in row or column (no possibilities)
+                if(valuePossibleCount >= 3) // skip if value already present in row or column (no possibilities)
                 {
                     valueSubBoardCount = 0;
                     previousSubBoard = processingRows ? board.findSubBoardNumber(j, 0) : board.findSubBoardNumber(0, j); // initial sub-board
@@ -348,10 +352,100 @@ public class Solver
 
                                             if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
                                             {
-                                                updatePossibleCounts(i, null, substituteA, substituteB,false);
+                                                updatePossibleCounts(i, null, startingRow + substituteA, startingColumn + substituteB,false);
 
                                                 possibleNumbers.get(key).remove((Integer) i); // remove value from the rest of the sub-board
                                             }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void xWing(boolean processingRows)
+    {
+        List<int[]> rowColumnPositions;
+        List<List<int[]>> processedForXWings;
+        int valuePossibleCount;
+
+        int substituteA; // variables used to avoid repetitive code
+        int substituteB;
+        int substituteC;
+        int substituteD;
+
+        for(int i = 1; i <= boardSize; i++) // value
+        {
+            processedForXWings = new ArrayList<>();
+
+            for (int j = 0; j < boardSize; j++) // row or column
+            {
+                valuePossibleCount = processingRows ? valuePossibleCountRows[i][j] : valuePossibleCountColumns[i][j];
+                rowColumnPositions = new ArrayList<>();
+
+                if(valuePossibleCount == 2) // skip if value already present or possible more than 2 places in row or column
+                {
+                    for(int k = 0; k < boardSize; k++) // row or column
+                    {
+                        substituteA = processingRows ? j : k;
+                        substituteB = processingRows ? k : j;
+
+                        String key = (substituteA + "," + substituteB);
+
+                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
+                        {
+                            rowColumnPositions.add(new int[] {substituteA, substituteB}); // store position of value
+                        }
+
+                        if(k == boardSize - 1)
+                        {
+                            processedForXWings.add(rowColumnPositions); // x-wing candidate found
+                        }
+                    }
+                }
+            }
+
+            if(processedForXWings.size() >= 2) // enough candidates found
+            {
+                substituteA = processingRows ? 1 : 0; // 0 = row index, 1 = column index
+
+                for(int j = 0; j < processedForXWings.size() - 1; j++)
+                {
+                    for(int k = j + 1; k < processedForXWings.size(); k++)
+                    {
+                        if(processedForXWings.get(j).get(0)[substituteA] == processedForXWings.get(k).get(0)[substituteA] && processedForXWings.get(j).get(1)[substituteA] == processedForXWings.get(k).get(1)[substituteA]) // check if there is an x-wing
+                        {
+                            substituteB = processingRows ? 0 : 1; // 0 = row index, 1 = column index
+
+                            for(int l = 0; l < boardSize; l++)
+                            {
+                                if(l != processedForXWings.get(j).get(0)[substituteB] && l != processedForXWings.get(k).get(1)[substituteB]) // don't remove value from x-wing rows or columns
+                                {
+                                    substituteC = processingRows ? l : processedForXWings.get(j).get(0)[substituteA];
+                                    substituteD = processingRows ? processedForXWings.get(j).get(0)[substituteA] : l;
+
+                                    for(int m = 1; m <= 2; m++) // remove value elsewhere in both rows or columns
+                                    {
+                                        String key = (substituteC + "," + substituteD);
+
+                                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
+                                        {
+                                            updatePossibleCounts(i, null, substituteC, substituteD,false);
+
+                                            possibleNumbers.get(key).remove((Integer) i);
+                                        }
+
+                                        if(m == 1)
+                                        {
+                                            substituteC = processingRows ? l : processedForXWings.get(k).get(1)[substituteA];
+                                            substituteD = processingRows ? processedForXWings.get(k).get(1)[substituteA] : l;
                                         }
                                     }
                                 }
