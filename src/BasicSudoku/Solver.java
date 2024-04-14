@@ -284,23 +284,24 @@ public class Solver
         int substituteA; // variables used to avoid repetitive code
         int substituteB;
 
-        for(int i = 1; i <= boardSize; i++) // value
+        for(int value = 1; value <= boardSize; value++)
         {
-            for(int j = 0; j < boardSize; j++) // row or column
+            // Find all pointing duplicates
+            for(int rowOrColumnA = 0; rowOrColumnA < boardSize; rowOrColumnA++)
             {
-                valuePossibleCount = processingRows ? valuePossibleCountRows[i][j] : valuePossibleCountColumns[i][j];
+                valuePossibleCount = processingRows ? valuePossibleCountRows[value][rowOrColumnA] : valuePossibleCountColumns[value][rowOrColumnA];
 
-                if(valuePossibleCount >= 3) // skip if value already present in row or column (no possibilities)
+                if(valuePossibleCount >= 3) // to do anything, there has to be at least 3 places where value can be
                 {
                     valueSubBoardCount = 0;
-                    previousSubBoard = processingRows ? board.findSubBoardNumber(j, 0) : board.findSubBoardNumber(0, j); // initial sub-board
+                    previousSubBoard = processingRows ? board.findSubBoardNumber(rowOrColumnA, 0) : board.findSubBoardNumber(0, rowOrColumnA); // initial sub-board
 
-                    for(int k = 0; k < boardSize; k++) // row or column
+                    for(int rowOrColumnB = 0; rowOrColumnB < boardSize; rowOrColumnB++)
                     {
-                        substituteA = processingRows ? j : k;
-                        substituteB = processingRows ? k : j;
+                        substituteA = processingRows ? rowOrColumnA : rowOrColumnB;
+                        substituteB = processingRows ? rowOrColumnB : rowOrColumnA;
 
-                        if(possibleNumbers.get(substituteA + "," + substituteB) != null && possibleNumbers.get(substituteA + "," + substituteB).contains(i))
+                        if(possibleNumbers.get(substituteA + "," + substituteB) != null && possibleNumbers.get(substituteA + "," + substituteB).contains(value))
                         {
                             if(previousSubBoard != board.findSubBoardNumber(substituteA, substituteB)) // reset and update if sub-board has changed
                             {
@@ -310,51 +311,53 @@ public class Solver
 
                             valueSubBoardCount++;
 
-                            if(valueSubBoardCount >= targetValueCount && valuePossibleCountSubBoards[i][board.findSubBoardNumber(substituteA, substituteB)] == valueSubBoardCount) // pointing duplicates found, but value might be present on multiple sub-boards
+                            if(valueSubBoardCount >= targetValueCount && valuePossibleCountSubBoards[value][board.findSubBoardNumber(substituteA, substituteB)] == valueSubBoardCount) // pointing duplicates found, but value might be present on multiple sub-boards
                             {
-                                for(int l = 0; l < boardSize; l++) // row or column
+                                // Process pointing duplicates normally for value elimination
+                                for(int rowOrColumnC = 0; rowOrColumnC < boardSize; rowOrColumnC++)
                                 {
-                                    substituteA = processingRows ? j : l;
-                                    substituteB = processingRows ? l : j;
+                                    substituteA = processingRows ? rowOrColumnA : rowOrColumnC;
+                                    substituteB = processingRows ? rowOrColumnC : rowOrColumnA;
 
                                     String key = (substituteA + "," + substituteB);
 
-                                    if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
+                                    if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(value))
                                     {
                                         if(board.findSubBoardNumber(substituteA, substituteB) != previousSubBoard) // remove value from row or column if on other sub-boards
                                         {
-                                            updatePossibleCounts(i, null, substituteA, substituteB,false);
+                                            updatePossibleCounts(value, null, substituteA, substituteB,false);
 
-                                            possibleNumbers.get(key).remove((Integer) i);
+                                            possibleNumbers.get(key).remove((Integer) value);
                                         }
                                     }
                                 }
                             }
                         }
 
-                        if(k == boardSize - 1)
+                        if(rowOrColumnB == boardSize - 1) // last iteration
                         {
-                            if(valueSubBoardCount >= targetValueCount && valuePossibleCount == valueSubBoardCount) // pointing duplicates found, but value is only present on a single sub-board (perform BLR)
+                            if(valueSubBoardCount >= targetValueCount && valuePossibleCount == valueSubBoardCount) // pointing duplicates found, but value is only present on a single sub-board
                             {
+                                // Process pointing duplicates with BLR (box/line reduction) for value elimination
                                 int startingRow = (previousSubBoard / boardLengthWidth) * boardLengthWidth;
                                 int startingColumn = (previousSubBoard - startingRow) * boardLengthWidth;
 
-                                for(int m = 0; m < boardLengthWidth; m++) // added to starting row or column
+                                for(int addToRowColumnA = 0; addToRowColumnA < boardLengthWidth; addToRowColumnA++) // added to starting row or column
                                 {
-                                    if(processingRows && startingRow + m != j || !processingRows && startingColumn + m != j)
+                                    if(processingRows && startingRow + addToRowColumnA != rowOrColumnA || !processingRows && startingColumn + addToRowColumnA != rowOrColumnA)
                                     {
-                                        for(int n = 0; n < boardLengthWidth; n++) // added to starting row or column
+                                        for(int addToRowColumnB = 0; addToRowColumnB < boardLengthWidth; addToRowColumnB++)
                                         {
-                                            substituteA = processingRows ? m : n;
-                                            substituteB = processingRows ? n : m;
+                                            substituteA = processingRows ? addToRowColumnA : addToRowColumnB;
+                                            substituteB = processingRows ? addToRowColumnB : addToRowColumnA;
 
                                             String key = (startingRow + substituteA) + "," + (startingColumn + substituteB);
 
-                                            if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
+                                            if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(value))
                                             {
-                                                updatePossibleCounts(i, null, startingRow + substituteA, startingColumn + substituteB,false);
+                                                updatePossibleCounts(value, null, startingRow + substituteA, startingColumn + substituteB,false);
 
-                                                possibleNumbers.get(key).remove((Integer) i); // remove value from the rest of the sub-board
+                                                possibleNumbers.get(key).remove((Integer) value); // remove value from the rest of the sub-board
                                             }
                                         }
                                     }
@@ -374,6 +377,7 @@ public class Solver
     {
         List<int[]> rowColumnPositions;
         List<List<int[]>> processedForXWings;
+
         int valuePossibleCount;
 
         int substituteA; // variables used to avoid repetitive code
@@ -381,71 +385,75 @@ public class Solver
         int substituteC;
         int substituteD;
 
-        for(int i = 1; i <= boardSize; i++) // value
+        for(int value = 1; value <= boardSize; value++)
         {
             processedForXWings = new ArrayList<>();
 
-            for (int j = 0; j < boardSize; j++) // row or column
+            // Find all x-wing candidates
+            for (int rowOrColumnA = 0; rowOrColumnA < boardSize; rowOrColumnA++)
             {
-                valuePossibleCount = processingRows ? valuePossibleCountRows[i][j] : valuePossibleCountColumns[i][j];
+                valuePossibleCount = processingRows ? valuePossibleCountRows[value][rowOrColumnA] : valuePossibleCountColumns[value][rowOrColumnA];
                 rowColumnPositions = new ArrayList<>();
 
                 if(valuePossibleCount == 2) // skip if value already present or possible more than 2 places in row or column
                 {
-                    for(int k = 0; k < boardSize; k++) // row or column
+                    for(int rowOrColumnB = 0; rowOrColumnB < boardSize; rowOrColumnB++)
                     {
-                        substituteA = processingRows ? j : k;
-                        substituteB = processingRows ? k : j;
+                        substituteA = processingRows ? rowOrColumnA : rowOrColumnB;
+                        substituteB = processingRows ? rowOrColumnB : rowOrColumnA;
 
                         String key = (substituteA + "," + substituteB);
 
-                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
+                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(value))
                         {
                             rowColumnPositions.add(new int[] {substituteA, substituteB}); // store position of value
                         }
 
-                        if(k == boardSize - 1)
+                        if(rowOrColumnB == boardSize - 1) // last iteration
                         {
-                            processedForXWings.add(rowColumnPositions); // x-wing candidate found
+                            processedForXWings.add(rowColumnPositions); // add positions to x-wing candidates list
                         }
                     }
                 }
             }
 
-            if(processedForXWings.size() >= 2) // enough candidates found
+            // Check if there is one or more pairs of applicable x-wing candidates
+            if(processedForXWings.size() >= 2)
             {
                 substituteA = processingRows ? 1 : 0; // 0 = row index, 1 = column index
 
-                for(int j = 0; j < processedForXWings.size() - 1; j++)
+                for(int xWingPartA = 0; xWingPartA < processedForXWings.size() - 1; xWingPartA++)
                 {
-                    for(int k = j + 1; k < processedForXWings.size(); k++)
+                    for(int xWingPartB = xWingPartA + 1; xWingPartB < processedForXWings.size(); xWingPartB++)
                     {
-                        if(processedForXWings.get(j).get(0)[substituteA] == processedForXWings.get(k).get(0)[substituteA] && processedForXWings.get(j).get(1)[substituteA] == processedForXWings.get(k).get(1)[substituteA]) // check if there is an x-wing
+                        if(processedForXWings.get(xWingPartA).get(0)[substituteA] == processedForXWings.get(xWingPartB).get(0)[substituteA] && processedForXWings.get(xWingPartA).get(1)[substituteA] == processedForXWings.get(xWingPartB).get(1)[substituteA]) // check if there is an x-wing
                         {
                             substituteB = processingRows ? 0 : 1; // 0 = row index, 1 = column index
 
-                            for(int l = 0; l < boardSize; l++)
+                            // Process x-wing for value elimination
+                            for(int rowOrColumn = 0; rowOrColumn < boardSize; rowOrColumn++)
                             {
-                                if(l != processedForXWings.get(j).get(0)[substituteB] && l != processedForXWings.get(k).get(1)[substituteB]) // don't remove value from x-wing rows or columns
+                                if(rowOrColumn != processedForXWings.get(xWingPartA).get(0)[substituteB] && rowOrColumn != processedForXWings.get(xWingPartB).get(1)[substituteB]) // don't remove value from x-wing rows or columns
                                 {
-                                    substituteC = processingRows ? l : processedForXWings.get(j).get(0)[substituteA];
-                                    substituteD = processingRows ? processedForXWings.get(j).get(0)[substituteA] : l;
+                                    substituteC = processingRows ? rowOrColumn : processedForXWings.get(xWingPartA).get(0)[substituteA];
+                                    substituteD = processingRows ? processedForXWings.get(xWingPartA).get(0)[substituteA] : rowOrColumn;
 
-                                    for(int m = 1; m <= 2; m++) // remove value elsewhere in both rows or columns
+
+                                    for(int processRowOrColumns = 0; processRowOrColumns < 2; processRowOrColumns++) // remove value elsewhere in both rows or columns
                                     {
                                         String key = (substituteC + "," + substituteD);
 
-                                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(i))
+                                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(value))
                                         {
-                                            updatePossibleCounts(i, null, substituteC, substituteD,false);
+                                            updatePossibleCounts(value, null, substituteC, substituteD,false);
 
-                                            possibleNumbers.get(key).remove((Integer) i);
+                                            possibleNumbers.get(key).remove((Integer) value);
                                         }
 
-                                        if(m == 1)
+                                        if(processRowOrColumns == 1) // switch from processing rows to columns or opposite
                                         {
-                                            substituteC = processingRows ? l : processedForXWings.get(k).get(1)[substituteA];
-                                            substituteD = processingRows ? processedForXWings.get(k).get(1)[substituteA] : l;
+                                            substituteC = processingRows ? rowOrColumn : processedForXWings.get(xWingPartB).get(1)[substituteA];
+                                            substituteD = processingRows ? processedForXWings.get(xWingPartB).get(1)[substituteA] : rowOrColumn;
                                         }
                                     }
                                 }
@@ -506,6 +514,7 @@ public class Solver
                 }
             }
 
+            // Process all hinges (1) and pincers (2) for value elimination
             for(int[] hinge : hingeCells)
             {
                 pincerCells = new ArrayList<>();
