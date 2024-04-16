@@ -9,6 +9,7 @@ public class Solver
     final int boardSize;
     final int boardLengthWidth;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
+    private Set<String> processedKeys = new HashSet<>();
     private int possibleNumbersCount;
     private int[][] valuePossibleCountRows; // [value][row]
     private int[][] valuePossibleCountColumns; // [value][column]
@@ -261,6 +262,172 @@ public class Solver
             }
         }
     }
+
+    private void returnCandidatesInColumns(int column) {
+        // Abinav
+
+        Map<String, List<Integer>> columnCandidates = new HashMap<>();
+        for (String key : possibleNumbers.keySet()) {
+            String[] parts = key.split(",");
+            int keyColumn = Integer.parseInt(parts[1]);
+            if (keyColumn == column) {
+                columnCandidates.put(key, possibleNumbers.get(key));
+            }
+        }
+            findNakedPairs(columnCandidates);
+    }
+
+    private void returnCandidatesInSubBoard(int subBoard) {
+        // Abinav
+
+        Map<String, List<Integer>> subBoardCandidates = new HashMap<>();
+        for (String key : possibleNumbers.keySet()) {
+            String[] parts = key.split(",");
+            int keyRow = Integer.parseInt(parts[0]);
+            int keyColumn = Integer.parseInt(parts[1]);
+            if (board.findSubBoardNumber(keyRow, keyColumn) == subBoard) {
+                subBoardCandidates.put(key, possibleNumbers.get(key));
+            }
+        }
+
+            findNakedPairs(subBoardCandidates);
+
+    }
+
+    private void returnCandidatesInRows(int row) {
+        // Abinav
+
+        Map<String, List<Integer>> rowCandidates = new HashMap<>();
+        for (String key : possibleNumbers.keySet()) {
+            String[] parts = key.split(",");
+            int keyRow = Integer.parseInt(parts[0]);
+            if (keyRow == row) {
+                rowCandidates.put(key, possibleNumbers.get(key));
+            }
+        }
+
+            findNakedPairs(rowCandidates);
+    }
+
+    public void NP(){
+        nakedPairs();
+        nakedSingles();
+    }
+
+    private void nakedPairs() {
+        // Abinav
+
+        for (String key1 : possibleNumbers.keySet()) {
+            List<Integer> valuesOfKey1 = possibleNumbers.get(key1);
+            String[] parts = key1.split(",");
+            int Key1row = Integer.parseInt(parts[0]);
+            int Key1column = Integer.parseInt(parts[1]);
+            int subBoardNoForKey1 = board.findSubBoardNumber(Key1row, Key1column);
+            if (valuesOfKey1.size() != 2) continue;
+            for (String key2 : possibleNumbers.keySet()) {
+                if (key2.equals(key1) || valuesOfKey1.size() != 2) continue;
+                List<Integer> valuesOfKey2 = possibleNumbers.get(key2);
+                String[] parts2 = key2.split(",");
+                int Key2row = Integer.parseInt(parts2[0]);
+                int Key2column = Integer.parseInt(parts2[1]);
+                int subBoardNoForKey2 = board.findSubBoardNumber(Key2row, Key2column);
+                boolean sameRow = (Key1row == Key2row);
+                boolean sameColumn = (Key1column == Key2column);
+                boolean sameSubBoard = (subBoardNoForKey1 == subBoardNoForKey2);
+
+                if (sameRow || sameColumn || sameSubBoard) {
+                    List<Integer> commonValues = new ArrayList<>();
+                    if (sameRow) {
+                        returnCandidatesInRows(Key1row);
+                    } else if (sameColumn) {
+                        returnCandidatesInColumns(Key1column);
+                    } else if (sameSubBoard) {
+                        returnCandidatesInSubBoard(subBoardNoForKey1);
+                    }
+                }
+            }
+        }
+        processedKeys.clear();
+    }
+
+
+    private void findNakedPairs(Map<String, List<Integer>> candidates) {
+        // Abinav
+
+        List<String> keys = new ArrayList<>(candidates.keySet());
+        for (int i = 0; i < keys.size(); i++) {
+            String key1 = keys.get(i);
+            if (processedKeys.contains(key1)) continue;
+            List<Integer> values1 = new ArrayList<>(candidates.get(key1));
+            for (int j = i ; j < keys.size(); j++) {
+                String key2 = keys.get(j);
+                if (processedKeys.contains(key2) || key1.equals(key2)) continue;
+                List<Integer> values2 = new ArrayList<>(candidates.get(key2));
+                if (new HashSet<>(values1).equals(new HashSet<>(values2))) {
+                    if (values2.size() == 2 && values1.size() == 2) {
+                        System.out.println("Confirmed naked pair: " + values1 + " in cells " + key1 + " + " + key2 + ".");
+                        String[] keyPart = key1.split(",");
+                        int rowOfKey1 = Integer.parseInt(keyPart[0]);
+                        int columnOfKey1 = Integer.parseInt(keyPart[1]);
+                        int subBoardOfKey1 = board.findSubBoardNumber(rowOfKey1,columnOfKey1);
+
+                        String[] keyPart2 = key2.split(",");
+                        int rowOfKey2 = Integer.parseInt(keyPart2[0]);
+                        int columnOfKey2 = Integer.parseInt(keyPart2[1]);
+                        int subBoardOfKey2 = board.findSubBoardNumber(rowOfKey2,columnOfKey2);
+                        int code;
+
+                        if((rowOfKey1 == rowOfKey2 )){
+                            code = 0;
+                            deleteNPCFromOtherCells(key1, key2, new ArrayList<>(values1),code);
+                        } else if (columnOfKey1 == columnOfKey2 ){
+                            code = 1;
+                            deleteNPCFromOtherCells(key1, key2, new ArrayList<>(values1),code);
+                        }
+                        else if ((subBoardOfKey1 == subBoardOfKey2)) {
+                            code = 2;
+                            deleteNPCFromOtherCells(key1, key2, new ArrayList<>(values1),code);
+                        }
+                        processedKeys.add(key1);
+                        processedKeys.add(key2);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private void deleteNPCFromOtherCells(String key, String key2, List<Integer> values, int code) {
+        // Abinav
+
+        String[] keyPart = key.split(",");
+        int rowOfKey1 = Integer.parseInt(keyPart[0]);
+        int columnOfKey1 = Integer.parseInt(keyPart[1]);
+        int subBoardOfKey1 = board.findSubBoardNumber(rowOfKey1,columnOfKey1);
+
+        String[] keyPart2 = key2.split(",");
+        int rowOfKey2 = Integer.parseInt(keyPart2[0]);
+        int columnOfKey2 = Integer.parseInt(keyPart2[1]);
+        int subBoardOfKey2 = board.findSubBoardNumber(rowOfKey2,columnOfKey2);
+
+        for (String originalKey : possibleNumbers.keySet()) {
+            if( (originalKey.equals(key) || (originalKey.equals(key2)))) continue;
+            String[] parts = originalKey.split(",");
+            int rowOfKeys = Integer.parseInt(parts[0]);
+            int columnOfKeys = Integer.parseInt(parts[1]);
+            int subBoardOfKeys = board.findSubBoardNumber(rowOfKeys,columnOfKeys);
+            List<Integer> valuesOfKeys = possibleNumbers.get(originalKey);
+            if((rowOfKey1 == rowOfKeys) && (rowOfKey2 == rowOfKeys) && code == 0){
+                valuesOfKeys.removeAll(values);
+            } else if ((columnOfKey1 == columnOfKeys) && (columnOfKey2 == columnOfKeys) && code == 1){
+                valuesOfKeys.removeAll(values);
+            }
+            else if ((subBoardOfKey1 == subBoardOfKeys) && (subBoardOfKey2 == subBoardOfKeys) && code == 2) {
+                valuesOfKeys.removeAll(values);
+            }
+        }
+    }
+
 
     public void nakedQuads(){
 
@@ -515,19 +682,6 @@ public class Solver
         }
         return false;
 
-        /*
-                 if(!combos.isEmpty()) {
-                    for (String position : quads) {
-                        for (Integer number : possibleNumbers.get(position)) {
-                            if (!combos.contains(number)) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-                return false;
-            }
-         */
     }
 
     private Set<Integer> findHiddenQuads(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
