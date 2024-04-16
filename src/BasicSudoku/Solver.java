@@ -483,6 +483,205 @@ public class Solver
         }
     }
 
+
+    public void swordFish(){
+        // Abinav
+
+        // swordfish technique on rows where each cell contains only 2 cells
+        findSwordFishCandidates(true,2);
+
+        // swordfish technique on columns
+        findSwordFishCandidates(false,2);
+
+        // swordfish technique on rows
+        findSwordFishCandidates(true,3);
+
+        // swordfish technique on columns
+        findSwordFishCandidates(false,3);
+
+    }
+
+    private void findSwordFishCandidates(boolean processingRows, int pairOrTriple) {
+        // Abinav
+
+        int valuePossibleCount;
+        List<int[]> rowColumnPositions;
+        List<List<int[]>> processForSF;
+
+        int substituteA = 0; // variables used to avoid repetitive code
+        int substituteB = 0;
+
+
+        for (int number = 1; number <= boardSize; number++){ // value
+            System.out.println("Checking number: " + number);
+            processForSF = new ArrayList<>();
+            for (int j = 0; j < boardSize; j++) { // row or column
+                valuePossibleCount = processingRows ? valuePossibleCountRows[number][j] : valuePossibleCountColumns[number][j];
+                rowColumnPositions = new ArrayList<>();
+
+                if (valuePossibleCount == 2 || valuePossibleCount == 3 ){ // skip if value already present or possible more than 2 places in row or column
+
+                    for (int k = 0; k < boardSize; k++){ // row or column
+
+                        substituteA = processingRows ? j : k;
+                        substituteB = processingRows ? k : j;
+
+                        String key = (substituteA + "," + substituteB);
+
+                        if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
+                            rowColumnPositions.add(new int[]{substituteA, substituteB}); // store position of value
+                        }
+
+                        if (k == boardSize - 1) {
+                            System.out.println("Added rowColumnPositions for potential X-Wing/SwordFish");
+                            processForSF.add(rowColumnPositions);
+                            for (int[] position : rowColumnPositions) {
+                                System.out.println(Arrays.toString(position));
+                            }
+                        }
+                    }
+                }
+            }
+            System.out.println(processForSF.size());
+            handleSFCandidates( pairOrTriple, substituteA,number, processingRows,  processForSF);
+
+        }
+    }
+
+    private void handleSFCandidates( int pairOrTriple,int substituteA,int number,boolean processingRows, List<List<int[]>> processForSF) {
+        // Abinav
+
+        System.out.println("Handling SwordFish candidates for number: " + number + ", processingRows: " + processingRows);
+        if (processForSF.size() >= 3) // enough candidates found
+        {
+            substituteA = processingRows ? 1 : 0; // 0 = row index, 1 = column index
+
+            for (int j = 0; j < processForSF.size() - 2; j++) {
+                for (int k = j + 1; k < processForSF.size() - 1; k++) {
+                    for (int n = k + 1; n < processForSF.size(); n++) {
+
+
+                        Set<Integer> uniqueCOR = new HashSet<>();
+                        List<Integer> emptyList = new ArrayList<>();
+                        List<String> candidates = new ArrayList<>();
+
+
+                        int windowSize = pairOrTriple; // pairs or triples in rows/columns
+
+                        int minListLength = Math.min(processForSF.get(j).size(),
+                                Math.min(processForSF.get(k).size(), processForSF.get(n).size()));
+
+                        for (int i = 0; i < minListLength - 1; i++) {
+
+                            // For list j
+                            for (int w = i; w < i + windowSize && w < processForSF.get(j).size(); w++) {
+                                int[] coord = processForSF.get(j).get(w);
+                                uniqueCOR.add(coord[substituteA]);
+                                System.out.println("Adding from list 1, index " + w + ": " + coord[substituteA]);
+                                emptyList.add(coord[substituteA]);
+                                String row = Integer.toString(coord[0]);
+                                String column = Integer.toString(coord[1]);
+                                String key = row + "," + column;
+                                candidates.add(key);
+                            }
+
+                            // For list k
+                            for (int w = i; w < i + windowSize && w < processForSF.get(k).size(); w++) {
+                                int[] coord = processForSF.get(k).get(w);
+                                uniqueCOR.add(coord[substituteA]);
+                                System.out.println("Adding from list 2, index " + w + ": " + coord[substituteA]);
+                                emptyList.add(coord[substituteA]);
+                                String row = Integer.toString(coord[0]);
+                                String column = Integer.toString(coord[1]);
+                                String key = row + "," + column;
+                                candidates.add(key);
+                            }
+
+                            // For list n
+                            for (int w = i; w < i + windowSize && w < processForSF.get(n).size(); w++) {
+                                int[] coord = processForSF.get(n).get(w);
+                                uniqueCOR.add(coord[substituteA]);
+                                System.out.println("Adding from list 3, index " + w + ": " + coord[substituteA]);
+                                emptyList.add(coord[substituteA]);
+                                String row = Integer.toString(coord[0]);
+                                String column = Integer.toString(coord[1]);
+                                String key = row + "," + column;
+                                candidates.add(key);
+                            }
+                            boolean validSF = uniqueCOR.size() == 3 && checkOccurenceOfEachElement(emptyList, uniqueCOR);
+                            eliminateNonSFC(validSF, processingRows, number, j, k, n, substituteA, processForSF, uniqueCOR, candidates);
+
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+    private void eliminateNonSFC(boolean validSF, boolean processingRows, int number,int j, int k, int n,int substituteA, List<List<int[]>> processForSF,Set<Integer> uniqueCOR,List<String> candidates){
+        if (validSF) {
+            System.out.println("passed swordfish criteria");
+
+
+            for (String key : possibleNumbers.keySet()) {
+                if (candidates.contains(key)) {
+                    continue;
+                }
+
+                String[] keyPart = key.split(",");
+                int row = Integer.parseInt(keyPart[0]);
+                int column = Integer.parseInt(keyPart[1]);
+                if (processingRows) {
+                    for (Integer setElement : uniqueCOR) {
+                        if (setElement == column) {
+                            if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
+                                updatePossibleCounts(number, row, column, false);
+
+                                possibleNumbers.get(key).remove((Integer) number);
+                            }
+                        }
+                    }
+                } else {
+                    for (Integer setElement : uniqueCOR) {
+                        if (setElement == row) {
+                            if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
+                                updatePossibleCounts(number, row, column, false);
+
+                                possibleNumbers.get(key).remove((Integer) number);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean checkOccurenceOfEachElement(List<Integer> list, Set<Integer> set){
+        // Abinav
+        boolean validSFC = true;
+
+        Map<Integer, Integer> frequency = new HashMap<>();
+
+        for(Integer number : set){
+            int count = 0;
+            for(Integer i : list){
+                if(number.equals(i)){
+                    count++;
+                }
+            }
+            frequency.put(number,count);
+        }
+        for(Integer count : frequency.values()){
+            if(count !=2) {
+                validSFC = false;
+                break;
+            }
+        }
+
+        return validSFC;
+    }
+
     public void simpleColouring(){
 
         findSimpleColouringCandidates();
