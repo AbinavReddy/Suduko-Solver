@@ -636,7 +636,7 @@ public class Solver
                     for (Integer setElement : uniqueCOR) {
                         if (setElement == column) {
                             if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
-                                updatePossibleCounts(number, row, column, false);
+                                updatePossibleCounts(number,null, row, column, false);
 
                                 possibleNumbers.get(key).remove((Integer) number);
                             }
@@ -646,7 +646,7 @@ public class Solver
                     for (Integer setElement : uniqueCOR) {
                         if (setElement == row) {
                             if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
-                                updatePossibleCounts(number, row, column, false);
+                                updatePossibleCounts(number, null,row, column, false);
 
                                 possibleNumbers.get(key).remove((Integer) number);
                             }
