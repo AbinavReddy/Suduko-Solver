@@ -429,6 +429,173 @@ public class Solver
     }
 
 
+    public void hiddenPairs(){
+
+        // hidden quads in rows
+        hiddenPairsCRcombo(true);
+        nakedSingles();
+
+        // hidden quads in columns
+        hiddenPairsCRcombo(false);
+        nakedSingles();
+
+        // hidden quads in subboard
+        hiddenPairsForSubBoards();
+        nakedSingles();
+    }
+
+    private void hiddenPairsForSubBoards(){
+        List<String> pairs;
+        for(int boardNo = 1; boardNo < boardSize; boardNo++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+            for (int row = 0; row < boardSize; row++) {
+                for (int col = 0; col < boardSize; col++) {
+                    String key = row + "," + col;
+                    List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                    boolean verifySubBoardNo = board.findSubBoardNumber(row,col) == boardNo;
+                    System.out.println();
+                    if(!verifySubBoardNo) continue;
+                    if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
+                        possibleValues.add(cellPossibleValues);
+                        cellKeys.add(key);
+                    }
+                }
+            }
+
+            if(cellKeys.size() >= 2) {
+                for (int i = 0; i < possibleValues.size(); i++) {
+                    for (int j = i + 1; j < possibleValues.size(); j++) {
+                        pairs = new ArrayList<>();
+                        Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                        unionOfValues.addAll(possibleValues.get(j));
+                        pairs.add(cellKeys.get(i));
+                        pairs.add(cellKeys.get(j));
+                        System.out.println();
+                        Set<Integer> combos = findHiddenPairs(unionOfValues, cellKeys, pairs);
+                        boolean pairsVerified = verifyPairs(pairs, combos);
+                        if ( pairsVerified) {
+                            for (String position : pairs) {
+                                possibleNumbers.get(position).retainAll(combos);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void hiddenPairsCRcombo(boolean processRows) {
+
+
+        List<String> pairs;
+
+        for (int intial = 0; intial < boardSize; intial++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+
+            // Collect possible values and keys for all cells in the row/column
+            for (int secondary = 0; secondary < boardSize; secondary++) {
+                String key = processRows? intial + "," + secondary : secondary + "," + intial;
+                List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
+                    possibleValues.add(cellPossibleValues);
+                    cellKeys.add(key);
+                }
+            }
+            if(cellKeys.size() >= 2) {
+                for (int i = 0; i < possibleValues.size(); i++) {
+                    for (int j = i + 1; j < possibleValues.size(); j++) {
+                        pairs = new ArrayList<>();
+                        Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                        unionOfValues.addAll(possibleValues.get(j));
+                        pairs.add(cellKeys.get(i));
+                        pairs.add(cellKeys.get(j));
+                        System.out.println();
+                        Set<Integer> combos = findHiddenPairs(unionOfValues, cellKeys, pairs);
+                        boolean pairsVerified = verifyPairs(pairs, combos);
+                        System.out.println();
+                        if ( pairsVerified) {
+                            System.out.println();
+                            for (String position : pairs) {
+                                possibleNumbers.get(position).retainAll(combos);
+                                System.out.println();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean verifyPairs(List<String> pairs, Set<Integer> combos) {
+        if(!combos.isEmpty()) {
+            int count = 0;
+            boolean containsBothNumbers = true;
+            for (String position : pairs) {
+                List<Integer> numbersInPosition = possibleNumbers.get(position);
+                for (Integer number : numbersInPosition) {
+                    if (!combos.contains(number)) {
+                        count++;
+                        break;
+                    }
+                }
+            }
+
+            for (String cell : pairs){
+                if(!possibleNumbers.get(cell).containsAll(combos)){
+                    containsBothNumbers = false;
+                    break;
+                }
+            }
+
+            return count>=1 && containsBothNumbers;
+        }
+        return false;
+    }
+
+    private Set<Integer> findHiddenPairs(Set<Integer> unionOfValues, List<String> cellKeys, List<String> pairs) {
+
+        List<Integer> valuesList = new ArrayList<>(unionOfValues);
+        if(unionOfValues.size() >= 2) {
+            for (int i = 0; i < valuesList.size(); i++) {
+                for (int j = i + 1; j < valuesList.size(); j++) {
+                    boolean foundHiddenPair = true;
+                    Set<Integer> combinations = new HashSet<>();
+                    combinations.add(valuesList.get(i));
+                    combinations.add(valuesList.get(j));
+                    System.out.println();
+                    if (combinations.size() == 2) {
+                        boolean isValidCombination = true;
+                        // Check each cell outside the quads to ensure the combination doesn't appear
+                        for (String cellKey : cellKeys) {
+                            if (!pairs.contains(cellKey)) { // Exclude cells in quads
+                                List<Integer> possibleNumbersForCell = possibleNumbers.get(cellKey);
+                                for (Integer number : combinations) {
+                                    if (possibleNumbersForCell.contains(number)) {
+                                        isValidCombination = false;
+                                        break; // Break from checking this combination
+                                    }
+                                }
+                                if (!isValidCombination) {
+                                    break; // Break from checking cells as one number was found outside quads
+                                }
+                            }
+                        }
+
+                        if (isValidCombination) {
+                            System.out.println();
+                            return combinations; // Found a valid combination
+                        }
+                    }
+                }
+            }
+        }
+
+        return new HashSet<>();
+    }
+
+
     public void nakedQuads(){
 
         // finds naked quads in rows
