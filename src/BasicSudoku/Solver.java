@@ -206,7 +206,7 @@ public class Solver
                 board.placeValueInCell(row, column, values.get(0));
                 updatePossibleCounts(values.get(0), null, row, column,false);
 
-                removeNumberFromOtherCandidate(key,values);
+                removeNumberFromOtherCandidate(key,values,Collections.emptyList());
                 keysToRemove.add(key);
             }
         }
@@ -236,7 +236,7 @@ public class Solver
 
     }
 
-    public void removeNumberFromOtherCandidate(String key,List<Integer> values) {
+    public void removeNumberFromOtherCandidate(String key,List<Integer> values, List<String> cellsContainingCandidate) {
         // Abinav
         String[] part = key.split(",");
         int row = Integer.parseInt(part[0]);
@@ -257,6 +257,7 @@ public class Solver
                 }
 
                 valuesOfKey2.removeAll(values);
+                if(!cellsContainingCandidate.isEmpty()) cellsContainingCandidate.remove(Key2);
             }
         }
     }
@@ -363,6 +364,353 @@ public class Solver
             }
         }
     }
+
+    public void findSimpleColouringCandidates() {
+        int blue = 0;
+        int green = 1;
+        List<String> cellsContainingCandidate;
+        Map<String, Integer> scCandidates;
+
+        for (int number = 8; number <= boardSize; number++) {
+            cellsContainingCandidate = new ArrayList<>();
+            for (String key : possibleNumbers.keySet()) {
+                if (possibleNumbers.get(key).contains(number)) cellsContainingCandidate.add(key);
+            }
+            for(String position: possibleNumbers.keySet()){
+                System.out.println();
+                if(!cellsContainingCandidate.contains(position)){
+                    continue;
+                }
+                scCandidates =new LinkedHashMap<>(); // new HashMap<String,Integer>();
+                List<String> relatedKeys = getRelatedKeys(number, position, cellsContainingCandidate,scCandidates);
+                System.out.println();
+                if (relatedKeys.isEmpty()) {
+                    continue;
+                } else {
+                    scCandidates.put(position, blue);
+                    findAndColorRelatedKeys(number, position, cellsContainingCandidate, scCandidates, green); // Alternate starting with green
+                }
+                System.out.println("number:"+number+ " start of link is :"+position);
+
+                System.out.println();
+                if(verifyLink(scCandidates)){
+                    System.out.println(verifyLink(scCandidates));
+                    System.out.println(scCandidates.size()%2);
+                    System.out.println();
+                    if(scCandidates.size()>=3){
+                        handleTwoColorsSameHouse(scCandidates,number,cellsContainingCandidate);
+                    }
+                    if ( handleTwoColorsSameHouse(scCandidates, number, cellsContainingCandidate) == false && scCandidates.size() % 2 == 0  ) {
+                        System.out.println();
+                        System.out.println("link has size odd length");
+
+                        String startPosition = scCandidates.keySet().iterator().next();
+                        String[] linkStart = startPosition.split(",");
+
+                        String lastPosition = null;
+                        for (String keys : scCandidates.keySet()){
+                            lastPosition = keys;
+                        }
+                        String[] linkEnd = lastPosition.split(",");
+
+                        boolean sameRow = linkStart[0].equals(linkEnd[0]);
+                        boolean sameColumn = linkStart[1].equals(linkEnd[1]);
+                        System.out.println();
+                        if(sameRow ){
+                           /*int maxRowColumnBound = sameRow? Math.max(Integer.parseInt(linkStart[1]),Integer.parseInt(linkStart[1])) : Math.max(Integer.parseInt(linkStart[0]),Integer.parseInt(linkStart[0])) ;
+                            int minRowColumnBound = sameRow? Math.min(Integer.parseInt(linkStart[1]),Integer.parseInt(linkStart[1])) : Math.min(Integer.parseInt(linkStart[0]),Integer.parseInt(linkStart[0]));
+                            int rowCol = sameRow? Integer.parseInt(linkStart[0]) : Integer.parseInt(linkStart[1]);
+                            for(int start = minRowColumnBound; start < maxRowColumnBound; start++){
+                                if(possibleNumbers.containsKey())
+                            }*/
+
+                            int minCol = Math.min(Integer.parseInt(linkStart[1]),Integer.parseInt(linkEnd[1]));
+                            int maxCol = Math.max(Integer.parseInt(linkStart[1]),Integer.parseInt(linkEnd[1]));
+                            for(int start = minCol+1; start < maxCol; start++){
+                                String nogle = linkStart[0]+","+start;
+                                if(possibleNumbers.get(nogle) != null && possibleNumbers.get(nogle).contains(number) && !scCandidates.containsKey(nogle)){
+                                    System.out.println(nogle);
+                                    List<Integer> valuesOfKey2 = possibleNumbers.get(nogle);
+                                    System.out.println();
+                                    valuesOfKey2.remove(Integer.valueOf(number));
+                                    updatePossibleCounts(Integer.valueOf(number),null,Integer.parseInt(linkStart[0]),start,false);
+                                    cellsContainingCandidate.remove(nogle);
+                                    System.out.println();
+                                }
+                            }
+                        }
+                        else if(sameColumn){
+                            int minRow = Math.min(Integer.parseInt(linkStart[0]),Integer.parseInt(linkEnd[0]));
+                            int maxRow = Math.max(Integer.parseInt(linkStart[0]),Integer.parseInt(linkEnd[0]));
+                            for(int start = minRow+1; start < maxRow; start++){
+                                String nogle = start+","+ linkStart[1];
+                                if(possibleNumbers.get(nogle) != null && possibleNumbers.get(nogle).contains(number) && !scCandidates.containsKey(nogle)){
+                                    System.out.println(nogle);
+                                    List<Integer> valuesOfKey2 = possibleNumbers.get(nogle);
+                                    System.out.println();
+                                    valuesOfKey2.remove(Integer.valueOf(number));
+                                    updatePossibleCounts(Integer.valueOf(number),null,start,Integer.parseInt(linkStart[1]),false);
+                                    cellsContainingCandidate.remove(nogle);
+                                    System.out.println();
+
+                                }
+                            }
+                        }
+                        else {
+
+                            String position1 = Integer.parseInt(linkStart[0]) + "," + Integer.parseInt(linkEnd[1]);
+                            String position2 = Integer.parseInt(linkEnd[0]) + "," + Integer.parseInt(linkStart[1]);
+
+                            if(possibleNumbers.get(position1) != null && possibleNumbers.get(position1).contains(number) && !scCandidates.containsKey(position1)){
+                                System.out.println(position1);
+                                List<Integer> valuesOfKey2 = possibleNumbers.get(position1);
+                                System.out.println();
+                                valuesOfKey2.remove(Integer.valueOf(number));
+                                updatePossibleCounts(Integer.valueOf(number),null,Integer.parseInt(linkStart[0]),Integer.parseInt(linkEnd[1]),false);
+                                cellsContainingCandidate.remove(position1);
+                                System.out.println();
+
+                            }
+                            if(possibleNumbers.get(position2) != null && possibleNumbers.get(position2).contains(number) && !scCandidates.containsKey(position2)){
+                                System.out.println(position2);
+                                List<Integer> valuesOfKey2 = possibleNumbers.get(position2);
+                                System.out.println();
+                                valuesOfKey2.remove(Integer.valueOf(number));
+                                updatePossibleCounts(Integer.valueOf(number),null,Integer.parseInt(linkEnd[0]),Integer.parseInt(linkStart[1]),false);
+                                cellsContainingCandidate.remove(position2);
+                                System.out.println();
+                            }
+                        }
+                    }
+                }
+                System.out.println();
+                scCandidates.clear();
+            }
+            EliminateEmptyLists();
+        }
+    }
+
+
+
+    private void findAndColorRelatedKeys(int number, String key, List<String> cellsContainingCandidate, Map<String, Integer> scCandidates, int color){
+        int blue = 0;
+        int green = 1;
+        List<String> relatedKeys = getRelatedKeys(number,key, cellsContainingCandidate,scCandidates);
+        for(String relatedKey : relatedKeys){
+            if(relatedKeys.isEmpty()) continue;
+            if ( !scCandidates.containsKey(relatedKey)) {
+                scCandidates.put(relatedKey,color);
+                int nextColor = (color == blue) ? green : blue;
+                findAndColorRelatedKeys(number, relatedKey, cellsContainingCandidate, scCandidates, nextColor);
+            }
+        }
+    }
+
+    private boolean verifyLink(Map<String, Integer> scCandidates){
+
+        Iterator<String> iterator = scCandidates.keySet().iterator();
+        boolean linkValid = true;
+        String key = iterator.next();
+
+        while(iterator.hasNext()){
+
+            String[] coord = key.split(",");
+            int row = Integer.parseInt(coord[0]);
+            int column = Integer.parseInt(coord[1]);
+            int subBoardNo = board.findSubBoardNumber(row, column);
+            int color = scCandidates.get(key);
+
+
+            String key2 = iterator.next();
+            String[] coord2 = key2.split(",");
+            int row2 = Integer.parseInt(coord2[0]);
+            int column2 = Integer.parseInt(coord2[1]);
+            int subBoardNo2 = board.findSubBoardNumber(row2, column2);
+            int color2 = scCandidates.get(key2);
+
+            boolean notInSameGroup = (row!=row2 && column != column2 && subBoardNo != subBoardNo2);
+            boolean sameColor = color==color2;
+            if(notInSameGroup || sameColor){
+                linkValid = false;
+                break;
+            }
+            key = key2;
+        }
+        return linkValid;
+    }
+
+
+
+    private List<String> getRelatedKeys (int number, String key,List<String> cellsContainingCandidate,Map<String, Integer> scCandidates){
+
+        List<String> relatedKeys = new ArrayList<>();
+        String[] parts = key.split(",");
+        int keyrow = Integer.parseInt(parts[0]);
+        int keycolumn = Integer.parseInt(parts[1]);
+        int subBoardNoForKey = board.findSubBoardNumber(keyrow, keycolumn);
+        int rowOccurenceCount = valuePossibleCountRows[number][keyrow];
+        int columnOccurenceCount = valuePossibleCountColumns[number][keycolumn];
+        int subboardOccurenceCount = valuePossibleCountSubBoards[number][subBoardNoForKey];
+
+        for (String key1 : cellsContainingCandidate) {
+            if (key1.equals(key)) continue;
+            String[] coord = key1.split(",");
+            int row = Integer.parseInt(coord[0]);
+            int column = Integer.parseInt(coord[1]);
+            int subBoardNo = board.findSubBoardNumber(row, column);
+            if (keyrow == row && possibleNumbers.get(key1).contains(number) && rowOccurenceCount ==2) {
+                if (!scCandidates.containsKey(key1))  relatedKeys.add(key1);
+            }
+            else if (keycolumn == column && possibleNumbers.get(key1).contains(number) && columnOccurenceCount == 2) {
+                if (!scCandidates.containsKey(key1))  relatedKeys.add(key1);
+            }
+            else if (subBoardNoForKey == subBoardNo && possibleNumbers.get(key1).contains(number) && subboardOccurenceCount==2) {
+                if (!scCandidates.containsKey(key1))  relatedKeys.add(key1);
+            }
+        }
+        if(!relatedKeys.isEmpty()) {
+            System.out.println("related keys of" + key + "are:" + relatedKeys);
+        }
+        return relatedKeys;
+
+    }
+
+    private boolean handleTwoColorsSameHouse(Map<String, Integer> scCandidates, int number,List<String> cellsContainingCandidate) {
+
+        List<String> blueColoredCells = new ArrayList<>();
+        List<String> greenColoredCells = new ArrayList<>();
+        List<String> keysToRemove = new ArrayList<>();
+        List<Integer> numberList = new ArrayList<>();
+        numberList.add(number);
+
+        boolean greenCellsSameHouse = false;
+        boolean blueCellsSameHouse = false;
+
+        for (String position : scCandidates.keySet()) {
+            if (scCandidates.get(position) == 0) {
+                blueColoredCells.add(position);
+            } else {
+                greenColoredCells.add(position);
+            }
+        }
+
+        for (int i = 0; i < blueColoredCells.size(); i++) {
+            String[] coord = blueColoredCells.get(i).split(",");
+            int row1 = Integer.parseInt(coord[0]);
+            int column1 = Integer.parseInt(coord[1]);
+            int subBoardNo1 = board.findSubBoardNumber(row1, column1);
+
+            for (int j = 0; j < blueColoredCells.size(); j++) {
+                if (i == j) continue;
+                String[] coord2 = blueColoredCells.get(j).split(",");
+                int row2 = Integer.parseInt(coord2[0]);
+                int column2 = Integer.parseInt(coord2[1]);
+                int subBoardNo2 = board.findSubBoardNumber(row2, column2);
+
+                if (row1 == row2 || column1 == column2 || subBoardNo1 == subBoardNo2) {
+                    blueCellsSameHouse = true;
+                    break;
+                }
+            }
+            if (blueCellsSameHouse) break;
+        }
+
+
+        for (int i = 0; i < greenColoredCells.size(); i++) {
+            String[] coord = greenColoredCells.get(i).split(",");
+            int row1 = Integer.parseInt(coord[0]);
+            int column1 = Integer.parseInt(coord[1]);
+            int subBoardNo1 = board.findSubBoardNumber(row1, column1);
+
+            for (int j = 0; j < greenColoredCells.size(); j++) {
+                if (i == j) continue;
+                String[] coord2 = greenColoredCells.get(j).split(",");
+                int row2 = Integer.parseInt(coord2[0]);
+                int column2 = Integer.parseInt(coord2[1]);
+                int subBoardNo2 = board.findSubBoardNumber(row2, column2);
+
+                if (row1 == row2 || column1 == column2 || subBoardNo1 == subBoardNo2) {
+                    greenCellsSameHouse = true;
+                    break;
+                }
+            }
+            if (greenCellsSameHouse) break;
+        }
+
+        if (blueCellsSameHouse && !greenCellsSameHouse) {
+            System.out.println("blue cells belong to same house");
+            System.out.println();
+            for (String cell1 : greenColoredCells) {
+                if(!cellsContainingCandidate.contains(cell1)) continue;
+                String[] coord1 = cell1.split(",");
+                int row = Integer.parseInt(coord1[0]);
+                int column = Integer.parseInt(coord1[1]);
+                System.out.println();
+                board.placeValueInCell(row, column,number);
+                updatePossibleCounts(number,possibleNumbers.get(cell1), row, column,false);
+                cellsContainingCandidate.remove(cell1);
+                removeNumberFromOtherCandidate(cell1,numberList,cellsContainingCandidate);
+                keysToRemove.add(cell1);
+                //removeKeysHavingEmptyList();
+
+                System.out.println();
+            }
+
+            for (String cell2 : blueColoredCells) {
+                if(!cellsContainingCandidate.contains(cell2)) continue;
+                String[] coord2 = cell2.split(",");
+                System.out.println();
+                int row = Integer.parseInt(coord2[0]);
+                int column = Integer.parseInt(coord2[1]);
+                possibleNumbers.get(cell2).remove(Integer.valueOf(number));
+                cellsContainingCandidate.remove(cell2);
+                updatePossibleCounts(number,null,row,column,false);
+
+                System.out.println();
+            }
+        }
+
+        else if (greenCellsSameHouse && !blueCellsSameHouse) {
+            System.out.println("green cells belong to same house");
+            for (String cell3 : blueColoredCells) {
+                if(!cellsContainingCandidate.contains(cell3)) continue;
+                String[] coord3 = cell3.split(",");
+                System.out.println();
+                int row = Integer.parseInt(coord3[0]);
+                int column = Integer.parseInt(coord3[1]);
+                board.placeValueInCell(row, column,number);
+                cellsContainingCandidate.remove(cell3);
+                updatePossibleCounts(number,possibleNumbers.get(cell3), row, column,false);
+                removeNumberFromOtherCandidate(cell3,numberList,cellsContainingCandidate);
+                keysToRemove.add(cell3);
+                //removeKeysHavingEmptyList();
+                System.out.println();
+            }
+
+            for (String cell4 : greenColoredCells) {
+                if(!cellsContainingCandidate.contains(cell4)) continue;
+                String[] coord4 = cell4.split(",");
+                System.out.println();
+                int row = Integer.parseInt(coord4[0]);
+                int column = Integer.parseInt(coord4[1]);
+                possibleNumbers.get(cell4).remove(Integer.valueOf(number));
+                cellsContainingCandidate.remove(cell4);
+                updatePossibleCounts(number,null,row,column,false);
+                System.out.println();
+            }
+        }
+
+        if(!keysToRemove.isEmpty()) {
+            for (String key : keysToRemove) {
+                possibleNumbers.remove(key);
+            }
+        }
+
+        boolean bool = greenCellsSameHouse || blueCellsSameHouse;
+        System.out.println();
+        return bool;
+    }
+
 
     public void wingStrategies()
     {
