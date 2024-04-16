@@ -262,6 +262,124 @@ public class Solver
         }
     }
 
+    public void nakedQuads(){
+
+        // finds naked quads in rows
+        nakedQuadsCRcombo(true);
+        nakedSingles();
+        // finds naked quads in columns
+        nakedQuadsCRcombo(false);
+        nakedSingles();
+
+        nakedQuadForSubBoards();
+        nakedSingles();
+    }
+
+
+    private void nakedQuadsCRcombo(boolean processRows) {
+
+        // Loop through all groups - starting with rows
+        List<String> quads;
+
+        for (int intial = 0; intial < boardSize; intial++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+
+            // Collect possible values and keys for all cells in the row
+            for (int secondary = 0; secondary < boardSize; secondary++) {
+                String key = processRows? intial + "," + secondary : secondary + "," + intial;
+                List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 4) {
+                    possibleValues.add(cellPossibleValues);
+                    cellKeys.add(key);
+                }
+            }
+            // Find Naked Triples among these values
+            for (int i = 0; i < possibleValues.size(); i++) {
+                for (int j = i + 1; j < possibleValues.size(); j++) {
+                    for (int k = j + 1; k < possibleValues.size(); k++) {
+                        for (int l = k + 1; l < possibleValues.size(); l++) {
+                            quads = new ArrayList<>();
+                            Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                            unionOfValues.addAll(possibleValues.get(j));
+                            unionOfValues.addAll(possibleValues.get(k));
+                            unionOfValues.addAll(possibleValues.get(l));
+                            quads.add(cellKeys.get(i));
+                            quads.add(cellKeys.get(j));
+                            quads.add(cellKeys.get(k));
+                            quads.add(cellKeys.get(l));
+                            if (unionOfValues.size() == 4 && possibleValues.size() == 4) {
+                                System.out.println();
+                                List<Integer> quadValues = new ArrayList<>(unionOfValues);
+                                // Remove these numbers from other cells' possible values in the same row
+                                for (int other = 0; other < boardSize; other++) {
+                                    String position = processRows? intial + "," + other : other + "," + intial;
+                                    if(possibleNumbers.get(position)==null || quads.contains(position)) continue;
+                                    if ( possibleNumbers.get(position).contains(quadValues.get(0)) || possibleNumbers.get(position).contains(quadValues.get(1)) || possibleNumbers.get(position).contains(quadValues.get(2)) || possibleNumbers.get(position).contains(quadValues.get(3))) {
+                                        System.out.println();
+                                        possibleNumbers.get(position).removeAll(unionOfValues);
+                                        //updatePossibleCounts(unionOfValues,row,col,false);
+                                        System.out.println();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    private void nakedQuadForSubBoards(){
+        for (int i =0; i < boardSize; i++){
+            for(int j=1; j<= boardSize; j++){
+                List<String> quads = new ArrayList<>();
+                List<List<Integer>> possibleValues = new ArrayList<>();
+                List<String> cellKeys = new ArrayList<>();
+                int startingRow = (i / boardLengthWidth) * boardLengthWidth;
+                int startingColumn = (i - startingRow) * boardLengthWidth;
+                Set<Integer> unionOfValues;
+
+                for(int k = 0; k < boardLengthWidth; k++){
+                    for(int l = 0; l < boardLengthWidth; l++){
+                        String key = (startingRow + k) + "," + (startingColumn + l);
+                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(j)){
+                            List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                            if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 4) {
+                                possibleValues.add(cellPossibleValues);
+                                cellKeys.add(key);
+                                quads.add(key);
+                            }
+                        }
+                    }
+                }
+
+                unionOfValues = new HashSet<>();
+                for(List<Integer> possible: possibleValues)
+                {
+                    unionOfValues.addAll(possible);
+
+                }
+
+                if (possibleValues.size() == 4 && unionOfValues.size() == 4) { // A Naked Quad is found
+                    List<Integer> quadValues = new ArrayList<>(unionOfValues);
+                    // Remove these numbers from other cells' possible values in the same row
+                    for(int k = 0; k < boardLengthWidth; k++){// added to rows
+                        for(int l = 0; l < boardLengthWidth; l++) { // added to columns
+                            String key = (startingRow + k) + "," + (startingColumn + l);
+                            if (possibleNumbers.get(key)!= null && !quads.contains(key) ) {
+                                if( possibleNumbers.get(key).contains(quadValues.get(0)) || possibleNumbers.get(key).contains(quadValues.get(1)) || possibleNumbers.get(key).contains(quadValues.get(2)) && possibleNumbers.get(key).contains(quadValues.get(3))) {
+                                    possibleNumbers.get(key).removeAll(unionOfValues);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public void intersectionRemoval()
     {
         // Danny
@@ -365,7 +483,13 @@ public class Solver
         }
     }
 
-    public void findSimpleColouringCandidates() {
+    public void simpleColouring(){
+
+        findSimpleColouringCandidates();
+        nakedSingles();
+    }
+
+    private void findSimpleColouringCandidates() {
         int blue = 0;
         int green = 1;
         List<String> cellsContainingCandidate;
