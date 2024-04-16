@@ -380,6 +380,204 @@ public class Solver
         }
     }
 
+
+    public void hiddenQuads(){
+
+        // hidden quads in rows
+        hiddenQuadsCRcombo(true);
+        nakedSingles();
+
+        // hidden quads in columns
+        hiddenQuadsCRcombo(false);
+        nakedSingles();
+
+        // hidden quads in subboard
+        hiddenQuadForSubBoards();
+        nakedSingles();
+    }
+
+    private void hiddenQuadForSubBoards(){
+        List<String> quads;
+        for(int boardNo = 1; boardNo < boardSize; boardNo++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+            for (int row = 0; row < boardSize; row++) {
+                for (int col = 0; col < boardSize; col++) {
+                    String key = row + "," + col;
+                    List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                    boolean verifySubBoardNo = board.findSubBoardNumber(row,col) == boardNo;
+                    System.out.println();
+                    if(!verifySubBoardNo) continue;
+                    if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
+                        possibleValues.add(cellPossibleValues);
+                        cellKeys.add(key);
+                    }
+                }
+            }
+
+            if(cellKeys.size() >= 4) {
+                for (int i = 0; i < possibleValues.size(); i++) {
+                    for (int j = i + 1; j < possibleValues.size(); j++) {
+                        for (int k = j + 1; k < possibleValues.size(); k++) {
+                            for (int l = k + 1; l < possibleValues.size(); l++) {
+                                quads = new ArrayList<>();
+                                Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                                unionOfValues.addAll(possibleValues.get(j));
+                                unionOfValues.addAll(possibleValues.get(k));
+                                unionOfValues.addAll(possibleValues.get(l));
+                                quads.add(cellKeys.get(i));
+                                quads.add(cellKeys.get(j));
+                                quads.add(cellKeys.get(k));
+                                quads.add(cellKeys.get(l));
+                                System.out.println();
+                                Set<Integer> combos = findHiddenQuads(unionOfValues, cellKeys, quads);
+                                boolean quadsVerified = verifyQuads(quads, combos);
+                                System.out.println();
+                                if ( quadsVerified) {
+                                    System.out.println();
+                                    for (String position : quads) {
+                                        possibleNumbers.get(position).retainAll(combos);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void hiddenQuadsCRcombo(boolean processRows) {
+
+
+        List<String> quads;
+
+        for (int intial = 0; intial < boardSize; intial++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+
+            // Collect possible values and keys for all cells in the row/column
+            for (int secondary = 0; secondary < boardSize; secondary++) {
+                String key = processRows? intial + "," + secondary : secondary + "," + intial;
+                List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
+                    possibleValues.add(cellPossibleValues);
+                    cellKeys.add(key);
+                }
+            }
+            if(cellKeys.size() >= 4) {
+                for (int i = 0; i < possibleValues.size(); i++) {
+                    for (int j = i + 1; j < possibleValues.size(); j++) {
+                        for (int k = j + 1; k < possibleValues.size(); k++) {
+                            for (int l = k + 1; l < possibleValues.size(); l++) {
+                                quads = new ArrayList<>();
+                                Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                                unionOfValues.addAll(possibleValues.get(j));
+                                unionOfValues.addAll(possibleValues.get(k));
+                                unionOfValues.addAll(possibleValues.get(l));
+                                quads.add(cellKeys.get(i));
+                                quads.add(cellKeys.get(j));
+                                quads.add(cellKeys.get(k));
+                                quads.add(cellKeys.get(l));
+                                System.out.println();
+                                Set<Integer> combos = findHiddenQuads(unionOfValues, cellKeys, quads);
+                                boolean quadsVerified = verifyQuads(quads, combos);
+                                System.out.println();
+                                if ( quadsVerified) {
+                                    for (String position : quads) {
+                                        possibleNumbers.get(position).retainAll(combos);
+                                        System.out.println();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean verifyQuads(List<String> quads, Set<Integer> combos) {
+        if(!combos.isEmpty()) {
+            int count = 0;
+            for (String position : quads) {
+                List<Integer> numbersInPosition = possibleNumbers.get(position);
+                for (Integer number : numbersInPosition) {
+                    if (!combos.contains(number)) {
+                        count++;
+                        break;
+                    }
+                }
+                if (count >= 2) {
+                    return true;
+                }
+            }
+        }
+        return false;
+
+        /*
+                 if(!combos.isEmpty()) {
+                    for (String position : quads) {
+                        for (Integer number : possibleNumbers.get(position)) {
+                            if (!combos.contains(number)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+         */
+    }
+
+    private Set<Integer> findHiddenQuads(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
+
+        List<Integer> valuesList = new ArrayList<>(unionOfValues);
+        if(unionOfValues.size() >= 4) {
+            for (int i = 0; i < valuesList.size(); i++) {
+                for (int j = i + 1; j < valuesList.size(); j++) {
+                    for (int k = j + 1; k < valuesList.size(); k++) {
+                        for (int l = k + 1; l < valuesList.size(); l++) {
+                            boolean foundHiddenQuads = true;
+                            Set<Integer> combinations = new HashSet<>();
+                            combinations.add(valuesList.get(i));
+                            combinations.add(valuesList.get(j));
+                            combinations.add(valuesList.get(k));
+                            combinations.add(valuesList.get(l));
+                            System.out.println();
+                            if (combinations.size() == 4) {
+                                boolean isValidCombination = true;
+                                // Check each cell outside the quads to ensure the combination doesn't appear
+                                for (String cellKey : cellKeys) {
+                                    if (!quads.contains(cellKey)) { // Exclude cells in quads
+                                        List<Integer> possibleNumbersForCell = possibleNumbers.get(cellKey);
+                                        for (Integer number : combinations) {
+                                            if (possibleNumbersForCell.contains(number)) {
+                                                isValidCombination = false;
+                                                break; // Break from checking this combination
+                                            }
+                                        }
+                                        if (!isValidCombination) {
+                                            break; // Break from checking cells as one number was found outside quads
+                                        }
+                                    }
+                                }
+
+                                if (isValidCombination) {
+                                    System.out.println();
+                                    return combinations; // Found a valid combination
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return new HashSet<>();
+    }
+
+
     public void intersectionRemoval()
     {
         // Danny
