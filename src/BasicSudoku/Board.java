@@ -13,9 +13,11 @@ public class Board
     private Solver solver;
     private boolean isSolvable;
 
+    /**
+     * @author Danny, Abinav & Yahya
+     */
     public Board(int boardLengthWidth, boolean emptySubBoardsAllowed)
     {
-        // Danny & Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
@@ -43,9 +45,11 @@ public class Board
         while((boardLengthWidth == 3 && (isSolvable && !solver.isBoardSolvable() || !isSolvable && solver.isBoardSolvable())) || !solver.possibleValuesInCells());
     }
 
+    /**
+     * @author Danny & Abinav
+     */
     public Board(Board boardToCopy)
     {
-        // Danny & Abinav
         board = new int[boardToCopy.boardSize][boardToCopy.boardSize];
 
         for(int row = 0; row < boardToCopy.boardSize; row++)
@@ -62,9 +66,11 @@ public class Board
         isSolvable = boardToCopy.isSolvable;
     }
 
+    /**
+     * @author Danny & Abinav
+     */
     private void initializeBoard(int filledFromStart, boolean subBoardsCanBeEmpty)
     {
-        // Danny & Abinav
         board = new int[boardSize][boardSize];
         filledCells = 0;
 
@@ -112,9 +118,11 @@ public class Board
         }
     }
 
+    /**
+     * @author Abinav & Danny
+     */
     private void initializeBoardTemp(int[][] predefinedBoard)
     {
-        // Abinav & Danny
         for(int row = 0; row < boardSize; row++)
         {
             for(int column = 0; column < boardSize; column++)
@@ -135,10 +143,10 @@ public class Board
      * Checks whether the given parameters are valid/follow the rules of Sudoku, and if that is the case, inserts the value
      * at the provided (row, column)-location.
      * @return True if placing the value in the cell was successful, false otherwise
+     * @author Danny & Abinav
      */
     public boolean placeValueInCell(int row, int column, int value)
     {
-        // Danny & Abinav
         if((row < 0 || row > boardSize - 1) || (column < 0 || column > boardSize - 1))
         {
             errorMessage = "ERROR: Only indices from 1-" + boardSize + " are valid!";
@@ -169,9 +177,11 @@ public class Board
         return true;
     }
 
+    /**
+     * @author Yahya
+     */
     public boolean checkPlacementRow(int row, int value)
     {
-        // Yahya
         for (int column = 0;  column < boardSize; column++ )
         {
             if(board[row][column] == value)
@@ -182,9 +192,11 @@ public class Board
         return true;
     }
 
+    /**
+     * @author Abinav
+     */
     public boolean checkPlacementColumn(int column, int value)
     {
-        // Abinav
         for (int row = 0;  row < boardSize; row++ )
         {
             if(board[row][column] == value)
@@ -200,10 +212,10 @@ public class Board
      * It works by first finding the [0][0]-point of the sub-board in question and then checks each cell within this isolated
      * sub-board for the given value, only going as many rows down and columns out as fits the dimensions of the sub-boards.
      * @return True if value is not found, false otherwise
+     * @author Danny
      */
     public boolean checkPlacementSubBoard(int row, int column, int value)
     {
-        // Danny
         int subBoard = findSubBoardNumber(row, column);
         int startingRow = (subBoard / boardLengthWidth) * boardLengthWidth;
         int startingColumn = (subBoard - startingRow) * boardLengthWidth;
@@ -222,22 +234,28 @@ public class Board
         return true;
     }
 
+    /**
+     * @author Abinav
+     */
     public int findSubBoardNumber(int row,int column)
     {
-        // Abinav
         int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
         return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards);
     }
 
+    /**
+     * @author Yahya
+     */
     public boolean isGameFinished()
     {
-        // Yahya
         return filledCells == availableCells;
     }
 
+    /**
+     * @author Danny
+     */
     public boolean solveBoard()
     {
-        // Danny
         if(!solver.solveWithStrategies())
         {
             errorMessage = "ERROR: The solver was unable to solve the puzzle!";
@@ -248,9 +266,11 @@ public class Board
         return true;
     }
 
+    /**
+     * @author Danny
+     */
     public void setBoardValue(int row, int column, int value)
     {
-        // Danny
         if(value != 0)
         {
             filledCells++;
@@ -263,38 +283,51 @@ public class Board
         board[row][column] = value;
     }
 
+    /**
+     * @author Danny
+     */
     public void setIsSolvable(boolean solvable)
     {
         isSolvable = solvable;
     }
 
+    /**
+     * @author Danny
+     */
     public int[][] getBoard()
     {
-        // Danny
         return board;
     }
 
+    /**
+     * @author Danny
+     */
     public int getBoardLengthWidth()
     {
-        // Danny
         return boardLengthWidth;
     }
 
+    /**
+     * @author Danny
+     */
     public int getBoardSize()
     {
-        // Danny
         return boardSize;
     }
 
+    /**
+     * @author Danny
+     */
     public String getErrorMessage()
     {
-        // Danny
         return errorMessage;
     }
 
+    /**
+     * @author Danny
+     */
     public Solver getSolver()
     {
-        // Danny
         return solver;
     }
 
