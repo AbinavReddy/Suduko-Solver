@@ -310,6 +310,8 @@ public class Solver
     }
 
     public void NP(){
+        // Abinav
+
         nakedPairs();
         nakedSingles();
     }
@@ -419,17 +421,22 @@ public class Solver
             List<Integer> valuesOfKeys = possibleNumbers.get(originalKey);
             if((rowOfKey1 == rowOfKeys) && (rowOfKey2 == rowOfKeys) && code == 0){
                 valuesOfKeys.removeAll(values);
+                updatePossibleCounts(5,valuesOfKeys,rowOfKeys,columnOfKeys,false);
             } else if ((columnOfKey1 == columnOfKeys) && (columnOfKey2 == columnOfKeys) && code == 1){
                 valuesOfKeys.removeAll(values);
+                updatePossibleCounts(5,valuesOfKeys,rowOfKeys,columnOfKeys,false);
             }
             else if ((subBoardOfKey1 == subBoardOfKeys) && (subBoardOfKey2 == subBoardOfKeys) && code == 2) {
                 valuesOfKeys.removeAll(values);
+                updatePossibleCounts(5,valuesOfKeys,rowOfKeys,columnOfKeys,false);
             }
         }
     }
 
 
     public void hiddenPairs(){
+
+        // Abinav
 
         // hidden quads in rows
         hiddenPairsCRcombo(true);
@@ -445,6 +452,8 @@ public class Solver
     }
 
     private void hiddenPairsForSubBoards(){
+        // Abinav
+
         List<String> pairs;
         for(int boardNo = 1; boardNo < boardSize; boardNo++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
@@ -476,7 +485,11 @@ public class Solver
                         boolean pairsVerified = verifyPairs(pairs, combos);
                         if ( pairsVerified) {
                             for (String position : pairs) {
+                                String[] pos = position.split(",");
+                                List<Integer> valuesDuplicate = possibleNumbers.get(position);
                                 possibleNumbers.get(position).retainAll(combos);
+                                valuesDuplicate.removeAll(combos);
+                                updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                             }
                         }
                     }
@@ -486,7 +499,7 @@ public class Solver
     }
 
     private void hiddenPairsCRcombo(boolean processRows) {
-
+        // Abinav
 
         List<String> pairs;
 
@@ -518,7 +531,11 @@ public class Solver
                         if ( pairsVerified) {
                             System.out.println();
                             for (String position : pairs) {
+                                String[] pos = position.split(",");
+                                List<Integer> valuesDuplicate = possibleNumbers.get(position);
                                 possibleNumbers.get(position).retainAll(combos);
+                                valuesDuplicate.removeAll(combos);
+                                updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                 System.out.println();
                             }
                         }
@@ -529,6 +546,8 @@ public class Solver
     }
 
     private boolean verifyPairs(List<String> pairs, Set<Integer> combos) {
+        // Abinav
+
         if(!combos.isEmpty()) {
             int count = 0;
             boolean containsBothNumbers = true;
@@ -555,6 +574,7 @@ public class Solver
     }
 
     private Set<Integer> findHiddenPairs(Set<Integer> unionOfValues, List<String> cellKeys, List<String> pairs) {
+        // Abinav
 
         List<Integer> valuesList = new ArrayList<>(unionOfValues);
         if(unionOfValues.size() >= 2) {
@@ -597,6 +617,7 @@ public class Solver
 
 
     public void nakedQuads(){
+        // Abinav
 
         // finds naked quads in rows
         nakedQuadsCRcombo(true);
@@ -611,15 +632,16 @@ public class Solver
 
 
     private void nakedQuadsCRcombo(boolean processRows) {
+        // Abinav
 
-        // Loop through all groups - starting with rows
+
         List<String> quads;
 
         for (int intial = 0; intial < boardSize; intial++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
             List<String> cellKeys = new ArrayList<>();
 
-            // Collect possible values and keys for all cells in the row
+
             for (int secondary = 0; secondary < boardSize; secondary++) {
                 String key = processRows? intial + "," + secondary : secondary + "," + intial;
                 List<Integer> cellPossibleValues = possibleNumbers.get(key);
@@ -628,7 +650,7 @@ public class Solver
                     cellKeys.add(key);
                 }
             }
-            // Find Naked Triples among these values
+            // Find Naked quads among these values
             for (int i = 0; i < possibleValues.size(); i++) {
                 for (int j = i + 1; j < possibleValues.size(); j++) {
                     for (int k = j + 1; k < possibleValues.size(); k++) {
@@ -651,8 +673,10 @@ public class Solver
                                     if(possibleNumbers.get(position)==null || quads.contains(position)) continue;
                                     if ( possibleNumbers.get(position).contains(quadValues.get(0)) || possibleNumbers.get(position).contains(quadValues.get(1)) || possibleNumbers.get(position).contains(quadValues.get(2)) || possibleNumbers.get(position).contains(quadValues.get(3))) {
                                         System.out.println();
+                                        String[] pos = position.split(",");
+                                        List<Integer> valuesDuplicate = possibleNumbers.get(position);
                                         possibleNumbers.get(position).removeAll(unionOfValues);
-                                        //updatePossibleCounts(unionOfValues,row,col,false);
+                                        updatePossibleCounts(10,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                         System.out.println();
                                     }
                                 }
@@ -666,6 +690,7 @@ public class Solver
 
 
     private void nakedQuadForSubBoards(){
+        // Abinav
         for (int i =0; i < boardSize; i++){
             for(int j=1; j<= boardSize; j++){
                 List<String> quads = new ArrayList<>();
@@ -704,6 +729,9 @@ public class Solver
                             String key = (startingRow + k) + "," + (startingColumn + l);
                             if (possibleNumbers.get(key)!= null && !quads.contains(key) ) {
                                 if( possibleNumbers.get(key).contains(quadValues.get(0)) || possibleNumbers.get(key).contains(quadValues.get(1)) || possibleNumbers.get(key).contains(quadValues.get(2)) && possibleNumbers.get(key).contains(quadValues.get(3))) {
+                                    String[] pos = key.split(",");
+                                    List<Integer> valuesDuplicate = possibleNumbers.get(key);
+                                    updatePossibleCounts(10,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                     possibleNumbers.get(key).removeAll(unionOfValues);
                                 }
                             }
@@ -716,6 +744,7 @@ public class Solver
 
 
     public void hiddenQuads(){
+        // Abinav
 
         // hidden quads in rows
         hiddenQuadsCRcombo(true);
@@ -731,6 +760,8 @@ public class Solver
     }
 
     private void hiddenQuadForSubBoards(){
+        // Abinav
+
         List<String> quads;
         for(int boardNo = 1; boardNo < boardSize; boardNo++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
@@ -770,6 +801,10 @@ public class Solver
                                 if ( quadsVerified) {
                                     System.out.println();
                                     for (String position : quads) {
+                                        String[] pos = position.split(",");
+                                        List<Integer> valuesDuplicate = possibleNumbers.get(position);
+                                        valuesDuplicate.removeAll(combos);
+                                        updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                         possibleNumbers.get(position).retainAll(combos);
                                     }
                                 }
@@ -782,7 +817,7 @@ public class Solver
     }
 
     private void hiddenQuadsCRcombo(boolean processRows) {
-
+        // Abinav
 
         List<String> quads;
 
@@ -819,7 +854,10 @@ public class Solver
                                 System.out.println();
                                 if ( quadsVerified) {
                                     for (String position : quads) {
+                                        String[] pos = position.split(",");
+                                        List<Integer> valuesDuplicate = possibleNumbers.get(position);
                                         possibleNumbers.get(position).retainAll(combos);
+                                        updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                         System.out.println();
                                     }
                                 }
@@ -832,6 +870,7 @@ public class Solver
     }
 
     private boolean verifyQuads(List<String> quads, Set<Integer> combos) {
+        // Abinav
         if(!combos.isEmpty()) {
             int count = 0;
             for (String position : quads) {
@@ -852,7 +891,7 @@ public class Solver
     }
 
     private Set<Integer> findHiddenQuads(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
-
+        // Abinav
         List<Integer> valuesList = new ArrayList<>(unionOfValues);
         if(unionOfValues.size() >= 4) {
             for (int i = 0; i < valuesList.size(); i++) {
@@ -1156,7 +1195,6 @@ public class Solver
                         if (setElement == column) {
                             if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
                                 updatePossibleCounts(number,null, row, column, false);
-
                                 possibleNumbers.get(key).remove((Integer) number);
                             }
                         }
@@ -1166,7 +1204,6 @@ public class Solver
                         if (setElement == row) {
                             if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
                                 updatePossibleCounts(number, null,row, column, false);
-
                                 possibleNumbers.get(key).remove((Integer) number);
                             }
                         }
@@ -1203,11 +1240,15 @@ public class Solver
 
     public void simpleColouring(){
 
+        // Abinav
+
         findSimpleColouringCandidates();
         nakedSingles();
     }
 
     private void findSimpleColouringCandidates() {
+        // Abinav
+
         int blue = 0;
         int green = 1;
         List<String> cellsContainingCandidate;
@@ -1259,12 +1300,6 @@ public class Solver
                         boolean sameColumn = linkStart[1].equals(linkEnd[1]);
                         System.out.println();
                         if(sameRow ){
-                           /*int maxRowColumnBound = sameRow? Math.max(Integer.parseInt(linkStart[1]),Integer.parseInt(linkStart[1])) : Math.max(Integer.parseInt(linkStart[0]),Integer.parseInt(linkStart[0])) ;
-                            int minRowColumnBound = sameRow? Math.min(Integer.parseInt(linkStart[1]),Integer.parseInt(linkStart[1])) : Math.min(Integer.parseInt(linkStart[0]),Integer.parseInt(linkStart[0]));
-                            int rowCol = sameRow? Integer.parseInt(linkStart[0]) : Integer.parseInt(linkStart[1]);
-                            for(int start = minRowColumnBound; start < maxRowColumnBound; start++){
-                                if(possibleNumbers.containsKey())
-                            }*/
 
                             int minCol = Math.min(Integer.parseInt(linkStart[1]),Integer.parseInt(linkEnd[1]));
                             int maxCol = Math.max(Integer.parseInt(linkStart[1]),Integer.parseInt(linkEnd[1]));
@@ -1335,6 +1370,8 @@ public class Solver
 
 
     private void findAndColorRelatedKeys(int number, String key, List<String> cellsContainingCandidate, Map<String, Integer> scCandidates, int color){
+        // Abinav
+
         int blue = 0;
         int green = 1;
         List<String> relatedKeys = getRelatedKeys(number,key, cellsContainingCandidate,scCandidates);
@@ -1349,6 +1386,7 @@ public class Solver
     }
 
     private boolean verifyLink(Map<String, Integer> scCandidates){
+        // Abinav
 
         Iterator<String> iterator = scCandidates.keySet().iterator();
         boolean linkValid = true;
@@ -1385,6 +1423,7 @@ public class Solver
 
     private List<String> getRelatedKeys (int number, String key,List<String> cellsContainingCandidate,Map<String, Integer> scCandidates){
 
+        // Abinav
         List<String> relatedKeys = new ArrayList<>();
         String[] parts = key.split(",");
         int keyrow = Integer.parseInt(parts[0]);
@@ -1419,6 +1458,7 @@ public class Solver
 
     private boolean handleTwoColorsSameHouse(Map<String, Integer> scCandidates, int number,List<String> cellsContainingCandidate) {
 
+        // Abinav
         List<String> blueColoredCells = new ArrayList<>();
         List<String> greenColoredCells = new ArrayList<>();
         List<String> keysToRemove = new ArrayList<>();
@@ -1494,7 +1534,6 @@ public class Solver
                 removeNumberFromOtherCandidate(cell1,numberList,cellsContainingCandidate);
                 keysToRemove.add(cell1);
                 //removeKeysHavingEmptyList();
-
                 System.out.println();
             }
 
