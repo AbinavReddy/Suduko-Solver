@@ -4,7 +4,7 @@ public class BoardTester
 {
     public static void main(String[] args)
     {
-        Board testBoard = new Board(3, false, 30, false);
+        Board testBoard = new Board(3, 30, false);
         Solver testSolver = testBoard.getSolver();
 
         printBoard(testBoard);
