@@ -6,7 +6,7 @@ public class SudokuConsoleVersion
 {
     public static void main(String[] args)
     {
-        Board sudokuBoard = new Board(3, 30, false);
+        Board sudokuBoard = new Board(3, false);
         Solver sudokuSolver = sudokuBoard.getSolver();
         boolean solvedBySolver = false;
         int value;
