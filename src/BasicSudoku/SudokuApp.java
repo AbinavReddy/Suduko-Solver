@@ -17,7 +17,6 @@ public class SudokuApp
 
     @FXML
     private TextField textField;
-
     private Stage primaryStage;
 
     public void setPrimaryStage(Stage primaryStage){
@@ -25,15 +24,14 @@ public class SudokuApp
     }
 
 
-
-
     @FXML
 private void setBoard(ActionEvent event){
         // abinav
         String text = textField.getText();
         System.out.println(text);
-        if(Integer.parseInt(text) > 0){
-            board = new Board(Integer.parseInt(text), 30, false);
+        int value = Integer.parseInt(text);
+        if(value > 0){
+            board = new Board(value,30, false);
             changeScene(primaryStage);
         }
     }
@@ -70,7 +68,5 @@ private void setBoard(ActionEvent event){
         stage.setScene(newScene);
         stage.show();
     }
-
-    // trying
 
 }

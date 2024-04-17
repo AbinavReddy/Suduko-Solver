@@ -965,15 +965,19 @@ public class Solver
     public void swordFish(){
         // swordfish technique on rows where each cell contains only 2 cells
         findSwordFishCandidates(true,2);
+        nakedSingles();
 
         // swordfish technique on columns
         findSwordFishCandidates(false,2);
+        nakedSingles();
 
         // swordfish technique on rows
         findSwordFishCandidates(true,3);
+        nakedSingles();
 
         // swordfish technique on columns
         findSwordFishCandidates(false,3);
+        nakedSingles();
 
     }
 
