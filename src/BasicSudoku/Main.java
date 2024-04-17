@@ -12,12 +12,13 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
     public void start(Stage primaryStage) {
+        
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("SudokuBoard.fxml")); // Load FXML
             Parent root = loader.load(); // Set FXML as root
             Scene scene = new Scene(root); // Set root for scene
             primaryStage.setResizable(false); // Disable resizable window
-            primaryStage.setTitle("Solitaire"); // Window title
+            primaryStage.setTitle("Sudoku"); // Window title
             primaryStage.setScene(scene); // Construct scene
             primaryStage.show(); // Show window
         } catch(Exception e) {
