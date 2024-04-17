@@ -374,7 +374,7 @@ public class Solver
                 List<Integer> values2 = new ArrayList<>(candidates.get(key2));
                 if (new HashSet<>(values1).equals(new HashSet<>(values2))) {
                     if (values2.size() == 2 && values1.size() == 2) {
-                        System.out.println("Confirmed naked pair: " + values1 + " in cells " + key1 + " + " + key2 + ".");
+                        //system.out.println("Confirmed naked pair: " + values1 + " in cells " + key1 + " + " + key2 + ".");
                         String[] keyPart = key1.split(",");
                         int rowOfKey1 = Integer.parseInt(keyPart[0]);
                         int columnOfKey1 = Integer.parseInt(keyPart[1]);
@@ -470,7 +470,7 @@ public class Solver
                     String key = row + "," + col;
                     List<Integer> cellPossibleValues = possibleNumbers.get(key);
                     boolean verifySubBoardNo = board.findSubBoardNumber(row,col) == boardNo;
-                    System.out.println();
+                    //system.out.println();
                     if(!verifySubBoardNo) continue;
                     if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
                         possibleValues.add(cellPossibleValues);
@@ -487,7 +487,7 @@ public class Solver
                         unionOfValues.addAll(possibleValues.get(j));
                         pairs.add(cellKeys.get(i));
                         pairs.add(cellKeys.get(j));
-                        System.out.println();
+                        //system.out.println();
                         Set<Integer> combos = findHiddenPairs(unionOfValues, cellKeys, pairs);
                         boolean pairsVerified = verifyPairs(pairs, combos);
                         if ( pairsVerified) {
@@ -531,19 +531,19 @@ public class Solver
                         unionOfValues.addAll(possibleValues.get(j));
                         pairs.add(cellKeys.get(i));
                         pairs.add(cellKeys.get(j));
-                        System.out.println();
+                        //system.out.println();
                         Set<Integer> combos = findHiddenPairs(unionOfValues, cellKeys, pairs);
                         boolean pairsVerified = verifyPairs(pairs, combos);
-                        System.out.println();
+                        //system.out.println();
                         if ( pairsVerified) {
-                            System.out.println();
+                            //system.out.println();
                             for (String position : pairs) {
                                 String[] pos = position.split(",");
                                 List<Integer> valuesDuplicate = possibleNumbers.get(position);
                                 possibleNumbers.get(position).retainAll(combos);
                                 valuesDuplicate.removeAll(combos);
                                 updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
-                                System.out.println();
+                                //system.out.println();
                             }
                         }
                     }
@@ -591,7 +591,7 @@ public class Solver
                     Set<Integer> combinations = new HashSet<>();
                     combinations.add(valuesList.get(i));
                     combinations.add(valuesList.get(j));
-                    System.out.println();
+                    //system.out.println();
                     if (combinations.size() == 2) {
                         boolean isValidCombination = true;
                         // Check each cell outside the quads to ensure the combination doesn't appear
@@ -611,7 +611,7 @@ public class Solver
                         }
 
                         if (isValidCombination) {
-                            System.out.println();
+                            //system.out.println();
                             return combinations; // Found a valid combination
                         }
                     }
@@ -672,19 +672,19 @@ public class Solver
                             quads.add(cellKeys.get(k));
                             quads.add(cellKeys.get(l));
                             if (unionOfValues.size() == 4 && possibleValues.size() == 4) {
-                                System.out.println();
+                                //system.out.println();
                                 List<Integer> quadValues = new ArrayList<>(unionOfValues);
                                 // Remove these numbers from other cells' possible values in the same row
                                 for (int other = 0; other < boardSize; other++) {
                                     String position = processRows? intial + "," + other : other + "," + intial;
                                     if(possibleNumbers.get(position)==null || quads.contains(position)) continue;
                                     if ( possibleNumbers.get(position).contains(quadValues.get(0)) || possibleNumbers.get(position).contains(quadValues.get(1)) || possibleNumbers.get(position).contains(quadValues.get(2)) || possibleNumbers.get(position).contains(quadValues.get(3))) {
-                                        System.out.println();
+                                        //system.out.println();
                                         String[] pos = position.split(",");
                                         List<Integer> valuesDuplicate = possibleNumbers.get(position);
                                         possibleNumbers.get(position).removeAll(unionOfValues);
                                         updatePossibleCounts(10,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
-                                        System.out.println();
+                                        //system.out.println();
                                     }
                                 }
                             }
@@ -778,7 +778,7 @@ public class Solver
                     String key = row + "," + col;
                     List<Integer> cellPossibleValues = possibleNumbers.get(key);
                     boolean verifySubBoardNo = board.findSubBoardNumber(row,col) == boardNo;
-                    System.out.println();
+                    //system.out.println();
                     if(!verifySubBoardNo) continue;
                     if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
                         possibleValues.add(cellPossibleValues);
@@ -801,12 +801,12 @@ public class Solver
                                 quads.add(cellKeys.get(j));
                                 quads.add(cellKeys.get(k));
                                 quads.add(cellKeys.get(l));
-                                System.out.println();
+                                //system.out.println();
                                 Set<Integer> combos = findHiddenQuads(unionOfValues, cellKeys, quads);
                                 boolean quadsVerified = verifyQuads(quads, combos);
-                                System.out.println();
+                                //system.out.println();
                                 if ( quadsVerified) {
-                                    System.out.println();
+                                    //system.out.println();
                                     for (String position : quads) {
                                         String[] pos = position.split(",");
                                         List<Integer> valuesDuplicate = possibleNumbers.get(position);
@@ -855,17 +855,17 @@ public class Solver
                                 quads.add(cellKeys.get(j));
                                 quads.add(cellKeys.get(k));
                                 quads.add(cellKeys.get(l));
-                                System.out.println();
+                                //system.out.println();
                                 Set<Integer> combos = findHiddenQuads(unionOfValues, cellKeys, quads);
                                 boolean quadsVerified = verifyQuads(quads, combos);
-                                System.out.println();
+                                //system.out.println();
                                 if ( quadsVerified) {
                                     for (String position : quads) {
                                         String[] pos = position.split(",");
                                         List<Integer> valuesDuplicate = possibleNumbers.get(position);
                                         possibleNumbers.get(position).retainAll(combos);
                                         updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
-                                        System.out.println();
+                                        //system.out.println();
                                     }
                                 }
                             }
@@ -911,7 +911,7 @@ public class Solver
                             combinations.add(valuesList.get(j));
                             combinations.add(valuesList.get(k));
                             combinations.add(valuesList.get(l));
-                            System.out.println();
+                            //system.out.println();
                             if (combinations.size() == 4) {
                                 boolean isValidCombination = true;
                                 // Check each cell outside the quads to ensure the combination doesn't appear
@@ -931,7 +931,7 @@ public class Solver
                                 }
 
                                 if (isValidCombination) {
-                                    System.out.println();
+                                    //system.out.println();
                                     return combinations; // Found a valid combination
                                 }
                             }
@@ -1078,7 +1078,7 @@ public class Solver
 
 
         for (int number = 1; number <= boardSize; number++){ // value
-            System.out.println("Checking number: " + number);
+            //System.out.println("Checking number: " + number);
             processForSF = new ArrayList<>();
             for (int j = 0; j < boardSize; j++) { // row or column
                 valuePossibleCount = processingRows ? valuePossibleCountRows[number][j] : valuePossibleCountColumns[number][j];
@@ -1098,16 +1098,16 @@ public class Solver
                         }
 
                         if (k == boardSize - 1) {
-                            System.out.println("Added rowColumnPositions for potential X-Wing/SwordFish");
+                            // System.out.println("Added rowColumnPositions for potential X-Wing/SwordFish");
                             processForSF.add(rowColumnPositions);
                             for (int[] position : rowColumnPositions) {
-                                System.out.println(Arrays.toString(position));
+                                //  System.out.println(Arrays.toString(position));
                             }
                         }
                     }
                 }
             }
-            System.out.println(processForSF.size());
+            //System.out.println(processForSF.size());
             handleSFCandidates( pairOrTriple, substituteA,number, processingRows,  processForSF);
 
         }
@@ -1116,7 +1116,7 @@ public class Solver
     private void handleSFCandidates( int pairOrTriple,int substituteA,int number,boolean processingRows, List<List<int[]>> processForSF) {
         // Abinav
 
-        System.out.println("Handling SwordFish candidates for number: " + number + ", processingRows: " + processingRows);
+        // System.out.println("Handling SwordFish candidates for number: " + number + ", processingRows: " + processingRows);
         if (processForSF.size() >= 3) // enough candidates found
         {
             substituteA = processingRows ? 1 : 0; // 0 = row index, 1 = column index
@@ -1142,7 +1142,7 @@ public class Solver
                             for (int w = i; w < i + windowSize && w < processForSF.get(j).size(); w++) {
                                 int[] coord = processForSF.get(j).get(w);
                                 uniqueCOR.add(coord[substituteA]);
-                                System.out.println("Adding from list 1, index " + w + ": " + coord[substituteA]);
+                                // System.out.println("Adding from list 1, index " + w + ": " + coord[substituteA]);
                                 emptyList.add(coord[substituteA]);
                                 String row = Integer.toString(coord[0]);
                                 String column = Integer.toString(coord[1]);
@@ -1154,7 +1154,7 @@ public class Solver
                             for (int w = i; w < i + windowSize && w < processForSF.get(k).size(); w++) {
                                 int[] coord = processForSF.get(k).get(w);
                                 uniqueCOR.add(coord[substituteA]);
-                                System.out.println("Adding from list 2, index " + w + ": " + coord[substituteA]);
+                                //  System.out.println("Adding from list 2, index " + w + ": " + coord[substituteA]);
                                 emptyList.add(coord[substituteA]);
                                 String row = Integer.toString(coord[0]);
                                 String column = Integer.toString(coord[1]);
@@ -1166,7 +1166,7 @@ public class Solver
                             for (int w = i; w < i + windowSize && w < processForSF.get(n).size(); w++) {
                                 int[] coord = processForSF.get(n).get(w);
                                 uniqueCOR.add(coord[substituteA]);
-                                System.out.println("Adding from list 3, index " + w + ": " + coord[substituteA]);
+                                //  System.out.println("Adding from list 3, index " + w + ": " + coord[substituteA]);
                                 emptyList.add(coord[substituteA]);
                                 String row = Integer.toString(coord[0]);
                                 String column = Integer.toString(coord[1]);
@@ -1186,7 +1186,7 @@ public class Solver
 
     private void eliminateNonSFC(boolean validSF, boolean processingRows, int number,int j, int k, int n,int substituteA, List<List<int[]>> processForSF,Set<Integer> uniqueCOR,List<String> candidates){
         if (validSF) {
-            System.out.println("passed swordfish criteria");
+            //  System.out.println("passed swordfish criteria");
 
 
             for (String key : possibleNumbers.keySet()) {
@@ -1267,32 +1267,32 @@ public class Solver
                 if (possibleNumbers.get(key).contains(number)) cellsContainingCandidate.add(key);
             }
             for(String position: possibleNumbers.keySet()){
-                System.out.println();
+                // System.out.println();
                 if(!cellsContainingCandidate.contains(position)){
                     continue;
                 }
                 scCandidates =new LinkedHashMap<>(); // new HashMap<String,Integer>();
                 List<String> relatedKeys = getRelatedKeys(number, position, cellsContainingCandidate,scCandidates);
-                System.out.println();
+                // System.out.println();
                 if (relatedKeys.isEmpty()) {
                     continue;
                 } else {
                     scCandidates.put(position, blue);
                     findAndColorRelatedKeys(number, position, cellsContainingCandidate, scCandidates, green); // Alternate starting with green
                 }
-                System.out.println("number:"+number+ " start of link is :"+position);
+                //System.out.println("number:"+number+ " start of link is :"+position);
 
-                System.out.println();
+                //System.out.println();
                 if(verifyLink(scCandidates)){
-                    System.out.println(verifyLink(scCandidates));
-                    System.out.println(scCandidates.size()%2);
-                    System.out.println();
+                    // System.out.println(verifyLink(scCandidates));
+                    // System.out.println(scCandidates.size()%2);
+                    // System.out.println();
                     if(scCandidates.size()>=3){
                         handleTwoColorsSameHouse(scCandidates,number,cellsContainingCandidate);
                     }
                     if ( handleTwoColorsSameHouse(scCandidates, number, cellsContainingCandidate) == false && scCandidates.size() % 2 == 0  ) {
-                        System.out.println();
-                        System.out.println("link has size odd length");
+                        //  System.out.println();
+                        //  System.out.println("link has size odd length");
 
                         String startPosition = scCandidates.keySet().iterator().next();
                         String[] linkStart = startPosition.split(",");
@@ -1305,7 +1305,7 @@ public class Solver
 
                         boolean sameRow = linkStart[0].equals(linkEnd[0]);
                         boolean sameColumn = linkStart[1].equals(linkEnd[1]);
-                        System.out.println();
+                        // System.out.println();
                         if(sameRow ){
 
                             int minCol = Math.min(Integer.parseInt(linkStart[1]),Integer.parseInt(linkEnd[1]));
@@ -1313,13 +1313,13 @@ public class Solver
                             for(int start = minCol+1; start < maxCol; start++){
                                 String nogle = linkStart[0]+","+start;
                                 if(possibleNumbers.get(nogle) != null && possibleNumbers.get(nogle).contains(number) && !scCandidates.containsKey(nogle)){
-                                    System.out.println(nogle);
+                                    // System.out.println(nogle);
                                     List<Integer> valuesOfKey2 = possibleNumbers.get(nogle);
-                                    System.out.println();
+                                    // System.out.println();
                                     valuesOfKey2.remove(Integer.valueOf(number));
                                     updatePossibleCounts(Integer.valueOf(number),null,Integer.parseInt(linkStart[0]),start,false);
                                     cellsContainingCandidate.remove(nogle);
-                                    System.out.println();
+                                    //  System.out.println();
                                 }
                             }
                         }
@@ -1329,13 +1329,13 @@ public class Solver
                             for(int start = minRow+1; start < maxRow; start++){
                                 String nogle = start+","+ linkStart[1];
                                 if(possibleNumbers.get(nogle) != null && possibleNumbers.get(nogle).contains(number) && !scCandidates.containsKey(nogle)){
-                                    System.out.println(nogle);
+                                    //System.out.println(nogle);
                                     List<Integer> valuesOfKey2 = possibleNumbers.get(nogle);
-                                    System.out.println();
+                                    // System.out.println();
                                     valuesOfKey2.remove(Integer.valueOf(number));
                                     updatePossibleCounts(Integer.valueOf(number),null,start,Integer.parseInt(linkStart[1]),false);
                                     cellsContainingCandidate.remove(nogle);
-                                    System.out.println();
+                                    //System.out.println();
 
                                 }
                             }
@@ -1346,28 +1346,28 @@ public class Solver
                             String position2 = Integer.parseInt(linkEnd[0]) + "," + Integer.parseInt(linkStart[1]);
 
                             if(possibleNumbers.get(position1) != null && possibleNumbers.get(position1).contains(number) && !scCandidates.containsKey(position1)){
-                                System.out.println(position1);
+                                // System.out.println(position1);
                                 List<Integer> valuesOfKey2 = possibleNumbers.get(position1);
-                                System.out.println();
+                                // System.out.println();
                                 valuesOfKey2.remove(Integer.valueOf(number));
                                 updatePossibleCounts(Integer.valueOf(number),null,Integer.parseInt(linkStart[0]),Integer.parseInt(linkEnd[1]),false);
                                 cellsContainingCandidate.remove(position1);
-                                System.out.println();
+                                //  System.out.println();
 
                             }
                             if(possibleNumbers.get(position2) != null && possibleNumbers.get(position2).contains(number) && !scCandidates.containsKey(position2)){
-                                System.out.println(position2);
+                                // System.out.println(position2);
                                 List<Integer> valuesOfKey2 = possibleNumbers.get(position2);
-                                System.out.println();
+                                // System.out.println();
                                 valuesOfKey2.remove(Integer.valueOf(number));
                                 updatePossibleCounts(Integer.valueOf(number),null,Integer.parseInt(linkEnd[0]),Integer.parseInt(linkStart[1]),false);
                                 cellsContainingCandidate.remove(position2);
-                                System.out.println();
+                                // System.out.println();
                             }
                         }
                     }
                 }
-                System.out.println();
+                //System.out.println();
                 scCandidates.clear();
             }
             EliminateEmptyLists();
@@ -1457,7 +1457,7 @@ public class Solver
             }
         }
         if(!relatedKeys.isEmpty()) {
-            System.out.println("related keys of" + key + "are:" + relatedKeys);
+            // System.out.println("related keys of" + key + "are:" + relatedKeys);
         }
         return relatedKeys;
 
@@ -1527,8 +1527,8 @@ public class Solver
         }
 
         if (blueCellsSameHouse && !greenCellsSameHouse) {
-            System.out.println("blue cells belong to same house");
-            System.out.println();
+            // System.out.println("blue cells belong to same house");
+            // System.out.println();
             for (String cell1 : greenColoredCells) {
                 if(!cellsContainingCandidate.contains(cell1)) continue;
                 String[] coord1 = cell1.split(",");
@@ -1541,29 +1541,29 @@ public class Solver
                 removeNumberFromOtherCandidate(cell1,numberList,cellsContainingCandidate);
                 keysToRemove.add(cell1);
                 //removeKeysHavingEmptyList();
-                System.out.println();
+                // System.out.println();
             }
 
             for (String cell2 : blueColoredCells) {
                 if(!cellsContainingCandidate.contains(cell2)) continue;
                 String[] coord2 = cell2.split(",");
-                System.out.println();
+                // System.out.println();
                 int row = Integer.parseInt(coord2[0]);
                 int column = Integer.parseInt(coord2[1]);
                 possibleNumbers.get(cell2).remove(Integer.valueOf(number));
                 cellsContainingCandidate.remove(cell2);
                 updatePossibleCounts(number,null,row,column,false);
 
-                System.out.println();
+                // System.out.println();
             }
         }
 
         else if (greenCellsSameHouse && !blueCellsSameHouse) {
-            System.out.println("green cells belong to same house");
+            //System.out.println("green cells belong to same house");
             for (String cell3 : blueColoredCells) {
                 if(!cellsContainingCandidate.contains(cell3)) continue;
                 String[] coord3 = cell3.split(",");
-                System.out.println();
+                // System.out.println();
                 int row = Integer.parseInt(coord3[0]);
                 int column = Integer.parseInt(coord3[1]);
                 board.placeValueInCell(row, column,number);
@@ -1572,19 +1572,19 @@ public class Solver
                 removeNumberFromOtherCandidate(cell3,numberList,cellsContainingCandidate);
                 keysToRemove.add(cell3);
                 //removeKeysHavingEmptyList();
-                System.out.println();
+                // System.out.println();
             }
 
             for (String cell4 : greenColoredCells) {
                 if(!cellsContainingCandidate.contains(cell4)) continue;
                 String[] coord4 = cell4.split(",");
-                System.out.println();
+                // System.out.println();
                 int row = Integer.parseInt(coord4[0]);
                 int column = Integer.parseInt(coord4[1]);
                 possibleNumbers.get(cell4).remove(Integer.valueOf(number));
                 cellsContainingCandidate.remove(cell4);
                 updatePossibleCounts(number,null,row,column,false);
-                System.out.println();
+                // System.out.println();
             }
         }
 
@@ -1595,7 +1595,7 @@ public class Solver
         }
 
         boolean bool = greenCellsSameHouse || blueCellsSameHouse;
-        System.out.println();
+        // System.out.println();
         return bool;
     }
 
