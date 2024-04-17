@@ -487,9 +487,6 @@ public class Solver
         nakedSingles();
     }
 
-    /**
-     * @author Yahya
-     */
     private void hiddenSinglesForRowAndCol(boolean proccingrows) {
 
         for (int index = 0; index < boardSize; index++) {
@@ -527,9 +524,6 @@ public class Solver
 
     }
 
-    /**
-     * @author Yahya
-     */
     private void hiddenSinglesForSubBoard() {
 
         for (int index = 0; index < boardSize; index++) {
@@ -584,12 +578,9 @@ public class Solver
         nakedSingles();
     }
 
-    /**
-     * @author Yahya
-     */
     private void hiddenTriplesForSubBoards(){
         List<String> quads;
-        for(int boardNo = 1; boardNo < boardSize; boardNo++) {
+        for(int boardNo = 0; boardNo < boardSize; boardNo++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
             List<String> cellKeys = new ArrayList<>();
             for (int row = 0; row < boardSize; row++) {
@@ -621,7 +612,16 @@ public class Solver
                             boolean quadsVerified = verifyTriples(quads, combos);
                             if ( quadsVerified) {
                                 for (String position : quads) {
+
+
+
+                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
+                                    valuesDuplicate.removeAll(combos);
+                                    String[] pos = position.split(",");
+                                    updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                     possibleNumbers.get(position).retainAll(combos);
+
+
                                 }
                             }
 
@@ -632,9 +632,6 @@ public class Solver
         }
     }
 
-    /**
-     * @author Yahya
-     */
     private void hiddenTriplesCRcombo(boolean processRows) {
 
 
@@ -664,12 +661,21 @@ public class Solver
                             quads.add(cellKeys.get(i));
                             quads.add(cellKeys.get(j));
                             quads.add(cellKeys.get(k));
+
                             Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
                             boolean quadsVerified = verifyTriples(quads, combos);
+
                             if ( quadsVerified) {
 
+
                                 for (String position : quads) {
+
+                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
+                                    valuesDuplicate.removeAll(combos);
+                                    String[] pos = position.split(",");
+                                    updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                     possibleNumbers.get(position).retainAll(combos);
+
                                 }
                             }
 
@@ -680,9 +686,6 @@ public class Solver
         }
     }
 
-    /**
-     * @author Yahya
-     */
     private boolean verifyTriples(List<String> quads, Set<Integer> combos) {
 
         if(!combos.isEmpty()) {
@@ -697,9 +700,8 @@ public class Solver
         return false;
     }
 
-    /**
-     * @author Yahya
-     */
+
+
     private Set<Integer> findHiddenTriples(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
 
         List<Integer> valuesList = new ArrayList<>(unionOfValues);
@@ -746,6 +748,7 @@ public class Solver
     /**
      * @author Yahya
      */
+
     public void nakedTriples() {
         nakedTriplesForRows();
         nakedSingles();
@@ -755,9 +758,6 @@ public class Solver
         nakedSingles();
     }
 
-    /**
-     * @author Yahya
-     */
     private void nakedTriplesForRows() {
         // Loop through all groups - starting with rows
         List<String> triples;
@@ -794,7 +794,13 @@ public class Solver
                                 String key = row + "," + col;
                                 if(possibleNumbers.get(key)!= null && !triples.contains(key)) {
                                     if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+
                                         possibleNumbers.get(key).removeAll(unionOfValues);
+                                        updatePossibleCounts(1000, unionOfValues.stream().toList(), row, col, false);
+
+
+
+
                                     }
                                 }
                             }
@@ -805,9 +811,6 @@ public class Solver
         }
     }
 
-    /**
-     * @author Yahya
-     */
     private void nakedTriplesForColumns() {
         // Loop through all groups - starting with rows
         List<String> triples;
@@ -845,6 +848,7 @@ public class Solver
                                 if (possibleNumbers.get(key) != null && !triples.contains(key)) {
                                     if (possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
                                         possibleNumbers.get(key).removeAll(unionOfValues);
+                                        updatePossibleCounts(1000, unionOfValues.stream().toList(), row, col, false);
 
                                     }
                                 }
@@ -855,10 +859,6 @@ public class Solver
             }
         }
     }
-
-    /**
-     * @author Yahya
-     */
     private void nakedTriplesForSubBoards(){
 
         for (int i =0; i < boardSize; i++)
@@ -916,6 +916,7 @@ public class Solver
                                 if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2)))
                                 {
                                     possibleNumbers.get(key).removeAll(unionOfValues);
+                                    updatePossibleCounts(1000, unionOfValues.stream().toList(), startingRow, startingColumn, false);
 
                                 }
 
@@ -931,9 +932,7 @@ public class Solver
         }
     }
 
-    /**
-     * @author Yahya
-     */
+
     public void bug() {
         applybug();
         nakedSingles();
@@ -952,9 +951,6 @@ public class Solver
         return false;
     }
 
-    /**
-     * @author Yahya
-     */
     private HashMap<String, List<Integer>> findBivalueCells() {
         HashMap<String, List<Integer>> bivalueCells = new HashMap<>();
         for (String key : possibleNumbers.keySet()) {
@@ -973,9 +969,6 @@ public class Solver
         return bivalueCells;
     }
 
-    /**
-     * @author Yahya
-     */
     private String findTrivalueCell() {
         for (String key : possibleNumbers.keySet()) {
             List<Integer> values = possibleNumbers.get(key);
@@ -986,9 +979,6 @@ public class Solver
         return "";
     }
 
-    /**
-     * @author Yahya
-     */
     private boolean checkAndResolveBug(String trivalueCellKey) {
         List<Integer> values = possibleNumbers.get(trivalueCellKey);
         String[] parts = trivalueCellKey.split(",");
@@ -1013,7 +1003,6 @@ public class Solver
                 // If the value appears exactly three times in row, column, and sub-board
                 board.placeValueInCell(row, column, value);
                 possibleNumbers.put(trivalueCellKey, List.of(value));  // Set correct value
-
                 // Update counts for all related cells after setting the value
                 for (String key : rowKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
                 for (String key : columnKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
@@ -1026,9 +1015,6 @@ public class Solver
         return false;
     }
 
-    /**
-     * @author Yahya
-     */
     private void updateCounts(List<String> keys, int[] counts) {
         for (String key : keys) {
             List<Integer> possibleValues = possibleNumbers.get(key);
@@ -1040,9 +1026,6 @@ public class Solver
         }
     }
 
-    /**
-     * @author Yahya
-     */
     private List<String> getRowKeys(int row) {
         List<String> keys = new ArrayList<>();
         for (int col = 0; col < board.getBoardSize(); col++) {
@@ -1051,9 +1034,6 @@ public class Solver
         return keys;
     }
 
-    /**
-     * @author Yahya
-     */
     private List<String> getColumnKeys(int column) {
         List<String> keys = new ArrayList<>();
         for (int row = 0; row < board.getBoardSize(); row++) {
@@ -1062,9 +1042,6 @@ public class Solver
         return keys;
     }
 
-    /**
-     * @author Yahya
-     */
     public List<String> getCellsInSubBoard(int subBoardIndex) {
         List<String> cellKeys = new ArrayList<>();
         int subBoardSize = board.getBoardLengthWidth();  // Assuming square sub-boards in a square grid
