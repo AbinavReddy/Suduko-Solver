@@ -147,14 +147,18 @@ public class Solver
             while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
 
             // solving strategies go here
+            hiddenSingles();
             nakedPairs();
+            nakedTriples();
             hiddenPairs();
+            hiddenTriples();
             nakedQuads();
             hiddenQuads();
             intersectionRemoval();
             simpleColouring();
             swordFish();
             wingStrategies();
+            bug();
 
             if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking (last resort)
             {
@@ -198,6 +202,7 @@ public class Solver
 
         return true;
     }
+
 
     public void nakedSingles() {
         // Abinav & Yahya
@@ -448,6 +453,585 @@ public class Solver
                 updatePossibleCounts(5,valuesOfKeys,rowOfKeys,columnOfKeys,false);
             }
         }
+    }
+
+
+
+
+
+    /**
+     * @author Yahya
+     */
+    public void hiddenSingles(){
+
+        // hidden singles in rows
+        hiddenSinglesForRowAndCol(true);
+        nakedSingles();
+
+        // hidden singles in columns
+        hiddenSinglesForRowAndCol(false);
+        nakedSingles();
+
+        // hidden singles in subboard
+        hiddenSinglesForSubBoard();
+        nakedSingles();
+    }
+
+    private void hiddenSinglesForRowAndCol(boolean proccingrows) {
+
+        for (int index = 0; index < boardSize; index++) {
+            List<String> cellKeys = new ArrayList<>();
+            for (int rows = 0; rows < boardSize; rows++) {
+                for (int columns = 0; columns < boardSize; columns++) {
+                    String key = rows + "," + columns;
+                    int rowcolumn = proccingrows ? rows : columns;
+                    if (possibleNumbers.get(key) != null && index == rowcolumn) {
+                        cellKeys.add(key);
+
+                    }
+                }
+            }
+
+            for(int number = 1; number <= boardSize; number++) {
+                int count = proccingrows ? valuePossibleCountRows[number][index] : valuePossibleCountColumns[number][index];
+                if (count == 1 ) {
+                    for(String key : cellKeys) {
+                        if(possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size()>1){
+                            String[] parts = key.split(",");
+                            List<Integer> values = possibleNumbers.get(key);
+                            //board.setBoardValue(number,Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+                            board.placeValueInCell(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), number);
+                            updatePossibleCounts(100,values,Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),false);
+                            possibleNumbers.get(key).removeAll(values);
+                            List<Integer> tal = new ArrayList<>();
+                            tal.add(number);
+                            removeNumberFromOtherCandidate(key,tal,Collections.emptyList());
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    private void hiddenSinglesForSubBoard() {
+
+        for (int index = 0; index < boardSize; index++) {
+            List<String> cellKeys = new ArrayList<>();
+            for (int rows = 0; rows < boardSize; rows++) {
+                for (int columns = 0; columns < boardSize; columns++) {
+                    String key = rows + "," + columns;
+                    int subBoardsNumber = board.findSubBoardNumber(rows,columns);
+                    if (possibleNumbers.get(key) != null && index == subBoardsNumber) {
+                        cellKeys.add(key);
+
+                    }
+                }
+            }
+            for (int number = 1; number <= boardSize; number++) {
+
+                if (valuePossibleCountSubBoards[number][index] == 1) {
+                    for (String key : cellKeys) {
+                        if (possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size() > 1) {
+                            String[] parts = key.split(",");
+                            List<Integer> values = possibleNumbers.get(key);
+                            //board.setBoardValue(number,Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+                            board.placeValueInCell(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), number);
+                            updatePossibleCounts(100, values, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
+                            possibleNumbers.get(key).removeAll(values);
+                            List<Integer> tal = new ArrayList<>();
+                            tal.add(number);
+                            removeNumberFromOtherCandidate(key, tal,Collections.emptyList());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * @author Yahya
+     */
+    public void hiddenTriples(){
+
+        // hidden triples in rows
+        hiddenTriplesCRcombo(true);
+        nakedSingles();
+
+        // hidden Triples in columns
+        hiddenTriplesCRcombo(false);
+        nakedSingles();
+
+        // hidden Triples in subboard
+        hiddenTriplesForSubBoards();
+        nakedSingles();
+    }
+
+    private void hiddenTriplesForSubBoards(){
+        List<String> quads;
+        for(int boardNo = 1; boardNo < boardSize; boardNo++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+            for (int row = 0; row < boardSize; row++) {
+                for (int col = 0; col < boardSize; col++) {
+                    String key = row + "," + col;
+                    List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                    boolean verifySubBoardNo = board.findSubBoardNumber(row,col) == boardNo;
+                    if(!verifySubBoardNo) continue;
+                    if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
+                        possibleValues.add(cellPossibleValues);
+                        cellKeys.add(key);
+                    }
+                }
+            }
+
+            if(cellKeys.size() >= 3) {
+                for (int i = 0; i < possibleValues.size(); i++) {
+                    for (int j = i + 1; j < possibleValues.size(); j++) {
+                        for (int k = j + 1; k < possibleValues.size(); k++) {
+
+                            quads = new ArrayList<>();
+                            Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                            unionOfValues.addAll(possibleValues.get(j));
+                            unionOfValues.addAll(possibleValues.get(k));
+                            quads.add(cellKeys.get(i));
+                            quads.add(cellKeys.get(j));
+                            quads.add(cellKeys.get(k));
+                            System.out.println();
+                            Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
+                            boolean quadsVerified = verifyTriples(quads, combos);
+                            System.out.println();
+                            if ( quadsVerified) {
+                                System.out.println();
+                                for (String position : quads) {
+                                    possibleNumbers.get(position).retainAll(combos);
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void hiddenTriplesCRcombo(boolean processRows) {
+
+
+        List<String> quads;
+
+        for (int intial = 0; intial < boardSize; intial++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+
+            // Collect possible values and keys for all cells in the row/column
+            for (int secondary = 0; secondary < boardSize; secondary++) {
+                String key = processRows? intial + "," + secondary : secondary + "," + intial;
+                List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
+                    possibleValues.add(cellPossibleValues);
+                    cellKeys.add(key);
+                }
+            }
+            if(cellKeys.size() >= 3) {
+                for (int i = 0; i < possibleValues.size(); i++) {
+                    for (int j = i + 1; j < possibleValues.size(); j++) {
+                        for (int k = j + 1; k < possibleValues.size(); k++) {
+                            quads = new ArrayList<>();
+                            Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                            unionOfValues.addAll(possibleValues.get(j));
+                            unionOfValues.addAll(possibleValues.get(k));
+                            quads.add(cellKeys.get(i));
+                            quads.add(cellKeys.get(j));
+                            quads.add(cellKeys.get(k));
+                            System.out.println();
+                            Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
+                            boolean quadsVerified = verifyTriples(quads, combos);
+                            System.out.println();
+                            if ( quadsVerified) {
+                                System.out.println();
+
+                                for (String position : quads) {
+                                    possibleNumbers.get(position).retainAll(combos);
+                                    System.out.println();
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean verifyTriples(List<String> quads, Set<Integer> combos) {
+
+        if(!combos.isEmpty()) {
+            for (String position : quads) {
+                for (Integer number : possibleNumbers.get(position)) {
+                    if (!combos.contains(number)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+
+    private Set<Integer> findHiddenTriples(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
+
+        List<Integer> valuesList = new ArrayList<>(unionOfValues);
+        if(unionOfValues.size() >= 4) {
+            for (int i = 0; i < valuesList.size(); i++) {
+                for (int j = i + 1; j < valuesList.size(); j++) {
+                    for (int k = j + 1; k < valuesList.size(); k++) {
+                        boolean foundHiddenQuads = true;
+                        Set<Integer> combinations = new HashSet<>();
+                        combinations.add(valuesList.get(i));
+                        combinations.add(valuesList.get(j));
+                        combinations.add(valuesList.get(k));
+                        System.out.println();
+                        if (combinations.size() == 3) {
+                            boolean isValidCombination = true;
+                            // Check each cell outside the quads to ensure the combination doesn't appear
+                            for (String cellKey : cellKeys) {
+                                if (!quads.contains(cellKey)) { // Exclude cells in quads
+                                    List<Integer> possibleNumbersForCell = possibleNumbers.get(cellKey);
+                                    for (Integer number : combinations) {
+                                        if (possibleNumbersForCell.contains(number)) {
+                                            isValidCombination = false;
+                                            break; // Break from checking this combination
+                                        }
+                                    }
+                                    if (!isValidCombination) {
+                                        break; // Break from checking cells as one number was found outside quads
+                                    }
+                                }
+                            }
+
+                            if (isValidCombination) {
+                                System.out.println();
+                                return combinations; // Found a valid combination
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return new HashSet<>();
+    }
+
+
+    /**
+     * @author Yahya
+     */
+
+    public void nakedTriples() {
+        nakedTriplesForRows();
+        nakedSingles();
+        nakedTriplesForColumns();
+        nakedSingles();
+        nakedTriplesForSubBoards();
+        nakedSingles();
+    }
+
+    private void nakedTriplesForRows() {
+        // Loop through all groups - starting with rows
+        List<String> triples;
+        for (int row = 0; row < boardSize; row++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+
+            // Collect possible values and keys for all cells in the row
+            for (int col = 0; col < boardSize; col++) {
+                String key = row + "," + col;
+                List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
+                    possibleValues.add(cellPossibleValues);
+                    cellKeys.add(key);
+                }
+            }
+
+            // Find Naked Triples among these values
+            for (int i = 0; i < possibleValues.size(); i++) {
+                for (int j = i + 1; j < possibleValues.size(); j++) {
+                    for (int k = j + 1; k < possibleValues.size(); k++) {
+                        triples = new ArrayList<>();
+                        Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                        unionOfValues.addAll(possibleValues.get(j));
+                        unionOfValues.addAll(possibleValues.get(k));
+                        triples.add(cellKeys.get(i));
+                        triples.add(cellKeys.get(j));
+                        triples.add(cellKeys.get(k));
+
+                        if (unionOfValues.size() == 3) { // A Naked Triple is found
+                            List<Integer> tripleValues = new ArrayList<>(unionOfValues);
+                            // Remove these numbers from other cells' possible values in the same row
+                            for (int col = 0; col < boardSize; col++) {
+                                String key = row + "," + col;
+                                if(possibleNumbers.get(key)!= null && !triples.contains(key)) {
+                                    if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+                                        possibleNumbers.get(key).removeAll(unionOfValues);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void nakedTriplesForColumns() {
+        // Loop through all groups - starting with rows
+        List<String> triples;
+        for (int col = 0; col < boardSize; col++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+
+            // Collect possible values and keys for all cells in the row
+            for (int row = 0; row < boardSize; row++) {
+                String key = row + "," + col;
+                List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
+                    possibleValues.add(cellPossibleValues);
+                    cellKeys.add(key);
+                }
+            }
+
+            // Find Naked Triples among these values
+            for (int i = 0; i < possibleValues.size(); i++) {
+                for (int j = i + 1; j < possibleValues.size(); j++) {
+                    for (int k = j + 1; k < possibleValues.size(); k++) {
+                        triples = new ArrayList<>();
+                        Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                        unionOfValues.addAll(possibleValues.get(j));
+                        unionOfValues.addAll(possibleValues.get(k));
+                        triples.add(cellKeys.get(i));
+                        triples.add(cellKeys.get(j));
+                        triples.add(cellKeys.get(k));
+
+                        if (possibleValues.size() == 3 && unionOfValues.size() == 3) { // A Naked Triple is found
+                            List<Integer> tripleValues = new ArrayList<>(unionOfValues);
+                            // Remove these numbers from other cells' possible values in the same row
+                            for (int row = 0; row < boardSize; row++) {
+                                String key = row + "," + col;
+                                if (possibleNumbers.get(key) != null && !triples.contains(key)) {
+                                    if (possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+                                        possibleNumbers.get(key).removeAll(unionOfValues);
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private void nakedTriplesForSubBoards(){
+
+        for (int i =0; i < boardSize; i++)
+        {
+            for(int j=1; j<= boardSize; j++)
+            {
+
+                List<String> triples;
+                List<List<Integer>> possibleValues = new ArrayList<>();
+                List<String> cellKeys = new ArrayList<>();
+                int startingRow = (i / boardLengthWidth) * boardLengthWidth;
+                int startingColumn = (i - startingRow) * boardLengthWidth;
+                Set<Integer> unionOfValues;
+                triples = new ArrayList<>();
+
+                for(int k = 0; k < boardLengthWidth; k++)// added to rows
+                {
+
+                    for(int l = 0; l < boardLengthWidth; l++) // added to columns
+                    {
+
+                        String key = (startingRow + k) + "," + (startingColumn + l);
+                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(j))
+                        {
+
+                            List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                            if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
+                                possibleValues.add(cellPossibleValues);
+                                cellKeys.add(key);
+                                triples.add(key);
+
+                            }
+
+                        }
+
+                    }
+                }
+                unionOfValues = new HashSet<>();
+                for(List<Integer> possible: possibleValues)
+                {
+                    unionOfValues.addAll(possible);
+
+                }
+
+                if (possibleValues.size() == 3 && unionOfValues.size() == 3) { // A Naked Triple is found
+                    List<Integer> tripleValues = new ArrayList<>(unionOfValues);
+                    // Remove these numbers from other cells' possible values in the same row
+                    for(int k = 0; k < boardLengthWidth; k++)// added to rows
+                    {
+                        for(int l = 0; l < boardLengthWidth; l++) // added to columns
+                        {
+                            String key = (startingRow + k) + "," + (startingColumn + l);
+                            if (possibleNumbers.get(key)!= null && !triples.contains(key) ) {
+
+                                if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2)))
+                                {
+                                    possibleNumbers.get(key).removeAll(unionOfValues);
+
+                                }
+
+                            }
+                        }
+                    }
+                    printPossibilities();
+
+                }
+
+            }
+
+        }
+    }
+
+
+    public void bug() {
+        applybug();
+        nakedSingles();
+    }
+
+    /**
+     * @author Yahya
+     */
+    private boolean applybug() {
+        HashMap<String, List<Integer>> bivalueCells = findBivalueCells();
+        String trivalueCellKey = findTrivalueCell();
+        if (!trivalueCellKey.isEmpty()) {
+            boolean result = checkAndResolveBug(trivalueCellKey);
+            return result;
+        }
+        return false;
+    }
+
+    private HashMap<String, List<Integer>> findBivalueCells() {
+        HashMap<String, List<Integer>> bivalueCells = new HashMap<>();
+        for (String key : possibleNumbers.keySet()) {
+            List<Integer> values = possibleNumbers.get(key);
+            if (values.size() == 2) {
+                String[] parts = key.split(",");
+                int row = Integer.parseInt(parts[0]);
+                int column = Integer.parseInt(parts[1]);
+                int subBoard = board.findSubBoardNumber(row, column);
+
+                // Check the appearance frequency within row, column, and sub-board
+                bivalueCells.put(key, new ArrayList<>(values));
+            }
+        }
+
+        return bivalueCells;
+    }
+
+    private String findTrivalueCell() {
+        for (String key : possibleNumbers.keySet()) {
+            List<Integer> values = possibleNumbers.get(key);
+            if (values.size() == 3) {
+                return key;
+            }
+        }
+        return "";
+    }
+
+
+
+    private boolean checkAndResolveBug(String trivalueCellKey) {
+        List<Integer> values = possibleNumbers.get(trivalueCellKey);
+        String[] parts = trivalueCellKey.split(",");
+        int row = Integer.parseInt(parts[0]);
+        int column = Integer.parseInt(parts[1]);
+        int subBoard = board.findSubBoardNumber(row, column);
+
+        // Gather all cells in the row, column, and sub-board
+        List<String> rowKeys = getRowKeys(row);
+        List<String> columnKeys = getColumnKeys(column);
+        List<String> subBoardKeys = getCellsInSubBoard(subBoard);
+
+        // Count the occurrences of each number
+        int[] countsInRow = new int[board.getBoardSize() + 1];
+        int[] countsInColumn = new int[board.getBoardSize() + 1];
+        int[] countsInSubBoard = new int[board.getBoardSize() + 1];
+        updateCounts(rowKeys, countsInRow);
+        updateCounts(columnKeys, countsInColumn);
+        updateCounts(subBoardKeys, countsInSubBoard);
+        for (int value : values) {
+            if (countsInRow[value] == 3 && countsInColumn[value] == 3 && countsInSubBoard[value] == 3) {
+                // If the value appears exactly three times in row, column, and sub-board
+                board.placeValueInCell(row, column, value);
+                possibleNumbers.put(trivalueCellKey, List.of(value));  // Set correct value
+
+                // Update counts for all related cells after setting the value
+                for (String key : rowKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
+                for (String key : columnKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
+                for (String key : subBoardKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    private void updateCounts(List<String> keys, int[] counts) {
+        for (String key : keys) {
+            List<Integer> possibleValues = possibleNumbers.get(key);
+            if (possibleValues != null) {
+                for (int value : possibleValues) {
+                    counts[value]++;
+                }
+            }
+        }
+    }
+
+    private List<String> getRowKeys(int row) {
+        List<String> keys = new ArrayList<>();
+        for (int col = 0; col < board.getBoardSize(); col++) {
+            keys.add(row + "," + col);
+        }
+        return keys;
+    }
+
+    private List<String> getColumnKeys(int column) {
+        List<String> keys = new ArrayList<>();
+        for (int row = 0; row < board.getBoardSize(); row++) {
+            keys.add(row + "," + column);
+        }
+        return keys;
+    }
+
+    public List<String> getCellsInSubBoard(int subBoardIndex) {
+        List<String> cellKeys = new ArrayList<>();
+        int subBoardSize = board.getBoardLengthWidth();  // Assuming square sub-boards in a square grid
+        int startingRow = (subBoardIndex / subBoardSize) * subBoardSize;
+        int startingColumn = (subBoardIndex - startingRow) * subBoardSize;
+
+        for (int row = startingRow; row < startingRow + subBoardSize; row++) {
+            for (int column = startingColumn; column < startingColumn + subBoardSize; column++) {
+                System.out.println();
+                cellKeys.add(row + "," + column);  // Collecting cell keys in "row,column" format
+            }
+        }
+        return cellKeys;
     }
 
 
