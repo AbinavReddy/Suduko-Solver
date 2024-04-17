@@ -443,14 +443,14 @@ public class Solver
             List<Integer> valuesOfKeys = possibleNumbers.get(originalKey);
             if((rowOfKey1 == rowOfKeys) && (rowOfKey2 == rowOfKeys) && code == 0){
                 valuesOfKeys.removeAll(values);
-                updatePossibleCounts(5,valuesOfKeys,rowOfKeys,columnOfKeys,false);
+                updatePossibleCounts(5,values,rowOfKeys,columnOfKeys,false);
             } else if ((columnOfKey1 == columnOfKeys) && (columnOfKey2 == columnOfKeys) && code == 1){
                 valuesOfKeys.removeAll(values);
-                updatePossibleCounts(5,valuesOfKeys,rowOfKeys,columnOfKeys,false);
+                updatePossibleCounts(5,values,rowOfKeys,columnOfKeys,false);
             }
             else if ((subBoardOfKey1 == subBoardOfKeys) && (subBoardOfKey2 == subBoardOfKeys) && code == 2) {
                 valuesOfKeys.removeAll(values);
-                updatePossibleCounts(5,valuesOfKeys,rowOfKeys,columnOfKeys,false);
+                updatePossibleCounts(5,values,rowOfKeys,columnOfKeys,false);
             }
         }
     }
@@ -1270,9 +1270,9 @@ public class Solver
                                     if ( possibleNumbers.get(position).contains(quadValues.get(0)) || possibleNumbers.get(position).contains(quadValues.get(1)) || possibleNumbers.get(position).contains(quadValues.get(2)) || possibleNumbers.get(position).contains(quadValues.get(3))) {
                                         //system.out.println();
                                         String[] pos = position.split(",");
-                                        List<Integer> valuesDuplicate = possibleNumbers.get(position);
+
                                         possibleNumbers.get(position).removeAll(unionOfValues);
-                                        updatePossibleCounts(10,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
+                                        updatePossibleCounts(10,unionOfValues.stream().toList(),Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                         //system.out.println();
                                     }
                                 }
@@ -1328,8 +1328,7 @@ public class Solver
                             if (possibleNumbers.get(key)!= null && !quads.contains(key) ) {
                                 if( possibleNumbers.get(key).contains(quadValues.get(0)) || possibleNumbers.get(key).contains(quadValues.get(1)) || possibleNumbers.get(key).contains(quadValues.get(2)) && possibleNumbers.get(key).contains(quadValues.get(3))) {
                                     String[] pos = key.split(",");
-                                    List<Integer> valuesDuplicate = possibleNumbers.get(key);
-                                    updatePossibleCounts(10,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
+                                    updatePossibleCounts(10,unionOfValues.stream().toList(),Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                     possibleNumbers.get(key).removeAll(unionOfValues);
                                 }
                             }
