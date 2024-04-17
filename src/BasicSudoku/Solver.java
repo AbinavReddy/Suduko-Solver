@@ -570,7 +570,7 @@ public class Solver
 
     private void hiddenTriplesForSubBoards(){
         List<String> quads;
-        for(int boardNo = 1; boardNo < boardSize; boardNo++) {
+        for(int boardNo = 0; boardNo < boardSize; boardNo++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
             List<String> cellKeys = new ArrayList<>();
             for (int row = 0; row < boardSize; row++) {
@@ -598,14 +598,20 @@ public class Solver
                             quads.add(cellKeys.get(i));
                             quads.add(cellKeys.get(j));
                             quads.add(cellKeys.get(k));
-                            System.out.println();
                             Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
                             boolean quadsVerified = verifyTriples(quads, combos);
-                            System.out.println();
                             if ( quadsVerified) {
-                                System.out.println();
                                 for (String position : quads) {
+
+
+
+                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
+                                    valuesDuplicate.removeAll(combos);
+                                    String[] pos = position.split(",");
+                                    updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                     possibleNumbers.get(position).retainAll(combos);
+
+
                                 }
                             }
 
@@ -645,16 +651,21 @@ public class Solver
                             quads.add(cellKeys.get(i));
                             quads.add(cellKeys.get(j));
                             quads.add(cellKeys.get(k));
-                            System.out.println();
+
                             Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
                             boolean quadsVerified = verifyTriples(quads, combos);
-                            System.out.println();
+
                             if ( quadsVerified) {
-                                System.out.println();
+
 
                                 for (String position : quads) {
+
+                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
+                                    valuesDuplicate.removeAll(combos);
+                                    String[] pos = position.split(",");
+                                    updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                     possibleNumbers.get(position).retainAll(combos);
-                                    System.out.println();
+
                                 }
                             }
 
@@ -693,7 +704,6 @@ public class Solver
                         combinations.add(valuesList.get(i));
                         combinations.add(valuesList.get(j));
                         combinations.add(valuesList.get(k));
-                        System.out.println();
                         if (combinations.size() == 3) {
                             boolean isValidCombination = true;
                             // Check each cell outside the quads to ensure the combination doesn't appear
@@ -713,7 +723,6 @@ public class Solver
                             }
 
                             if (isValidCombination) {
-                                System.out.println();
                                 return combinations; // Found a valid combination
                             }
                         }
@@ -775,7 +784,13 @@ public class Solver
                                 String key = row + "," + col;
                                 if(possibleNumbers.get(key)!= null && !triples.contains(key)) {
                                     if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+
                                         possibleNumbers.get(key).removeAll(unionOfValues);
+                                        updatePossibleCounts(1000, unionOfValues.stream().toList(), row, col, false);
+
+
+
+
                                     }
                                 }
                             }
@@ -823,6 +838,7 @@ public class Solver
                                 if (possibleNumbers.get(key) != null && !triples.contains(key)) {
                                     if (possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
                                         possibleNumbers.get(key).removeAll(unionOfValues);
+                                        updatePossibleCounts(1000, unionOfValues.stream().toList(), row, col, false);
 
                                     }
                                 }
@@ -890,6 +906,7 @@ public class Solver
                                 if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2)))
                                 {
                                     possibleNumbers.get(key).removeAll(unionOfValues);
+                                    updatePossibleCounts(1000, unionOfValues.stream().toList(), startingRow, startingColumn, false);
 
                                 }
 
@@ -978,7 +995,6 @@ public class Solver
                 // If the value appears exactly three times in row, column, and sub-board
                 board.placeValueInCell(row, column, value);
                 possibleNumbers.put(trivalueCellKey, List.of(value));  // Set correct value
-
                 // Update counts for all related cells after setting the value
                 for (String key : rowKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
                 for (String key : columnKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
@@ -1027,7 +1043,6 @@ public class Solver
 
         for (int row = startingRow; row < startingRow + subBoardSize; row++) {
             for (int column = startingColumn; column < startingColumn + subBoardSize; column++) {
-                System.out.println();
                 cellKeys.add(row + "," + column);  // Collecting cell keys in "row,column" format
             }
         }
@@ -1397,7 +1412,6 @@ public class Solver
                                 //system.out.println();
                                 Set<Integer> combos = findHiddenQuads(unionOfValues, cellKeys, quads);
                                 boolean quadsVerified = verifyQuads(quads, combos);
-                                //system.out.println();
                                 if ( quadsVerified) {
                                     //system.out.println();
                                     for (String position : quads) {
