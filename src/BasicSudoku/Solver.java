@@ -2148,10 +2148,10 @@ public class Solver
      */
     public void wingStrategies()
     {
-        //xWing(true);
-        //nakedSingles();
-        //xWing(false);
-        //nakedSingles();
+        xWing(true);
+        nakedSingles();
+        xWing(false);
+        nakedSingles();
         yWingWithXYZExtension(false);
         nakedSingles();
         yWingWithXYZExtension(true);

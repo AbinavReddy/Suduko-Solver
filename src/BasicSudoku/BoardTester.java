@@ -7,7 +7,6 @@ public class BoardTester
         Board testBoard = new Board(3, false);
         Solver testSolver = testBoard.getSolver();
 
-        System.out.println(testBoard.getIsSolvable());
         printBoard(testBoard);
         testSolver.printPossibilities();
         testSolver.solveWithStrategies();
