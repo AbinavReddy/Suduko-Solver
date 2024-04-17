@@ -1085,7 +1085,7 @@ public class Solver
                         if ( pairsVerified) {
                             for (String position : pairs) {
                                 String[] pos = position.split(",");
-                                List<Integer> valuesDuplicate = possibleNumbers.get(position);
+                                List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
                                 possibleNumbers.get(position).retainAll(combos);
                                 valuesDuplicate.removeAll(combos);
                                 updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
@@ -1129,7 +1129,7 @@ public class Solver
                         if ( pairsVerified) {
                             for (String position : pairs) {
                                 String[] pos = position.split(",");
-                                List<Integer> valuesDuplicate = possibleNumbers.get(position);
+                                List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
                                 possibleNumbers.get(position).retainAll(combos);
                                 valuesDuplicate.removeAll(combos);
                                 updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
@@ -1402,7 +1402,7 @@ public class Solver
                                     //system.out.println();
                                     for (String position : quads) {
                                         String[] pos = position.split(",");
-                                        List<Integer> valuesDuplicate = possibleNumbers.get(position);
+                                        List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
                                         valuesDuplicate.removeAll(combos);
                                         updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                         possibleNumbers.get(position).retainAll(combos);
@@ -1457,7 +1457,7 @@ public class Solver
                                 if ( quadsVerified) {
                                     for (String position : quads) {
                                         String[] pos = position.split(",");
-                                        List<Integer> valuesDuplicate = possibleNumbers.get(position);
+                                        List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
                                         possibleNumbers.get(position).retainAll(combos);
                                         updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
                                         //system.out.println();
@@ -2043,7 +2043,7 @@ public class Solver
                 String[] coord1 = cell1.split(",");
                 int row = Integer.parseInt(coord1[0]);
                 int column = Integer.parseInt(coord1[1]);
-                List<Integer> valuesDuplicate = possibleNumbers.get(cell1);
+                List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(cell1));
                 possibleNumbers.get(cell1).retainAll(numberList);
                 valuesDuplicate.removeAll(numberList);
                 updatePossibleCounts(5,valuesDuplicate,row,column,false);
@@ -2067,7 +2067,7 @@ public class Solver
                 String[] coord3 = cell3.split(",");
                 int row = Integer.parseInt(coord3[0]);
                 int column = Integer.parseInt(coord3[1]);
-                List<Integer> valuesDuplicate = possibleNumbers.get(cell3);
+                List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(cell3));
                 possibleNumbers.get(cell3).retainAll(numberList);
                 valuesDuplicate.removeAll(numberList);
                 updatePossibleCounts(5,valuesDuplicate,row,column,false);
