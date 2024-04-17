@@ -42,9 +42,21 @@ public class PredefinedBoard {
             {0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
 
+    public static final int[][] Board3 = {
+        {8, 4, 2, 0, 0, 3, 7, 1, 9},
+        {0, 0, 3, 1, 0, 4, 0, 0, 0},
+        {5, 0, 1, 0, 0, 0, 0, 3, 4},
+        {0, 3, 8, 0, 1, 0, 4, 8, 5},
+        {0, 2, 0, 3, 0, 7, 1, 6, 8},
+        {1, 0, 7, 0, 0, 0, 2, 9, 3},
+        {3, 0, 6, 0, 0, 0, 9, 0, 1},
+        {0, 0, 0, 9, 3, 1, 0, 0, 0},
+        {2, 1, 9, 8, 0, 0, 3, 0, 7}
+    };
+
 
     public static int[][] selectBoardRandomly (){
-        int randomNumber = 0; // random.nextInt(3);
+        int randomNumber = 3; // random.nextInt(3);
 
         switch (randomNumber){
             case 0:
@@ -53,6 +65,8 @@ public class PredefinedBoard {
                 return Board1;
             case 2:
                 return Board2;
+            case 3:
+                return Board3;
             default:
                 return null;
         }

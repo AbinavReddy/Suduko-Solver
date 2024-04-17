@@ -11,15 +11,15 @@ public class Board
     private int filledCells;
     private String errorMessage;
     private Solver solver;
+    private boolean isSolvable;
 
-    public Board(int boardLengthWidth, boolean canBeUnsolvable, int initialClues, boolean emptySubBoardsAllowed)
+    public Board(int boardLengthWidth, int initialClues, boolean emptySubBoardsAllowed)
     {
         // Danny & Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
-        /*
         // temp
         board = new int[boardSize][boardSize];
         filledCells = 0;
@@ -29,14 +29,19 @@ public class Board
         initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
 
         solver.possibleValuesInCells();
-        */
+
+        /*
+        Random chooseSolvable = new Random();
+        isSolvable = 0 < chooseSolvable.nextInt(0, 5); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
 
         do
         {
             initializeBoard(initialClues, emptySubBoardsAllowed);
             solver = new Solver(this);
         }
-        while(!solver.possibleValuesInCells() || !canBeUnsolvable && !solver.isBoardSolvable());
+        while((solver.isBoardSolvable() || !solver.possibleValuesInCells()) && !isSolvable || !solver.isBoardSolvable() && isSolvable);
+        */
+
     }
 
     public Board(Board boardToCopy)
@@ -55,6 +60,7 @@ public class Board
         filledCells = boardToCopy.filledCells;
         errorMessage = boardToCopy.errorMessage;
         solver = new Solver(boardToCopy.solver);
+        isSolvable = boardToCopy.isSolvable;
     }
 
     private void initializeBoard(int filledFromStart, boolean subBoardsCanBeEmpty)
@@ -223,6 +229,12 @@ public class Board
         int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
         return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards);
     }
+    
+    public boolean isGameFinished() 
+    {
+        // Yahya
+        return filledCells == availableCells;
+    }
 
     public boolean solveBoard()
     {
@@ -235,12 +247,6 @@ public class Board
         }
 
         return true;
-    }
-    
-    public boolean isGameFinished() 
-    {
-        // Yahya
-        return filledCells == availableCells;
     }
 
     public void setBoardValue(int row, int column, int value)
@@ -256,6 +262,11 @@ public class Board
         }
 
         board[row][column] = value;
+    }
+
+    public void setIsSolvable(boolean solvable)
+    {
+        isSolvable = solvable;
     }
 
     public int[][] getBoard()
@@ -286,5 +297,13 @@ public class Board
     {
         // Danny
         return solver;
+    }
+
+    /**
+     * @author Danny
+     */
+    public boolean getIsSolvable()
+    {
+        return isSolvable;
     }
 }

@@ -5,7 +5,7 @@ import java.util.*;
 public class Solver
 {
     Board board;
-    Board solvableTestBoard;
+    Board solvedBoard;
     final int boardSize;
     final int boardLengthWidth;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
@@ -31,7 +31,7 @@ public class Solver
     {
         // Danny & Abinav
         board = solverToCopy.board;
-        solvableTestBoard = solverToCopy.solvableTestBoard;
+        solvedBoard = solverToCopy.solvedBoard;
         boardSize = solverToCopy.boardSize;
         boardLengthWidth = solverToCopy.boardLengthWidth;
         possibleNumbers = new HashMap<>(solverToCopy.possibleNumbers);
@@ -124,10 +124,10 @@ public class Solver
     public boolean isBoardSolvable()
     {
         // Danny, Yahya & Abinav
-        solvableTestBoard = new Board(board);
-        solvableTestBoard.getSolver().board = solvableTestBoard;
+        solvedBoard = new Board(board);
+        solvedBoard.getSolver().board = solvedBoard;
 
-        return solvableTestBoard.getSolver().solveWithBacktracking(); // has to be with backtracking to avoid singular strategy boards
+        return solvedBoard.getSolver().solveWithBacktracking();  // has to be with backtracking to avoid singular strategy boards
     }
 
     public boolean solveWithStrategies()
@@ -145,21 +145,11 @@ public class Solver
             }
             while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
 
-            // solving strategies go here (nakedSingles after each)
-            pointingDuplicatesWithBLR(true);
-            nakedSingles();
-            pointingDuplicatesWithBLR(false);
-            nakedSingles();
-            xWing(true);
-            nakedSingles();
-            xWing(false);
-            nakedSingles();
-            //wXYZWingWithExtension(false);
-            //nakedSingles();
-            //wXYZWingWithExtension(true);
-            //nakedSingles();
+            // solving strategies go here
+            intersectionRemoval();
+            wingStrategies();
 
-            if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking
+            if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking (last resort)
             {
                 return solveWithBacktracking();
             }
@@ -204,7 +194,6 @@ public class Solver
 
     public void nakedSingles() {
         // Abinav, Yahya & Danny
-
         List<String> keysToRemove = new ArrayList<>();
 
         for (String key : possibleNumbers.keySet()) {
@@ -274,6 +263,17 @@ public class Solver
     /**
      * @author Danny
      */
+    public void intersectionRemoval()
+    {
+        pointingDuplicatesWithBLR(true);
+        nakedSingles();
+        pointingDuplicatesWithBLR(false);
+        nakedSingles();
+    }
+
+    /**
+     * @author Danny
+     */
     private void pointingDuplicatesWithBLR(boolean processingRows)
     {
         int targetValueCount = boardLengthWidth - 1;
@@ -291,7 +291,7 @@ public class Solver
             {
                 valuePossibleCount = processingRows ? valuePossibleCountRows[value][rowOrColumnA] : valuePossibleCountColumns[value][rowOrColumnA];
 
-                if(valuePossibleCount >= 3) // to do anything, there has to be at least 3 places where value can be
+                if(valuePossibleCount >= 2) // to do anything, there has to be at least 3 places where value can be
                 {
                     valueSubBoardCount = 0;
                     previousSubBoard = processingRows ? board.findSubBoardNumber(rowOrColumnA, 0) : board.findSubBoardNumber(0, rowOrColumnA); // initial sub-board
@@ -311,7 +311,7 @@ public class Solver
 
                             valueSubBoardCount++;
 
-                            if(valueSubBoardCount >= targetValueCount && valuePossibleCountSubBoards[value][board.findSubBoardNumber(substituteA, substituteB)] == valueSubBoardCount) // pointing duplicates found, but value might be present on multiple sub-boards
+                            if(valueSubBoardCount >= targetValueCount && valuePossibleCountSubBoards[value][board.findSubBoardNumber(substituteA, substituteB)] == valueSubBoardCount) // pointing duplicate found, but value might be present on multiple sub-boards
                             {
                                 // Process pointing duplicates normally for value elimination
                                 for(int rowOrColumnC = 0; rowOrColumnC < boardSize; rowOrColumnC++)
@@ -336,7 +336,7 @@ public class Solver
 
                         if(rowOrColumnB == boardSize - 1) // last iteration
                         {
-                            if(valueSubBoardCount >= targetValueCount && valuePossibleCount == valueSubBoardCount) // pointing duplicates found, but value is only present on a single sub-board
+                            if(valueSubBoardCount >= targetValueCount && valuePossibleCount == valueSubBoardCount) // pointing duplicate found, but value is only present on a single sub-board
                             {
                                 // Process pointing duplicates with BLR (box/line reduction) for value elimination
                                 int startingRow = (previousSubBoard / boardLengthWidth) * boardLengthWidth;
@@ -373,11 +373,29 @@ public class Solver
     /**
      * @author Danny
      */
-    public void xWing(boolean processingRows)
+    public void wingStrategies()
+    {
+        xWing(true);
+        nakedSingles();
+        xWing(false);
+        nakedSingles();
+        yWingWithXYZExtension(false);
+        nakedSingles();
+        yWingWithXYZExtension(true);
+        nakedSingles();
+        wXYZWingWithExtension(false);
+        nakedSingles();
+        wXYZWingWithExtension(true);
+        nakedSingles();
+    }
+
+    /**
+     * @author Danny
+     */
+    private void xWing(boolean processingRows)
     {
         List<int[]> rowColumnPositions;
         List<List<int[]>> processedForXWings;
-
         int valuePossibleCount;
 
         int substituteA; // variables used to avoid repetitive code
@@ -392,8 +410,8 @@ public class Solver
             // Find all x-wing candidates
             for (int rowOrColumnA = 0; rowOrColumnA < boardSize; rowOrColumnA++)
             {
-                valuePossibleCount = processingRows ? valuePossibleCountRows[value][rowOrColumnA] : valuePossibleCountColumns[value][rowOrColumnA];
                 rowColumnPositions = new ArrayList<>();
+                valuePossibleCount = processingRows ? valuePossibleCountRows[value][rowOrColumnA] : valuePossibleCountColumns[value][rowOrColumnA];
 
                 if(valuePossibleCount == 2) // skip if value already present or possible more than 2 places in row or column
                 {
@@ -438,8 +456,7 @@ public class Solver
                                     substituteC = processingRows ? rowOrColumn : processedForXWings.get(xWingPartA).get(0)[substituteA];
                                     substituteD = processingRows ? processedForXWings.get(xWingPartA).get(0)[substituteA] : rowOrColumn;
 
-
-                                    for(int processRowOrColumns = 0; processRowOrColumns < 2; processRowOrColumns++) // remove value elsewhere in both rows or columns
+                                    for(int processed = 0; processed < 2; processed++) // remove value elsewhere in both rows or columns
                                     {
                                         String key = (substituteC + "," + substituteD);
 
@@ -450,7 +467,7 @@ public class Solver
                                             possibleNumbers.get(key).remove((Integer) value);
                                         }
 
-                                        if(processRowOrColumns == 1) // switch from processing rows to columns or opposite
+                                        if(processed == 0) // switch to process other row or column
                                         {
                                             substituteC = processingRows ? rowOrColumn : processedForXWings.get(xWingPartB).get(1)[substituteA];
                                             substituteD = processingRows ? processedForXWings.get(xWingPartB).get(1)[substituteA] : rowOrColumn;
@@ -468,15 +485,14 @@ public class Solver
     /**
      * @author Danny
      */
-    public void yWingWithXYZExtension(boolean runWithExtension)
+    private void yWingWithXYZExtension(boolean runWithExtension)
     {
         List<int[]> cellsWithValue;
         List<int[]> hingeCells;
         List<int[]> pincerCandidateCells;
         List<int[]> pincerCells;
         List<int[]> pincersProcessed;
-
-        int pincersNeeded = !runWithExtension ? 2 : 3;
+        int pincersValuesNeeded = !runWithExtension ? 2 : 3;
 
         for(int value = 1; value <= boardSize; value++)
         {
@@ -521,25 +537,15 @@ public class Solver
 
                 String hingeKey = hinge[0] + "," + hinge[1];
 
-                int hingeValuesInHinge = possibleNumbers.get(hingeKey).size();
-                int hingeValuesInPincers = 0;
-                boolean[] hingeValuesPresent = new boolean[hingeValuesInHinge];
-
                 for(int[] pincer : pincerCandidateCells)
                 {
                     String pincerKey = pincer[0] + "," + pincer[1];
 
-                    // Make sure the hinge and the pincer has at least one value in common
-                    for(int hingeValue = 0; hingeValue < hingeValuesInHinge; hingeValue++)
+                    // Make sure the pincer has at least one value in common with the hinge
+                    for(int hingeValue = 0; hingeValue < possibleNumbers.get(hingeKey).size(); hingeValue++)
                     {
-                        if(runWithExtension && possibleNumbers.get(hingeKey).get(hingeValue) == value) // value is always observable when it needs to be
+                        if(possibleNumbers.get(hingeKey).get(hingeValue) == value) // value is always present in pincers
                         {
-                            if(!hingeValuesPresent[hingeValue])
-                            {
-                                hingeValuesInPincers++;
-                                hingeValuesPresent[hingeValue] = true;
-                            }
-
                             continue;
                         }
 
@@ -562,13 +568,7 @@ public class Solver
 
                                     pincerCells.add(pincer);
 
-                                    if(!hingeValuesPresent[hingeValue]) // register hinge value presence in pincers (need to all be there)
-                                    {
-                                        hingeValuesInPincers++;
-                                        hingeValuesPresent[hingeValue] = true;
-                                    }
-
-                                    break;
+                                    break; // since value is skipped and pincers are always of size = 2, we are done with this pincer
                                 }
                             }
                         }
@@ -576,7 +576,7 @@ public class Solver
                 }
 
                 // Process every combination of found pincer cells (with or without hinge) for potential value elimination
-                if(hingeValuesInHinge == hingeValuesInPincers && pincerCells.size() >= pincersNeeded)
+                if(pincerCells.size() >= pincersValuesNeeded)
                 {
                     pincersProcessed = new ArrayList<>();
 
@@ -598,8 +598,41 @@ public class Solver
                             processedBeforeB = new ArrayList<>(pincersProcessed);
                             pincersProcessed.add(pincerCells.get(pincerB));
 
-                            // Find universally observed non-pincer cells with value and eliminate value from them
-                            advancedWingElimination(value, cellsWithValue, pincersProcessed);
+                            // Make sure all hinge-values are present in the non-hinge pincers of the combination
+                            boolean[] hingeValuesPresent = new boolean[possibleNumbers.get(hingeKey).size()];
+                            int hingeValuesInPincers = 0;
+
+                            for(int pincer = (!runWithExtension ? 0 : 1); pincer < pincersProcessed.size(); pincer++)
+                            {
+                                for(int hingeValue = 0; hingeValue < hingeValuesPresent.length; hingeValue++)
+                                {
+                                    if(possibleNumbers.get(hingeKey).get(hingeValue) == value)  // value is always present in pincers
+                                    {
+                                        if(!hingeValuesPresent[hingeValue])
+                                        {
+                                            hingeValuesPresent[hingeValue] = true;
+                                            hingeValuesInPincers++;
+                                        }
+
+                                        continue;
+                                    }
+
+                                    if(possibleNumbers.get(pincersProcessed.get(pincer)[0] + "," + pincersProcessed.get(pincer)[1]).contains(possibleNumbers.get(hingeKey).get(hingeValue)))
+                                    {
+                                        if(!hingeValuesPresent[hingeValue])
+                                        {
+                                            hingeValuesPresent[hingeValue] = true;
+                                            hingeValuesInPincers++;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if(hingeValuesInPincers == pincersValuesNeeded)
+                            {
+                                // Find universally observed non-pincer cells with value and eliminate value from them
+                                advancedWingElimination(value, cellsWithValue, pincersProcessed);
+                            }
 
                             pincersProcessed = processedBeforeB; // resetting
                         }
@@ -614,15 +647,13 @@ public class Solver
     /**
      * @author Danny
      */
-    public void wXYZWingWithExtension(boolean runWithExtension)
+    private void wXYZWingWithExtension(boolean runWithExtension)
     {
         List<int[]> cellsWithValue;
         List<int[]> hingeCells;
         List<int[]> pincerCandidateCells;
         List<int[]> pincerCells;
         List<int[]> pincersProcessed;
-        Set<Integer> unionValues;
-
         int pincersValuesNeeded = !runWithExtension ? 4 : 5;
 
         for(int value = 1; value <= boardSize; value++)
@@ -676,7 +707,7 @@ public class Solver
                     }
 
                     pincerCells = new ArrayList<>();
-                    unionValues = new HashSet<>();
+                    Set<Integer> unionHingeValues = new HashSet<>();
 
                     boolean multipleHinges = firstHinge != secondHinge;
                     String hingeKeyA = hingeCells.get(firstHinge)[0] + "," + hingeCells.get(firstHinge)[1];
@@ -686,45 +717,33 @@ public class Solver
                     {
                         String pincerKey = pincer[0] + "," + pincer[1];
 
-                        // Make sure the hinges and the pincer have at least one value in common
-                        boolean valuesInCommon = false;
+                        // Make sure the pincer has at least one value in common with both hinges
                         int hingesInvolved = !multipleHinges ? 1 : 2;
+                        int valuesInCommon = 0;
 
-                        nestedLoop: // label, allows breaking out of nested loops easily
+                        for(int hinge = 0; hinge < hingesInvolved; hinge++)
                         {
-                            for(int hinge = 0; hinge < hingesInvolved; hinge++)
+                            String currentHingeKey = hinge == 0 ? hingeKeyA : hingeKeyB;
+
+                            for(int hingeValue = 0; hingeValue < possibleNumbers.get(currentHingeKey).size(); hingeValue++)
                             {
-                                String currentHingeKey = hinge == 0 ? hingeKeyA : hingeKeyB;
-
-                                for(int hingeValue = 0; hingeValue < possibleNumbers.get(currentHingeKey).size(); hingeValue++)
+                                if(possibleNumbers.get(currentHingeKey).get(hingeValue) == value) // value is always present in pincers
                                 {
-                                    if(possibleNumbers.get(pincerKey).contains(possibleNumbers.get(currentHingeKey).get(hingeValue)))
-                                    {
-                                        valuesInCommon = true;
-                                    }
+                                    continue;
                                 }
 
-                                if(valuesInCommon)
+                                if(possibleNumbers.get(pincerKey).contains(possibleNumbers.get(currentHingeKey).get(hingeValue)))
                                 {
-                                    if(hinge != hingesInvolved - 1) // pincer doesn't have a value in common with at least one hinge
-                                    {
-                                        valuesInCommon = false;
-                                    }
-                                    else
-                                    {
-                                        break nestedLoop;
-                                    }
-                                }
-                                else if(hinge == hingesInvolved - 1)
-                                {
-                                    break nestedLoop;
+                                    valuesInCommon++;
+
+                                    break;
                                 }
                             }
                         }
 
-                        // Find all pincers visible from and not equal to hinges
-                        if(valuesInCommon)
+                        if(valuesInCommon == hingesInvolved)
                         {
+                            // Find all pincers visible from and not equal to hinges
                             int hingeRowA = hingeCells.get(firstHinge)[0];
                             int hingeColumnA = hingeCells.get(firstHinge)[1];
                             int hingeRowB = hingeCells.get(secondHinge)[0];
@@ -741,12 +760,12 @@ public class Solver
                                         if(pincerCells.isEmpty()) // in wXYZWing the hinges themselves are always pincers
                                         {
                                             pincerCells.add(hingeCells.get(firstHinge));
-                                            unionValues.addAll(possibleNumbers.get(hingeKeyA));
+                                            unionHingeValues.addAll(possibleNumbers.get(hingeKeyA));
 
                                             if(multipleHinges)
                                             {
                                                 pincerCells.add(hingeCells.get(secondHinge));
-                                                unionValues.addAll(possibleNumbers.get(hingeKeyB));
+                                                unionHingeValues.addAll(possibleNumbers.get(hingeKeyB));
                                             }
                                         }
 
@@ -757,71 +776,108 @@ public class Solver
                         }
                     }
 
-                    // Process every combination of found pincer cells (with hinges) for potential value elimination
+                    // Process every combination of found pincer cells (with hinges always) for potential value elimination
                     if(pincerCells.size() >= pincersValuesNeeded)
                     {
                         pincersProcessed = new ArrayList<>();
-                        pincersProcessed.add(pincerCells.get(0)); // always add first hinge cell (pincerA)
+                        Set<Integer> unionPincerValues = new HashSet<>(unionHingeValues);
+                        List<Integer> unionHingeValueList = unionHingeValues.stream().toList(); // get all unique hinge values on a list
 
-                        if(multipleHinges) // possibly add second hinge cell (then pincerB)
+                        pincersProcessed.add(pincerCells.get(0)); // always add first hinge cell
+
+                        if(multipleHinges) // possibly add second hinge cell
                         {
                             pincersProcessed.add(pincerCells.get(1));
                         }
 
-                        List<int[]> processedBeforeB; // variables for resetting instead of removing (less intensive and faster)
+                        List<int[]> processedBeforeA; // variables for resetting instead of removing (less intensive and faster)
+                        List<int[]> processedBeforeB;
                         List<int[]> processedBeforeC;
                         List<int[]> processedBeforeD;
-                        List<int[]> processedBeforeE;
+                        Set<Integer> unionBeforeA;
                         Set<Integer> unionBeforeB;
                         Set<Integer> unionBeforeC;
                         Set<Integer> unionBeforeD;
-                        Set<Integer> unionBeforeE;
 
-                        for(int pincerB = 1; pincerB < (!multipleHinges ? (pincerCells.size() - (!runWithExtension ? 2 : 3)) : 2); pincerB++)
+                        for(int pincerA = (!multipleHinges ? 1 : 2); pincerA < pincerCells.size() - 1; pincerA++)
                         {
-                            processedBeforeB = !multipleHinges ? new ArrayList<>(pincersProcessed) : null; // resetting for pincerB only necessary when there is one hinge
-                            unionBeforeB = !multipleHinges ? new HashSet<>(unionValues) : null;
+                            processedBeforeA = new ArrayList<>(pincersProcessed);
+                            pincersProcessed.add(pincerCells.get(pincerA));
+                            unionBeforeA = new HashSet<>(unionPincerValues);
+                            unionPincerValues.addAll(possibleNumbers.get(pincerCells.get(pincerA)[0] + "," + pincerCells.get(pincerA)[1]));
 
-                            if(!multipleHinges)
+                            for(int pincerB = pincerA + 1; pincerB < pincerCells.size(); pincerB++)
                             {
+                                processedBeforeB = new ArrayList<>(pincersProcessed);
                                 pincersProcessed.add(pincerCells.get(pincerB));
-                                unionValues.addAll(possibleNumbers.get(pincerCells.get(pincerB)[0] + "," + pincerCells.get(pincerB)[1]));
-                            }
+                                unionBeforeB = new HashSet<>(unionPincerValues);
+                                unionPincerValues.addAll(possibleNumbers.get(pincerCells.get(pincerB)[0] + "," + pincerCells.get(pincerB)[1]));
 
-                            for(int pincerC = pincerB + 1; pincerC < pincerCells.size() - (!runWithExtension ? 1 : 2); pincerC++)
-                            {
-                                processedBeforeC = new ArrayList<>(pincersProcessed);
-                                pincersProcessed.add(pincerCells.get(pincerC));
-                                unionBeforeC = new HashSet<>(unionValues);
-                                unionValues.addAll(possibleNumbers.get(pincerCells.get(pincerC)[0] + "," + pincerCells.get(pincerC)[1]));
-
-                                for(int pincerD = pincerC + 1; pincerD < pincerCells.size() - (!runWithExtension ? 0 : 1); pincerD++)
+                                for(int pincerC = (!(multipleHinges && !runWithExtension) ? pincerB + 1 : pincerB); pincerC < pincerCells.size(); pincerC++)
                                 {
-                                    processedBeforeD = new ArrayList<>(pincersProcessed);
-                                    pincersProcessed.add(pincerCells.get(pincerD));
-                                    unionBeforeD = new HashSet<>(unionValues);
-                                    unionValues.addAll(possibleNumbers.get(pincerCells.get(pincerD)[0] + "," + pincerCells.get(pincerD)[1]));
+                                    processedBeforeC = null;
+                                    unionBeforeC = null;
 
-                                    for(int pincerE = pincerD + 1; pincerE < (!runWithExtension ? pincerCells.size() + 1 : pincerCells.size()); pincerE++)
+                                    if(!(multipleHinges && !runWithExtension))
                                     {
-                                        processedBeforeE = !runWithExtension ? null : new ArrayList<>(pincersProcessed);
-                                        unionBeforeE = !runWithExtension ? null : new HashSet<>(unionValues);
+                                        processedBeforeC = new ArrayList<>(pincersProcessed);
+                                        pincersProcessed.add(pincerCells.get(pincerC));
+                                        unionBeforeC = new HashSet<>(unionPincerValues);
+                                        unionPincerValues.addAll(possibleNumbers.get(pincerCells.get(pincerC)[0] + "," + pincerCells.get(pincerC)[1]));
+                                    }
 
-                                        if(runWithExtension)
+                                    for(int pincerD = (!multipleHinges && runWithExtension ? pincerC + 1 : pincerC); pincerD < pincerCells.size(); pincerD++)
+                                    {
+                                        processedBeforeD = null;
+                                        unionBeforeD = null;
+
+                                        if(!multipleHinges && runWithExtension)
                                         {
-                                            pincersProcessed.add(pincerCells.get(pincerE));
-                                            unionValues.addAll(possibleNumbers.get(pincerCells.get(pincerE)[0] + "," + pincerCells.get(pincerE)[1]));
+                                            processedBeforeD = new ArrayList<>(pincersProcessed);
+                                            pincersProcessed.add(pincerCells.get(pincerD));
+                                            unionBeforeD = new HashSet<>(unionPincerValues);
+                                            unionPincerValues.addAll(possibleNumbers.get(pincerCells.get(pincerD)[0] + "," + pincerCells.get(pincerD)[1]));
+                                        }
+
+                                        // Make sure all hinge-values are present in the non-hinge pincers of the combination
+                                        boolean[] hingeValuesPresent = new boolean[unionHingeValueList.size()];
+                                        int hingeValuesInPincers = 0;
+
+                                        for(int pincer = (!multipleHinges ? 1 : 2); pincer < pincersProcessed.size(); pincer++) // skip hinges
+                                        {
+                                            for(int hingeValue = 0; hingeValue < unionHingeValueList.size(); hingeValue++)
+                                            {
+                                                if(unionHingeValueList.get(hingeValue) == value)
+                                                {
+                                                    if(!hingeValuesPresent[hingeValue])
+                                                    {
+                                                        hingeValuesPresent[hingeValue] = true;
+                                                        hingeValuesInPincers++;
+                                                    }
+
+                                                    continue;
+                                                }
+
+                                                if(possibleNumbers.get(pincersProcessed.get(pincer)[0] + "," + pincersProcessed.get(pincer)[1]).contains(unionHingeValueList.get(hingeValue)))
+                                                {
+                                                    if(!hingeValuesPresent[hingeValue])
+                                                    {
+                                                        hingeValuesPresent[hingeValue] = true;
+                                                        hingeValuesInPincers++;
+                                                    }
+                                                }
+                                            }
                                         }
 
                                         // Perform final checks of the pincer combination
-                                        if(unionValues.size() == pincersValuesNeeded)
+                                        if(hingeValuesInPincers == pincersValuesNeeded)
                                         {
                                             boolean hasNonRestricted = false;
-                                            boolean allValuesObservable = true; // has to be true for all, so it is easier to detect a negative
+                                            boolean allValuesObservable = true; // it is simpler to detect a negative here
 
                                             nestedLoops:
                                             {
-                                                for(Integer unionValue : unionValues)
+                                                for(Integer unionValue : unionPincerValues)
                                                 {
                                                     // Check if there is at least one non-restricted pincer with value and none with other values
                                                     if(unionValue == value)
@@ -902,31 +958,34 @@ public class Solver
                                             }
                                         }
 
-                                        if(runWithExtension)
+                                        if(!multipleHinges && runWithExtension)
                                         {
-                                            // resetting
-                                            pincersProcessed = processedBeforeE;
-                                            unionValues = unionBeforeE;
+                                            pincersProcessed = processedBeforeD; // resetting
+                                            unionPincerValues = unionBeforeD;
                                         }
-                                        else // only run once if extension is not running
+                                        else // only run the loop once
                                         {
                                             break;
                                         }
                                     }
 
-                                    pincersProcessed = processedBeforeD;
-                                    unionValues = unionBeforeD;
+                                    if(!(multipleHinges && !runWithExtension))
+                                    {
+                                        pincersProcessed = processedBeforeC;
+                                        unionPincerValues = unionBeforeC;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
                                 }
 
-                                pincersProcessed = processedBeforeC;
-                                unionValues = unionBeforeC;
+                                pincersProcessed = processedBeforeB;
+                                unionPincerValues = unionBeforeB;
                             }
 
-                            if(!multipleHinges)
-                            {
-                                pincersProcessed = processedBeforeB;
-                                unionValues = unionBeforeB;
-                            }
+                            pincersProcessed = processedBeforeA;
+                            unionPincerValues = unionBeforeA;
                         }
                     }
                 }
@@ -939,16 +998,15 @@ public class Solver
      */
     private void advancedWingElimination(int value, List<int[]> cellsWithValue, List<int[]> pincersProcessed)
     {
-        // Find collectively and individually observed non-pincer cells with value
         List<String> observedCollectively = new ArrayList<>();
         List<List<String>> observedIndividually = new ArrayList<>();
-
         int[] pincerAKey = pincersProcessed.get(0);
         int[] pincerBKey = pincersProcessed.get(1);
         int[] pincerCKey = pincersProcessed.size() >= 3 ? pincersProcessed.get(2) : null;
         int[] pincerDKey = pincersProcessed.size() >= 4 ? pincersProcessed.get(3) : null;
         int[] pincerEKey = pincersProcessed.size() == 5 ? pincersProcessed.get(4) : null;
 
+        // Find collectively and individually observed non-pincer cells with value
         for(int[] pincerKey : pincersProcessed)
         {
             int pincerRow = pincerKey[0];
@@ -1002,8 +1060,6 @@ public class Solver
 
                         updatePossibleCounts(value, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
                         possibleNumbers.get(collectiveKey).remove((Integer) value);
-
-                        System.out.println("pos: " + " " + parts[0] + "," + parts[1] + " (" + value + ") " + possibleNumbers.get(collectiveKey));
                     }
                 }
             }
