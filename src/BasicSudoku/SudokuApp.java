@@ -61,7 +61,7 @@ private void setBoard(ActionEvent event){
                     cells.setPromptText("");
                 }else {
                     cells.setPromptText(Integer.toString(value));
-                    cells.setEditable(false);
+                    textField.setDisable(true);
                 }
                 gp.add(cells,col,row);
             }
@@ -71,5 +71,6 @@ private void setBoard(ActionEvent event){
         stage.show();
     }
 
+    // trying
 
 }
