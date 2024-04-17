@@ -225,8 +225,10 @@ public class Solver
         EliminateEmptyLists();
     }
 
+    /**
+     * @author Abinav
+     */
     public void EliminateEmptyLists(){
-        // Abinav
         List<String> removeKeys = new ArrayList<>();
 
         for (String key : possibleNumbers.keySet()){
@@ -243,8 +245,10 @@ public class Solver
 
     }
 
+    /**
+     * @author Abinav
+     */
     public void removeNumberFromOtherCandidate(String key,List<Integer> values, List<String> cellsContainingCandidate) {
-        // Abinav
         String[] part = key.split(",");
         int row = Integer.parseInt(part[0]);
         int column = Integer.parseInt(part[1]);
@@ -269,8 +273,10 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private void returnCandidatesInColumns(int column) {
-        // Abinav
 
         Map<String, List<Integer>> columnCandidates = new HashMap<>();
         for (String key : possibleNumbers.keySet()) {
@@ -283,9 +289,10 @@ public class Solver
             findNakedPairs(columnCandidates);
     }
 
+    /**
+     * @author Abinav
+     */
     private void returnCandidatesInSubBoard(int subBoard) {
-        // Abinav
-
         Map<String, List<Integer>> subBoardCandidates = new HashMap<>();
         for (String key : possibleNumbers.keySet()) {
             String[] parts = key.split(",");
@@ -300,9 +307,10 @@ public class Solver
 
     }
 
+    /**
+     * @author Abinav
+     */
     private void returnCandidatesInRows(int row) {
-        // Abinav
-
         Map<String, List<Integer>> rowCandidates = new HashMap<>();
         for (String key : possibleNumbers.keySet()) {
             String[] parts = key.split(",");
@@ -315,16 +323,18 @@ public class Solver
             findNakedPairs(rowCandidates);
     }
 
+    /**
+     * @author Abinav
+     */
     public void NP(){
-        // Abinav
-
         nakedPairs();
         nakedSingles();
     }
 
+    /**
+     * @author Abinav
+     */
     private void nakedPairs() {
-        // Abinav
-
         for (String key1 : possibleNumbers.keySet()) {
             List<Integer> valuesOfKey1 = possibleNumbers.get(key1);
             String[] parts = key1.split(",");
@@ -359,9 +369,10 @@ public class Solver
     }
 
 
+    /**
+     * @author Abinav
+     */
     private void findNakedPairs(Map<String, List<Integer>> candidates) {
-        // Abinav
-
         List<String> keys = new ArrayList<>(candidates.keySet());
         for (int i = 0; i < keys.size(); i++) {
             String key1 = keys.get(i);
@@ -373,7 +384,6 @@ public class Solver
                 List<Integer> values2 = new ArrayList<>(candidates.get(key2));
                 if (new HashSet<>(values1).equals(new HashSet<>(values2))) {
                     if (values2.size() == 2 && values1.size() == 2) {
-                        //system.out.println("Confirmed naked pair: " + values1 + " in cells " + key1 + " + " + key2 + ".");
                         String[] keyPart = key1.split(",");
                         int rowOfKey1 = Integer.parseInt(keyPart[0]);
                         int columnOfKey1 = Integer.parseInt(keyPart[1]);
@@ -405,9 +415,10 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private void deleteNPCFromOtherCells(String key, String key2, List<Integer> values, int code) {
-        // Abinav
-
         String[] keyPart = key.split(",");
         int rowOfKey1 = Integer.parseInt(keyPart[0]);
         int columnOfKey1 = Integer.parseInt(keyPart[1]);
@@ -440,10 +451,10 @@ public class Solver
     }
 
 
+    /**
+     * @author Abinav
+     */
     public void hiddenPairs(){
-
-        // Abinav
-
         // hidden quads in rows
         hiddenPairsCRcombo(true);
         nakedSingles();
@@ -457,9 +468,10 @@ public class Solver
         nakedSingles();
     }
 
+    /**
+     * @author Abinav
+     */
     private void hiddenPairsForSubBoards(){
-        // Abinav
-
         List<String> pairs;
         for(int boardNo = 1; boardNo < boardSize; boardNo++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
@@ -469,7 +481,6 @@ public class Solver
                     String key = row + "," + col;
                     List<Integer> cellPossibleValues = possibleNumbers.get(key);
                     boolean verifySubBoardNo = board.findSubBoardNumber(row,col) == boardNo;
-                    //system.out.println();
                     if(!verifySubBoardNo) continue;
                     if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
                         possibleValues.add(cellPossibleValues);
@@ -477,7 +488,6 @@ public class Solver
                     }
                 }
             }
-
             if(cellKeys.size() >= 2) {
                 for (int i = 0; i < possibleValues.size(); i++) {
                     for (int j = i + 1; j < possibleValues.size(); j++) {
@@ -486,7 +496,6 @@ public class Solver
                         unionOfValues.addAll(possibleValues.get(j));
                         pairs.add(cellKeys.get(i));
                         pairs.add(cellKeys.get(j));
-                        //system.out.println();
                         Set<Integer> combos = findHiddenPairs(unionOfValues, cellKeys, pairs);
                         boolean pairsVerified = verifyPairs(pairs, combos);
                         if ( pairsVerified) {
@@ -504,9 +513,10 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private void hiddenPairsCRcombo(boolean processRows) {
-        // Abinav
-
         List<String> pairs;
 
         for (int intial = 0; intial < boardSize; intial++) {
@@ -530,19 +540,15 @@ public class Solver
                         unionOfValues.addAll(possibleValues.get(j));
                         pairs.add(cellKeys.get(i));
                         pairs.add(cellKeys.get(j));
-                        //system.out.println();
                         Set<Integer> combos = findHiddenPairs(unionOfValues, cellKeys, pairs);
                         boolean pairsVerified = verifyPairs(pairs, combos);
-                        //system.out.println();
                         if ( pairsVerified) {
-                            //system.out.println();
                             for (String position : pairs) {
                                 String[] pos = position.split(",");
                                 List<Integer> valuesDuplicate = possibleNumbers.get(position);
                                 possibleNumbers.get(position).retainAll(combos);
                                 valuesDuplicate.removeAll(combos);
                                 updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
-                                //system.out.println();
                             }
                         }
                     }
@@ -551,9 +557,10 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private boolean verifyPairs(List<String> pairs, Set<Integer> combos) {
-        // Abinav
-
         if(!combos.isEmpty()) {
             int count = 0;
             boolean containsBothNumbers = true;
@@ -579,9 +586,10 @@ public class Solver
         return false;
     }
 
+    /**
+     * @author Abinav
+     */
     private Set<Integer> findHiddenPairs(Set<Integer> unionOfValues, List<String> cellKeys, List<String> pairs) {
-        // Abinav
-
         List<Integer> valuesList = new ArrayList<>(unionOfValues);
         if(unionOfValues.size() >= 2) {
             for (int i = 0; i < valuesList.size(); i++) {
@@ -590,7 +598,6 @@ public class Solver
                     Set<Integer> combinations = new HashSet<>();
                     combinations.add(valuesList.get(i));
                     combinations.add(valuesList.get(j));
-                    //system.out.println();
                     if (combinations.size() == 2) {
                         boolean isValidCombination = true;
                         // Check each cell outside the quads to ensure the combination doesn't appear
@@ -610,7 +617,6 @@ public class Solver
                         }
 
                         if (isValidCombination) {
-                            //system.out.println();
                             return combinations; // Found a valid combination
                         }
                     }
@@ -622,9 +628,10 @@ public class Solver
     }
 
 
+    /**
+     * @author Abinav
+     */
     public void nakedQuads(){
-        // Abinav
-
         // finds naked quads in rows
         nakedQuadsCRcombo(true);
         nakedSingles();
@@ -637,10 +644,10 @@ public class Solver
     }
 
 
+    /**
+     * @author Abinav
+     */
     private void nakedQuadsCRcombo(boolean processRows) {
-        // Abinav
-
-
         List<String> quads;
 
         for (int intial = 0; intial < boardSize; intial++) {
@@ -671,7 +678,6 @@ public class Solver
                             quads.add(cellKeys.get(k));
                             quads.add(cellKeys.get(l));
                             if (unionOfValues.size() == 4 && possibleValues.size() == 4) {
-                                //system.out.println();
                                 List<Integer> quadValues = new ArrayList<>(unionOfValues);
                                 // Remove these numbers from other cells' possible values in the same row
                                 for (int other = 0; other < boardSize; other++) {
@@ -694,7 +700,9 @@ public class Solver
         }
     }
 
-
+    /**
+     * @author Abinav
+     */
     private void nakedQuadForSubBoards(){
         // Abinav
         for (int i =0; i < boardSize; i++){
@@ -749,9 +757,10 @@ public class Solver
     }
 
 
+    /**
+     * @author Abinav
+     */
     public void hiddenQuads(){
-        // Abinav
-
         // hidden quads in rows
         hiddenQuadsCRcombo(true);
         nakedSingles();
@@ -765,9 +774,10 @@ public class Solver
         nakedSingles();
     }
 
+    /**
+     * @author Abinav
+     */
     private void hiddenQuadForSubBoards(){
-        // Abinav
-
         List<String> quads;
         for(int boardNo = 1; boardNo < boardSize; boardNo++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
@@ -822,9 +832,11 @@ public class Solver
         }
     }
 
-    private void hiddenQuadsCRcombo(boolean processRows) {
-        // Abinav
 
+    /**
+     * @author Abinav
+     */
+    private void hiddenQuadsCRcombo(boolean processRows) {
         List<String> quads;
 
         for (int intial = 0; intial < boardSize; intial++) {
@@ -875,8 +887,10 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private boolean verifyQuads(List<String> quads, Set<Integer> combos) {
-        // Abinav
         if(!combos.isEmpty()) {
             int count = 0;
             for (String position : quads) {
@@ -896,8 +910,10 @@ public class Solver
 
     }
 
+    /**
+     * @author Abinav
+     */
     private Set<Integer> findHiddenQuads(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
-        // Abinav
         List<Integer> valuesList = new ArrayList<>(unionOfValues);
         if(unionOfValues.size() >= 4) {
             for (int i = 0; i < valuesList.size(); i++) {
@@ -943,9 +959,10 @@ public class Solver
         return new HashSet<>();
     }
 
+    /**
+     * @author Abinav
+     */
     public void swordFish(){
-        // Abinav
-
         // swordfish technique on rows where each cell contains only 2 cells
         findSwordFishCandidates(true,2);
 
@@ -960,9 +977,11 @@ public class Solver
 
     }
 
-    private void findSwordFishCandidates(boolean processingRows, int pairOrTriple) {
-        // Abinav
 
+    /**
+     * @author Abinav
+     */
+    private void findSwordFishCandidates(boolean processingRows, int pairOrTriple) {
         int valuePossibleCount;
         List<int[]> rowColumnPositions;
         List<List<int[]>> processForSF;
@@ -1007,9 +1026,10 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private void handleSFCandidates( int pairOrTriple,int substituteA,int number,boolean processingRows, List<List<int[]>> processForSF) {
-        // Abinav
-
         // System.out.println("Handling SwordFish candidates for number: " + number + ", processingRows: " + processingRows);
         if (processForSF.size() >= 3) // enough candidates found
         {
@@ -1078,6 +1098,9 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private void eliminateNonSFC(boolean validSF, boolean processingRows, int number,int j, int k, int n,int substituteA, List<List<int[]>> processForSF,Set<Integer> uniqueCOR,List<String> candidates){
         if (validSF) {
             //  System.out.println("passed swordfish criteria");
@@ -1114,8 +1137,10 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private boolean checkOccurenceOfEachElement(List<Integer> list, Set<Integer> set){
-        // Abinav
         boolean validSFC = true;
 
         Map<Integer, Integer> frequency = new HashMap<>();
@@ -1139,17 +1164,19 @@ public class Solver
         return validSFC;
     }
 
+
+    /**
+     * @author Abinav
+     */
     public void simpleColouring(){
-
-        // Abinav
-
         findSimpleColouringCandidates();
         nakedSingles();
     }
 
+    /**
+     * @author Abinav
+     */
     private void findSimpleColouringCandidates() {
-        // Abinav
-
         int blue = 0;
         int green = 1;
         List<String> cellsContainingCandidate;
@@ -1268,9 +1295,10 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private void findAndColorRelatedKeys(int number, String key, List<String> cellsContainingCandidate, Map<String, Integer> scCandidates, int color){
-        // Abinav
-
         int blue = 0;
         int green = 1;
         List<String> relatedKeys = getRelatedKeys(number,key, cellsContainingCandidate,scCandidates);
@@ -1284,9 +1312,11 @@ public class Solver
         }
     }
 
-    private boolean verifyLink(Map<String, Integer> scCandidates){
-        // Abinav
 
+    /**
+     * @author Abinav
+     */
+    private boolean verifyLink(Map<String, Integer> scCandidates){
         Iterator<String> iterator = scCandidates.keySet().iterator();
         boolean linkValid = true;
         String key = iterator.next();
@@ -1319,10 +1349,10 @@ public class Solver
     }
 
 
-
+    /**
+     * @author Abinav
+     */
     private List<String> getRelatedKeys (int number, String key,List<String> cellsContainingCandidate,Map<String, Integer> scCandidates){
-
-        // Abinav
         List<String> relatedKeys = new ArrayList<>();
         String[] parts = key.split(",");
         int keyrow = Integer.parseInt(parts[0]);
@@ -1355,9 +1385,10 @@ public class Solver
 
     }
 
+    /**
+     * @author Abinav
+     */
     private boolean handleTwoColorsSameHouse(Map<String, Integer> scCandidates, int number,List<String> cellsContainingCandidate) {
-
-        // Abinav
         List<String> blueColoredCells = new ArrayList<>();
         List<String> greenColoredCells = new ArrayList<>();
         List<String> keysToRemove = new ArrayList<>();
