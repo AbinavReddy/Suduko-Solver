@@ -2038,75 +2038,54 @@ public class Solver
         }
 
         if (blueCellsSameHouse && !greenCellsSameHouse) {
-            // System.out.println("blue cells belong to same house");
-            // System.out.println();
             for (String cell1 : greenColoredCells) {
                 if(!cellsContainingCandidate.contains(cell1)) continue;
                 String[] coord1 = cell1.split(",");
                 int row = Integer.parseInt(coord1[0]);
                 int column = Integer.parseInt(coord1[1]);
-                System.out.println();
-                board.placeValueInCell(row, column,number);
-                updatePossibleCounts(number,possibleNumbers.get(cell1), row, column,false);
+                List<Integer> valuesDuplicate = possibleNumbers.get(cell1);
+                possibleNumbers.get(cell1).retainAll(numberList);
+                valuesDuplicate.removeAll(numberList);
+                updatePossibleCounts(5,valuesDuplicate,row,column,false);
                 cellsContainingCandidate.remove(cell1);
-                removeNumberFromOtherCandidate(cell1,numberList,cellsContainingCandidate);
-                keysToRemove.add(cell1);
-                //removeKeysHavingEmptyList();
-                // System.out.println();
             }
 
             for (String cell2 : blueColoredCells) {
                 if(!cellsContainingCandidate.contains(cell2)) continue;
                 String[] coord2 = cell2.split(",");
-                // System.out.println();
                 int row = Integer.parseInt(coord2[0]);
                 int column = Integer.parseInt(coord2[1]);
                 possibleNumbers.get(cell2).remove(Integer.valueOf(number));
                 cellsContainingCandidate.remove(cell2);
                 updatePossibleCounts(number,null,row,column,false);
-
-                // System.out.println();
             }
         }
 
         else if (greenCellsSameHouse && !blueCellsSameHouse) {
-            //System.out.println("green cells belong to same house");
             for (String cell3 : blueColoredCells) {
                 if(!cellsContainingCandidate.contains(cell3)) continue;
                 String[] coord3 = cell3.split(",");
-                // System.out.println();
                 int row = Integer.parseInt(coord3[0]);
                 int column = Integer.parseInt(coord3[1]);
-                board.placeValueInCell(row, column,number);
+                List<Integer> valuesDuplicate = possibleNumbers.get(cell3);
+                possibleNumbers.get(cell3).retainAll(numberList);
+                valuesDuplicate.removeAll(numberList);
+                updatePossibleCounts(5,valuesDuplicate,row,column,false);
                 cellsContainingCandidate.remove(cell3);
-                updatePossibleCounts(number,possibleNumbers.get(cell3), row, column,false);
-                removeNumberFromOtherCandidate(cell3,numberList,cellsContainingCandidate);
-                keysToRemove.add(cell3);
-                //removeKeysHavingEmptyList();
-                // System.out.println();
             }
 
             for (String cell4 : greenColoredCells) {
                 if(!cellsContainingCandidate.contains(cell4)) continue;
                 String[] coord4 = cell4.split(",");
-                // System.out.println();
                 int row = Integer.parseInt(coord4[0]);
                 int column = Integer.parseInt(coord4[1]);
                 possibleNumbers.get(cell4).remove(Integer.valueOf(number));
                 cellsContainingCandidate.remove(cell4);
                 updatePossibleCounts(number,null,row,column,false);
-                // System.out.println();
-            }
-        }
-
-        if(!keysToRemove.isEmpty()) {
-            for (String key : keysToRemove) {
-                possibleNumbers.remove(key);
             }
         }
 
         boolean bool = greenCellsSameHouse || blueCellsSameHouse;
-        // System.out.println();
         return bool;
     }
 
