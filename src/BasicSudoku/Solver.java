@@ -147,8 +147,15 @@ public class Solver
             while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
 
             // solving strategies go here (nakedSingles after each)
+
+            nakedPairs();
+            hiddenPairs();
+            nakedQuads();
+            hiddenQuads();
             intersectionRemoval();
             nakedSingles();
+            simpleColouring();
+            swordFish();
 
             if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking
             {
