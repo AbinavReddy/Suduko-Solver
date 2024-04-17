@@ -15,9 +15,11 @@ public class Solver
     private int[][] valuePossibleCountColumns; // [value][column]
     private int[][] valuePossibleCountSubBoards; // [value][sub-board]
 
+    /**
+     * @author Danny
+     */
     public Solver(Board board)
     {
-        // Danny
         this.board = board;
         boardSize = board.getBoardSize();
         boardLengthWidth = board.getBoardLengthWidth();
@@ -28,9 +30,11 @@ public class Solver
         valuePossibleCountSubBoards = new int[boardSize + 1][boardSize];
     }
 
+    /**
+     * @author Danny & Abinav
+     */
     public Solver(Solver solverToCopy)
     {
-        // Danny & Abinav
         board = solverToCopy.board;
         solvedBoard = solverToCopy.solvedBoard;
         boardSize = solverToCopy.boardSize;
@@ -52,8 +56,10 @@ public class Solver
         }
     }
 
+    /**
+     * @author Abinav, Yahya & Danny
+     */
     public boolean possibleValuesInCells() {
-        // Abinav, Yahya & Danny
         for (int rows = 0; rows < boardSize; rows++) {
             for (int columns = 0; columns < boardSize; columns++) {
                 if (board.getBoard()[rows][columns] == 0) {
@@ -80,8 +86,10 @@ public class Solver
         return true;
     }
 
+    /**
+     * @author Abinav & Yahya
+     */
     public void printPossibilities() {
-        // Abinav & Yahya
         for (int rows = 0; rows < boardSize; rows++) {
             for (int columns = 0; columns < boardSize; columns++) {
                 String currentPosition = rows + "," + columns;
@@ -93,9 +101,11 @@ public class Solver
         }
     }
 
+    /**
+     * @author Danny
+     */
     public void updatePossibleCounts(int value, List<Integer> valueList, int row, int column, boolean increase)
     {
-        // Danny
         if(increase)
         {
             possibleNumbersCount++;
@@ -122,18 +132,22 @@ public class Solver
         }
     }
 
+    /**
+     * @author Danny, Yahya & Abinav
+     */
     public boolean isBoardSolvable()
     {
-        // Danny, Yahya & Abinav
         solvedBoard = new Board(board);
         solvedBoard.getSolver().board = solvedBoard;
 
         return solvedBoard.getSolver().solveWithBacktracking();  // has to be with backtracking to avoid singular strategy boards
     }
 
+    /**
+     * @author Danny, Abinav & Yahya
+     */
     public boolean solveWithStrategies()
     {
-        // Danny, Abinav & Yahya
         while(!board.isGameFinished())
         {
             int possibleCountBefore;
@@ -169,9 +183,11 @@ public class Solver
         return true;
     }
 
+    /**
+     * @author Abinav, Danny, Yahya
+     */
     public boolean solveWithBacktracking()
     {
-        // Danny, Abinav & Yahya
         for(int row = 0; row < boardSize; row++)
         {
             for(int column = 0; column < boardSize; column++)
@@ -203,10 +219,10 @@ public class Solver
         return true;
     }
 
-
+    /**
+     * @author Abinav & Yahya
+     */
     public void nakedSingles() {
-        // Abinav & Yahya
-
         List<String> keysToRemove = new ArrayList<>();
 
         for (String key : possibleNumbers.keySet()) {
@@ -372,7 +388,6 @@ public class Solver
         processedKeys.clear();
     }
 
-
     /**
      * @author Abinav
      */
@@ -454,10 +469,6 @@ public class Solver
         }
     }
 
-
-
-
-
     /**
      * @author Yahya
      */
@@ -476,6 +487,9 @@ public class Solver
         nakedSingles();
     }
 
+    /**
+     * @author Yahya
+     */
     private void hiddenSinglesForRowAndCol(boolean proccingrows) {
 
         for (int index = 0; index < boardSize; index++) {
@@ -513,6 +527,9 @@ public class Solver
 
     }
 
+    /**
+     * @author Yahya
+     */
     private void hiddenSinglesForSubBoard() {
 
         for (int index = 0; index < boardSize; index++) {
@@ -567,6 +584,9 @@ public class Solver
         nakedSingles();
     }
 
+    /**
+     * @author Yahya
+     */
     private void hiddenTriplesForSubBoards(){
         List<String> quads;
         for(int boardNo = 1; boardNo < boardSize; boardNo++) {
@@ -612,6 +632,9 @@ public class Solver
         }
     }
 
+    /**
+     * @author Yahya
+     */
     private void hiddenTriplesCRcombo(boolean processRows) {
 
 
@@ -657,6 +680,9 @@ public class Solver
         }
     }
 
+    /**
+     * @author Yahya
+     */
     private boolean verifyTriples(List<String> quads, Set<Integer> combos) {
 
         if(!combos.isEmpty()) {
@@ -671,8 +697,9 @@ public class Solver
         return false;
     }
 
-
-
+    /**
+     * @author Yahya
+     */
     private Set<Integer> findHiddenTriples(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
 
         List<Integer> valuesList = new ArrayList<>(unionOfValues);
@@ -719,7 +746,6 @@ public class Solver
     /**
      * @author Yahya
      */
-
     public void nakedTriples() {
         nakedTriplesForRows();
         nakedSingles();
@@ -729,6 +755,9 @@ public class Solver
         nakedSingles();
     }
 
+    /**
+     * @author Yahya
+     */
     private void nakedTriplesForRows() {
         // Loop through all groups - starting with rows
         List<String> triples;
@@ -776,6 +805,9 @@ public class Solver
         }
     }
 
+    /**
+     * @author Yahya
+     */
     private void nakedTriplesForColumns() {
         // Loop through all groups - starting with rows
         List<String> triples;
@@ -823,6 +855,10 @@ public class Solver
             }
         }
     }
+
+    /**
+     * @author Yahya
+     */
     private void nakedTriplesForSubBoards(){
 
         for (int i =0; i < boardSize; i++)
@@ -895,7 +931,9 @@ public class Solver
         }
     }
 
-
+    /**
+     * @author Yahya
+     */
     public void bug() {
         applybug();
         nakedSingles();
@@ -914,6 +952,9 @@ public class Solver
         return false;
     }
 
+    /**
+     * @author Yahya
+     */
     private HashMap<String, List<Integer>> findBivalueCells() {
         HashMap<String, List<Integer>> bivalueCells = new HashMap<>();
         for (String key : possibleNumbers.keySet()) {
@@ -932,6 +973,9 @@ public class Solver
         return bivalueCells;
     }
 
+    /**
+     * @author Yahya
+     */
     private String findTrivalueCell() {
         for (String key : possibleNumbers.keySet()) {
             List<Integer> values = possibleNumbers.get(key);
@@ -942,8 +986,9 @@ public class Solver
         return "";
     }
 
-
-
+    /**
+     * @author Yahya
+     */
     private boolean checkAndResolveBug(String trivalueCellKey) {
         List<Integer> values = possibleNumbers.get(trivalueCellKey);
         String[] parts = trivalueCellKey.split(",");
@@ -981,7 +1026,9 @@ public class Solver
         return false;
     }
 
-
+    /**
+     * @author Yahya
+     */
     private void updateCounts(List<String> keys, int[] counts) {
         for (String key : keys) {
             List<Integer> possibleValues = possibleNumbers.get(key);
@@ -993,6 +1040,9 @@ public class Solver
         }
     }
 
+    /**
+     * @author Yahya
+     */
     private List<String> getRowKeys(int row) {
         List<String> keys = new ArrayList<>();
         for (int col = 0; col < board.getBoardSize(); col++) {
@@ -1001,6 +1051,9 @@ public class Solver
         return keys;
     }
 
+    /**
+     * @author Yahya
+     */
     private List<String> getColumnKeys(int column) {
         List<String> keys = new ArrayList<>();
         for (int row = 0; row < board.getBoardSize(); row++) {
@@ -1009,6 +1062,9 @@ public class Solver
         return keys;
     }
 
+    /**
+     * @author Yahya
+     */
     public List<String> getCellsInSubBoard(int subBoardIndex) {
         List<String> cellKeys = new ArrayList<>();
         int subBoardSize = board.getBoardLengthWidth();  // Assuming square sub-boards in a square grid
@@ -1277,7 +1333,6 @@ public class Solver
      * @author Abinav
      */
     private void nakedQuadForSubBoards(){
-        // Abinav
         for (int i =0; i < boardSize; i++){
             for(int j=1; j<= boardSize; j++){
                 List<String> quads = new ArrayList<>();

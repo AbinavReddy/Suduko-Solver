@@ -13,9 +13,11 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 
 public class Main extends Application {
-    public void start(Stage primaryStage) {
 
-        // abinav
+    /**
+     * @author Abinav
+     */
+    public void start(Stage primaryStage) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("SudokuBoard.fxml")); // Load FXML
             Parent root = loader.load(); // Set FXML as root
@@ -36,12 +38,12 @@ public class Main extends Application {
 
     }
 
-
+    /**
+     * @author Abinav
+     */
     public static void main(String[] args) {
         launch(args);
     }
-
-
 
 }
 

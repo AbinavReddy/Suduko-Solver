@@ -19,14 +19,19 @@ public class SudokuApp
     private TextField textField;
     private Stage primaryStage;
 
+    /**
+     * @author Abinav
+     */
     public void setPrimaryStage(Stage primaryStage){
         this.primaryStage = primaryStage;
     }
 
 
+    /**
+     * @author Abinav
+     */
     @FXML
 private void setBoard(ActionEvent event){
-        // abinav
         String text = textField.getText();
         System.out.println(text);
         if(Integer.parseInt(text) > 0){
@@ -35,8 +40,10 @@ private void setBoard(ActionEvent event){
         }
     }
 
+    /**
+     * @author Abinav
+     */
     private void changeScene(Stage stage){
-        // abinav
         GridPane gp = new GridPane();
 
         for (int row = 0; row < board.getBoardSize(); row++) {
