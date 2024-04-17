@@ -128,6 +128,8 @@ public class Solver
         solvedBoard = new Board(board);
         solvedBoard.getSolver().board = solvedBoard;
 
+        //return solvedBoard.getSolver().solveWithStrategies();
+
         return solvedBoard.getSolver().solveWithBacktracking();  // has to be with backtracking to avoid singular strategy boards
     }
 
@@ -1637,10 +1639,10 @@ public class Solver
      */
     public void wingStrategies()
     {
-        xWing(true);
-        nakedSingles();
-        xWing(false);
-        nakedSingles();
+        //xWing(true);
+        //nakedSingles();
+        //xWing(false);
+        //nakedSingles();
         yWingWithXYZExtension(false);
         nakedSingles();
         yWingWithXYZExtension(true);

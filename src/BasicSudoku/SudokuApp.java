@@ -33,7 +33,7 @@ private void setBoard(ActionEvent event){
         String text = textField.getText();
         System.out.println(text);
         if(Integer.parseInt(text) > 0){
-            board = new Board(Integer.parseInt(text), 30, false);
+            board = new Board(Integer.parseInt(text), false);
             changeScene(primaryStage);
         }
     }
@@ -45,7 +45,7 @@ private void setBoard(ActionEvent event){
         for (int row = 0; row < board.getBoardSize(); row++) {
             for (int col = 0; col < board.getBoardSize() ; col++) {
                 TextField cells = new TextField();
-                cells.setPrefSize(30,30);
+                cells.setPrefSize(32,20); // width = height * 1.6
                cells.setStyle(
                         "-fx-font-size: 16px; " +
                                 "-fx-font-family: 'Arial'; " +
@@ -66,7 +66,7 @@ private void setBoard(ActionEvent event){
                 gp.add(cells,col,row);
             }
         }
-        Scene newScene = new Scene(gp,1300,1200);
+        Scene newScene = new Scene(gp,1200,1200);
         stage.setScene(newScene);
         stage.show();
     }

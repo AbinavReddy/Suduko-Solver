@@ -13,13 +13,14 @@ public class Board
     private Solver solver;
     private boolean isSolvable;
 
-    public Board(int boardLengthWidth, int initialClues, boolean emptySubBoardsAllowed)
+    public Board(int boardLengthWidth, boolean emptySubBoardsAllowed)
     {
         // Danny & Abinav
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
+        /*
         // temp
         board = new int[boardSize][boardSize];
         filledCells = 0;
@@ -29,18 +30,17 @@ public class Board
         initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
 
         solver.possibleValuesInCells();
+        */
 
-        /*
         Random chooseSolvable = new Random();
-        isSolvable = 0 < chooseSolvable.nextInt(0, 5); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
+        isSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(0, 5)); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
 
         do
         {
-            initializeBoard(initialClues, emptySubBoardsAllowed);
+            initializeBoard(boardLengthWidth * 10, emptySubBoardsAllowed);
             solver = new Solver(this);
         }
-        while((solver.isBoardSolvable() || !solver.possibleValuesInCells()) && !isSolvable || !solver.isBoardSolvable() && isSolvable);
-        */
+        while((boardLengthWidth == 3 && (isSolvable && !solver.isBoardSolvable() || !isSolvable && solver.isBoardSolvable())) || !solver.possibleValuesInCells());
     }
 
     public Board(Board boardToCopy)

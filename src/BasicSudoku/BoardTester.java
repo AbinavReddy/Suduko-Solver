@@ -4,13 +4,14 @@ public class BoardTester
 {
     public static void main(String[] args)
     {
-        Board testBoard = new Board(3, 30, false);
+        Board testBoard = new Board(3, false);
         Solver testSolver = testBoard.getSolver();
 
+        System.out.println(testBoard.getIsSolvable());
         printBoard(testBoard);
         testSolver.printPossibilities();
         testSolver.solveWithStrategies();
-        printBoard(testBoard);
+        printBoard(testSolver.solvedBoard);
         testSolver.printPossibilities();
     }
 
