@@ -140,7 +140,9 @@ public class Solver
         solvedBoard = new Board(board);
         solvedBoard.getSolver().board = solvedBoard;
 
-        return solvedBoard.getSolver().solveWithBacktracking();  // has to be with backtracking to avoid singular strategy boards
+        solvedBoard.getSolver().possibleValuesInCells();
+
+        return solvedBoard.getSolver().solveWithBacktracking(solvedBoard.getSolver().sortKeysForBacktracking()); // has to be with backtracking to avoid singular strategy boards
     }
 
     /**
@@ -176,7 +178,7 @@ public class Solver
 
             if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking (last resort)
             {
-                return solveWithBacktracking();
+                return solveWithBacktracking(sortKeysForBacktracking());
             }
         }
 
@@ -184,35 +186,67 @@ public class Solver
     }
 
     /**
-     * @author Abinav, Danny, Yahya
+     * @author Danny
      */
-    public boolean solveWithBacktracking()
+    private List<String> sortKeysForBacktracking()
     {
-        for(int row = 0; row < boardSize; row++)
-        {
-            for(int column = 0; column < boardSize; column++)
-            {
-                if(board.getBoard()[row][column] == 0)
-                {
-                    for(int valueToTry = 1; valueToTry <= boardSize; valueToTry++)
-                    {
-                        if(board.checkPlacementRow(row, valueToTry) && board.checkPlacementColumn(column, valueToTry) && board.checkPlacementSubBoard(row, column, valueToTry))
-                        {
-                            board.setBoardValue(row, column, valueToTry);
+        // Create a list of keys sorted by the size of their value-lists
+        List<List<Integer>> possibleValuesSorted = new ArrayList<>(possibleNumbers.values()); // needed because we can't sort keys by themselves
+        possibleValuesSorted = possibleValuesSorted.stream().sorted(Comparator.comparingInt(List::size)).toList(); // sorted by size (incrementally)
 
-                            if(solveWithBacktracking())
-                            {
-                                return true;
-                            }
-                            else
-                            {
-                                board.setBoardValue(row, column, 0);
-                            }
+        List<String> possibleKeysSorted = new ArrayList<>();
+
+        for(List<Integer> possibleValues : possibleValuesSorted)
+        {
+            for(String possibleKey : possibleNumbers.keySet())
+            {
+                if(possibleNumbers.get(possibleKey) == possibleValues) // has to be == because we are looking for the same objects, not contents
+                {
+                    possibleKeysSorted.add(possibleKey);
+                }
+            }
+        }
+
+        return possibleKeysSorted;
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public boolean solveWithBacktracking(List<String> possibleKeysSorted)
+    {
+        if(possibleKeysSorted.isEmpty())
+        {
+            // base case
+            return true;
+        }
+        else
+        {
+            // recursive case
+            for(String key : possibleKeysSorted)
+            {
+                String[] parts = key.split(",");
+
+                for(Integer value : possibleNumbers.get(key))
+                {
+                    if(board.checkPlacementRow(Integer.parseInt(parts[0]), value) && board.checkPlacementColumn(Integer.parseInt(parts[1]), value) && board.checkPlacementSubBoard(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), value))
+                    {
+                        board.setBoardValue(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), value);
+                        possibleKeysSorted.remove(key);
+
+                        if(solveWithBacktracking(possibleKeysSorted))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            board.setBoardValue(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), 0);
+                            possibleKeysSorted.add(key);
                         }
                     }
-
-                    return false;
                 }
+
+                return false;
             }
         }
 

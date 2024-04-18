@@ -35,7 +35,7 @@ public class Board
         */
 
         Random chooseSolvable = new Random();
-        isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(0, 5)); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
+        isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
 
         do
         {

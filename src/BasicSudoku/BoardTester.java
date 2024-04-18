@@ -5,12 +5,12 @@ public class BoardTester
     public static void main(String[] args)
     {
         Board testBoard = new Board(3, false);
-        Solver testSolver = testBoard.getSolver();
+        Solver testSolver = testBoard.getSolver().solvedBoard.getSolver();
 
         printBoard(testBoard);
         testSolver.printPossibilities();
         testSolver.solveWithStrategies();
-        printBoard(testSolver.solvedBoard);
+        printBoard(testSolver.board);
         testSolver.printPossibilities();
     }
 
