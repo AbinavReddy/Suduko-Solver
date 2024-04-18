@@ -5,7 +5,6 @@ import java.util.*;
 public class Solver
 {
     Board board;
-    Board solvedBoard;
     final int boardSize;
     final int boardLengthWidth;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
@@ -28,32 +27,6 @@ public class Solver
         valuePossibleCountRows = new int[boardSize + 1][boardSize];
         valuePossibleCountColumns = new int[boardSize + 1][boardSize];
         valuePossibleCountSubBoards = new int[boardSize + 1][boardSize];
-    }
-
-    /**
-     * @author Danny & Abinav
-     */
-    public Solver(Solver solverToCopy)
-    {
-        board = solverToCopy.board;
-        solvedBoard = solverToCopy.solvedBoard;
-        boardSize = solverToCopy.boardSize;
-        boardLengthWidth = solverToCopy.boardLengthWidth;
-        possibleNumbers = new HashMap<>(solverToCopy.possibleNumbers);
-        possibleNumbersCount = solverToCopy.possibleNumbersCount;
-        valuePossibleCountRows = new int[boardSize + 1][boardSize];
-        valuePossibleCountColumns = new int[boardSize + 1][boardSize];;
-        valuePossibleCountSubBoards = new int[boardSize + 1][boardSize];;
-
-        for(int value = 1; value < boardSize; value++)
-        {
-            for(int rowColumnSubBoard = 0; rowColumnSubBoard < boardSize; rowColumnSubBoard++)
-            {
-                valuePossibleCountRows[value][rowColumnSubBoard] = solverToCopy.valuePossibleCountRows[value][rowColumnSubBoard];
-                valuePossibleCountColumns[value][rowColumnSubBoard] = solverToCopy.valuePossibleCountColumns[value][rowColumnSubBoard];
-                valuePossibleCountSubBoards[value][rowColumnSubBoard] = solverToCopy.valuePossibleCountSubBoards[value][rowColumnSubBoard];
-            }
-        }
     }
 
     /**
@@ -137,12 +110,9 @@ public class Solver
      */
     public boolean isBoardSolvable()
     {
-        solvedBoard = new Board(board);
-        solvedBoard.getSolver().board = solvedBoard;
+        possibleValuesInCells();
 
-        solvedBoard.getSolver().possibleValuesInCells();
-
-        return solvedBoard.getSolver().solveWithBacktracking(solvedBoard.getSolver().sortKeysForBacktracking()); // has to be with backtracking to avoid singular strategy boards
+        return solveWithBacktracking(sortKeysForBacktracking()); // has to be with backtracking to avoid singular strategy boards
     }
 
     /**

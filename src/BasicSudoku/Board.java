@@ -9,9 +9,9 @@ public class Board
     private final int boardSize;
     private final int availableCells;
     private int filledCells;
-    private String errorMessage;
-    private Solver solver;
     private boolean isBoardSolvable;
+    private Solver solver;
+    private String errorMessage;
 
     /**
      * @author Danny, Abinav & Yahya
@@ -40,7 +40,9 @@ public class Board
         do
         {
             initializeBoard(boardLengthWidth * 10, emptySubBoardsAllowed);
-            solver = new Solver(this);
+
+            Board boardForSolving = new Board(this);
+            solver = new Solver(boardForSolving);
         }
         while((boardLengthWidth == 3 && (isBoardSolvable && !solver.isBoardSolvable() || !isBoardSolvable && solver.isBoardSolvable())) || !solver.possibleValuesInCells());
     }
@@ -61,9 +63,9 @@ public class Board
         boardSize = boardToCopy.boardSize;
         availableCells = boardToCopy.availableCells;
         filledCells = boardToCopy.filledCells;
-        errorMessage = boardToCopy.errorMessage;
-        solver = new Solver(boardToCopy.solver);
         isBoardSolvable = boardToCopy.isBoardSolvable;
+        solver = null; // the solving board doesn't need a solver field
+        errorMessage = boardToCopy.errorMessage;
     }
 
     /**
@@ -244,6 +246,23 @@ public class Board
     }
 
     /**
+     * @author Danny
+     */
+    public void setBoardValue(int row, int column, int value)
+    {
+        if(value != 0)
+        {
+            filledCells++;
+        }
+        else
+        {
+            filledCells--;
+        }
+
+        board[row][column] = value;
+    }
+
+    /**
      * @author Yahya
      */
     public boolean isGameFinished()
@@ -264,23 +283,6 @@ public class Board
         }
 
         return true;
-    }
-
-    /**
-     * @author Danny
-     */
-    public void setBoardValue(int row, int column, int value)
-    {
-        if(value != 0)
-        {
-            filledCells++;
-        }
-        else
-        {
-            filledCells--;
-        }
-
-        board[row][column] = value;
     }
 
     /**

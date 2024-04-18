@@ -5,13 +5,15 @@ public class BoardTester
     public static void main(String[] args)
     {
         Board testBoard = new Board(3, false);
-        Solver testSolver = testBoard.getSolver().solvedBoard.getSolver();
+        Solver testSolver = testBoard.getSolver();
 
         printBoard(testBoard);
         testSolver.printPossibilities();
-        testSolver.solveWithStrategies();
+        //testSolver.solveWithStrategies();
         printBoard(testSolver.board);
         testSolver.printPossibilities();
+
+        System.out.println();
     }
 
     public static void printBoard(Board boardToPrint)
