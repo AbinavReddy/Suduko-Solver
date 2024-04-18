@@ -487,6 +487,9 @@ public class Solver
         nakedSingles();
     }
 
+    /**
+     * @author Yahya
+     */
     private void hiddenSinglesForRowAndCol(boolean proccingrows) {
 
         for (int index = 0; index < boardSize; index++) {
@@ -524,6 +527,9 @@ public class Solver
 
     }
 
+    /**
+     * @author Yahya
+     */
     private void hiddenSinglesForSubBoard() {
 
         for (int index = 0; index < boardSize; index++) {
@@ -578,6 +584,9 @@ public class Solver
         nakedSingles();
     }
 
+    /**
+     * @author Yahya
+     */
     private void hiddenTriplesForSubBoards(){
         List<String> quads;
         for(int boardNo = 0; boardNo < boardSize; boardNo++) {
@@ -632,6 +641,9 @@ public class Solver
         }
     }
 
+    /**
+     * @author Yahya
+     */
     private void hiddenTriplesCRcombo(boolean processRows) {
 
 
@@ -686,6 +698,9 @@ public class Solver
         }
     }
 
+    /**
+     * @author Yahya
+     */
     private boolean verifyTriples(List<String> quads, Set<Integer> combos) {
 
         if(!combos.isEmpty()) {
@@ -700,8 +715,9 @@ public class Solver
         return false;
     }
 
-
-
+    /**
+     * @author Yahya
+     */
     private Set<Integer> findHiddenTriples(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
 
         List<Integer> valuesList = new ArrayList<>(unionOfValues);
@@ -748,7 +764,6 @@ public class Solver
     /**
      * @author Yahya
      */
-
     public void nakedTriples() {
         nakedTriplesForRows();
         nakedSingles();
@@ -758,6 +773,9 @@ public class Solver
         nakedSingles();
     }
 
+    /**
+     * @author Yahya
+     */
     private void nakedTriplesForRows() {
         // Loop through all groups - starting with rows
         List<String> triples;
@@ -811,6 +829,9 @@ public class Solver
         }
     }
 
+    /**
+     * @author Yahya
+     */
     private void nakedTriplesForColumns() {
         // Loop through all groups - starting with rows
         List<String> triples;
@@ -859,6 +880,10 @@ public class Solver
             }
         }
     }
+
+    /**
+     * @author Yahya
+     */
     private void nakedTriplesForSubBoards(){
 
         for (int i =0; i < boardSize; i++)
@@ -932,7 +957,9 @@ public class Solver
         }
     }
 
-
+    /**
+     * @author Yahya
+     */
     public void bug() {
         applybug();
         nakedSingles();
@@ -951,6 +978,9 @@ public class Solver
         return false;
     }
 
+    /**
+     * @author Yahya
+     */
     private HashMap<String, List<Integer>> findBivalueCells() {
         HashMap<String, List<Integer>> bivalueCells = new HashMap<>();
         for (String key : possibleNumbers.keySet()) {
@@ -969,6 +999,9 @@ public class Solver
         return bivalueCells;
     }
 
+    /**
+     * @author Yahya
+     */
     private String findTrivalueCell() {
         for (String key : possibleNumbers.keySet()) {
             List<Integer> values = possibleNumbers.get(key);
@@ -979,6 +1012,9 @@ public class Solver
         return "";
     }
 
+    /**
+     * @author Yahya
+     */
     private boolean checkAndResolveBug(String trivalueCellKey) {
         List<Integer> values = possibleNumbers.get(trivalueCellKey);
         String[] parts = trivalueCellKey.split(",");
@@ -1015,6 +1051,9 @@ public class Solver
         return false;
     }
 
+    /**
+     * @author Yahya
+     */
     private void updateCounts(List<String> keys, int[] counts) {
         for (String key : keys) {
             List<Integer> possibleValues = possibleNumbers.get(key);
@@ -1026,6 +1065,9 @@ public class Solver
         }
     }
 
+    /**
+     * @author Yahya
+     */
     private List<String> getRowKeys(int row) {
         List<String> keys = new ArrayList<>();
         for (int col = 0; col < board.getBoardSize(); col++) {
@@ -1034,6 +1076,9 @@ public class Solver
         return keys;
     }
 
+    /**
+     * @author Yahya
+     */
     private List<String> getColumnKeys(int column) {
         List<String> keys = new ArrayList<>();
         for (int row = 0; row < board.getBoardSize(); row++) {
@@ -1042,6 +1087,9 @@ public class Solver
         return keys;
     }
 
+    /**
+     * @author Yahya
+     */
     public List<String> getCellsInSubBoard(int subBoardIndex) {
         List<String> cellKeys = new ArrayList<>();
         int subBoardSize = board.getBoardLengthWidth();  // Assuming square sub-boards in a square grid
@@ -1055,7 +1103,6 @@ public class Solver
         }
         return cellKeys;
     }
-
 
     /**
      * @author Abinav
@@ -1233,7 +1280,6 @@ public class Solver
         return new HashSet<>();
     }
 
-
     /**
      * @author Abinav
      */
@@ -1248,7 +1294,6 @@ public class Solver
         nakedQuadForSubBoards();
         nakedSingles();
     }
-
 
     /**
      * @author Abinav
@@ -1360,7 +1405,6 @@ public class Solver
         }
     }
 
-
     /**
      * @author Abinav
      */
@@ -1431,7 +1475,6 @@ public class Solver
             }
         }
     }
-
 
     /**
      * @author Abinav
@@ -1573,9 +1616,7 @@ public class Solver
         // swordfish technique on columns
         findSwordFishCandidates(false,3);
         nakedSingles();
-
     }
-
 
     /**
      * @author Abinav
@@ -1754,7 +1795,6 @@ public class Solver
         return validSFC;
     }
 
-
     /**
      * @author Abinav
      */
@@ -1878,7 +1918,6 @@ public class Solver
         }
     }
 
-
     /**
      * @author Abinav
      */
@@ -1913,7 +1952,6 @@ public class Solver
         }
         return linkValid;
     }
-
 
     /**
      * @author Abinav
