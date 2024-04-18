@@ -11,7 +11,7 @@ public class Board
     private int filledCells;
     private String errorMessage;
     private Solver solver;
-    private boolean isSolvable;
+    private boolean isBoardSolvable;
 
     /**
      * @author Danny, Abinav & Yahya
@@ -35,14 +35,14 @@ public class Board
         */
 
         Random chooseSolvable = new Random();
-        isSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(0, 5)); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
+        isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(0, 5)); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
 
         do
         {
             initializeBoard(boardLengthWidth * 10, emptySubBoardsAllowed);
             solver = new Solver(this);
         }
-        while((boardLengthWidth == 3 && (isSolvable && !solver.isBoardSolvable() || !isSolvable && solver.isBoardSolvable())) || !solver.possibleValuesInCells());
+        while((boardLengthWidth == 3 && (isBoardSolvable && !solver.isBoardSolvable() || !isBoardSolvable && solver.isBoardSolvable())) || !solver.possibleValuesInCells());
     }
 
     /**
@@ -63,7 +63,7 @@ public class Board
         filledCells = boardToCopy.filledCells;
         errorMessage = boardToCopy.errorMessage;
         solver = new Solver(boardToCopy.solver);
-        isSolvable = boardToCopy.isSolvable;
+        isBoardSolvable = boardToCopy.isBoardSolvable;
     }
 
     /**
@@ -87,12 +87,12 @@ public class Board
             int endingRow;
             int endingColumn;
 
-            for(int i = 0; i < boardSize; i++) // sub-board
+            for(int subBoard = 0; subBoard < boardSize; subBoard++)
             {
-                while(filledInSubBoards[i] == 0) // make sure there is at least one filled cell in each sub-board
+                while(filledInSubBoards[subBoard] == 0) // make sure there is at least one filled cell in each sub-board
                 {
-                    startingRow = (i / boardLengthWidth) * boardLengthWidth;
-                    startingColumn = (i - startingRow) * boardLengthWidth;
+                    startingRow = (subBoard / boardLengthWidth) * boardLengthWidth;
+                    startingColumn = (subBoard - startingRow) * boardLengthWidth;
                     endingRow = startingRow + (boardLengthWidth - 1);
                     endingColumn = startingColumn + (boardLengthWidth - 1);
 
@@ -220,11 +220,11 @@ public class Board
         int startingRow = (subBoard / boardLengthWidth) * boardLengthWidth;
         int startingColumn = (subBoard - startingRow) * boardLengthWidth;
 
-        for(int i = 0; i < boardLengthWidth; i++) // added to rows
+        for(int addedRows = 0; addedRows < boardLengthWidth; addedRows++)
         {
-            for(int j = 0; j < boardLengthWidth; j++) // added to columns
+            for(int addedColumns = 0; addedColumns < boardLengthWidth; addedColumns++)
             {
-                if(board[startingRow + i][startingColumn + j] == value)
+                if(board[startingRow + addedRows][startingColumn + addedColumns] == value)
                 {
                     return false;
                 }
@@ -286,14 +286,6 @@ public class Board
     /**
      * @author Danny
      */
-    public void setIsSolvable(boolean solvable)
-    {
-        isSolvable = solvable;
-    }
-
-    /**
-     * @author Danny
-     */
     public int[][] getBoard()
     {
         return board;
@@ -334,8 +326,8 @@ public class Board
     /**
      * @author Danny
      */
-    public boolean getIsSolvable()
+    public boolean getIsBoardSolvable()
     {
-        return isSolvable;
+        return isBoardSolvable;
     }
 }
