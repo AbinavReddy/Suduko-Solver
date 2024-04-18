@@ -120,14 +120,14 @@ public class Solver
             {
                 possibleCountBefore = possibleNumbersCount;
 
-                nakedSingles();
+                nakedSingles(); // doesn't update possibleCounts correctly
             }
             while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
 
             // solving strategies go here
             //hiddenSingles();
             //nakedPairs();
-            //nakedTriples();
+            //nakedTriples(); // minus problem because of nakedSingles
             //hiddenPairs();
             //hiddenTriples();
             //nakedQuads();
@@ -135,18 +135,14 @@ public class Solver
             //intersectionRemoval();
             //simpleColouring();
             //swordFish();
-            //wingStrategies();
-            //bug();
+            //wingStrategies(); // minus problem because of nakedSingles
+            //bug(); // minus problem because of nakedSingles
 
             if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with smart strategies, try backtracking (last resort)
             {
-                System.out.println("Solved with backtracking!");
-
-                return solveWithBacktracking(sortKeysForBacktracking());
+                return solveWithBacktracking(sortKeysForBacktracking()); // problem with lists of size = 1
             }
         }
-
-        System.out.println("Solved without backtracking!");
 
         return true;
     }
