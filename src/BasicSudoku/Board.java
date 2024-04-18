@@ -9,9 +9,9 @@ public class Board
     private final int boardSize;
     private final int availableCells;
     private int filledCells;
-    private String errorMessage;
-    private Solver solver;
     private boolean isBoardSolvable;
+    private Solver solver;
+    private String errorMessage;
 
     /**
      * @author Danny, Abinav & Yahya
@@ -35,14 +35,16 @@ public class Board
         */
 
         Random chooseSolvable = new Random();
-        isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(0, 5)); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
+        isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
 
         do
         {
             initializeBoard(boardLengthWidth * 10, emptySubBoardsAllowed);
-            solver = new Solver(this);
+
+            Board boardForSolving = new Board(this);
+            solver = new Solver(boardForSolving);
         }
-        while((boardLengthWidth == 3 && (isBoardSolvable && !solver.isBoardSolvable() || !isBoardSolvable && solver.isBoardSolvable())) || !solver.possibleValuesInCells());
+        while((boardLengthWidth == 3 && (isBoardSolvable && !solveBoard() || !isBoardSolvable && solveBoard())) || !solver.possibleValuesInCells());
     }
 
     /**
@@ -61,9 +63,9 @@ public class Board
         boardSize = boardToCopy.boardSize;
         availableCells = boardToCopy.availableCells;
         filledCells = boardToCopy.filledCells;
-        errorMessage = boardToCopy.errorMessage;
-        solver = new Solver(boardToCopy.solver);
         isBoardSolvable = boardToCopy.isBoardSolvable;
+        solver = null; // the solving board doesn't need a solver field
+        errorMessage = boardToCopy.errorMessage;
     }
 
     /**
@@ -244,29 +246,6 @@ public class Board
     }
 
     /**
-     * @author Yahya
-     */
-    public boolean isGameFinished()
-    {
-        return filledCells == availableCells;
-    }
-
-    /**
-     * @author Danny
-     */
-    public boolean solveBoard()
-    {
-        if(!solver.solveWithStrategies())
-        {
-            errorMessage = "ERROR: The solver was unable to solve the puzzle!";
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * @author Danny
      */
     public void setBoardValue(int row, int column, int value)
@@ -281,6 +260,24 @@ public class Board
         }
 
         board[row][column] = value;
+    }
+
+    /**
+     * @author Yahya
+     */
+    public boolean isGameFinished()
+    {
+        return filledCells == availableCells;
+    }
+
+    /**
+     * @author Danny
+     */
+    public boolean solveBoard()
+    {
+        solver.possibleValuesInCells();
+
+        return solver.solveWithStrategies();
     }
 
     /**
@@ -321,13 +318,5 @@ public class Board
     public Solver getSolver()
     {
         return solver;
-    }
-
-    /**
-     * @author Danny
-     */
-    public boolean getIsBoardSolvable()
-    {
-        return isBoardSolvable;
     }
 }

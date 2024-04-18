@@ -5,10 +5,10 @@ import java.util.*;
 public class Solver
 {
     Board board;
-    Board solvedBoard;
     final int boardSize;
     final int boardLengthWidth;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
+    private HashMap<String, List<Integer>> possibleNumbersBeginning = new HashMap<>(); // for testing (temp)
     private Set<String> processedKeys = new HashSet<>();
     private int possibleNumbersCount;
     private int[][] valuePossibleCountRows; // [value][row]
@@ -31,32 +31,6 @@ public class Solver
     }
 
     /**
-     * @author Danny & Abinav
-     */
-    public Solver(Solver solverToCopy)
-    {
-        board = solverToCopy.board;
-        solvedBoard = solverToCopy.solvedBoard;
-        boardSize = solverToCopy.boardSize;
-        boardLengthWidth = solverToCopy.boardLengthWidth;
-        possibleNumbers = new HashMap<>(solverToCopy.possibleNumbers);
-        possibleNumbersCount = solverToCopy.possibleNumbersCount;
-        valuePossibleCountRows = new int[boardSize + 1][boardSize];
-        valuePossibleCountColumns = new int[boardSize + 1][boardSize];;
-        valuePossibleCountSubBoards = new int[boardSize + 1][boardSize];;
-
-        for(int value = 1; value < boardSize; value++)
-        {
-            for(int rowColumnSubBoard = 0; rowColumnSubBoard < boardSize; rowColumnSubBoard++)
-            {
-                valuePossibleCountRows[value][rowColumnSubBoard] = solverToCopy.valuePossibleCountRows[value][rowColumnSubBoard];
-                valuePossibleCountColumns[value][rowColumnSubBoard] = solverToCopy.valuePossibleCountColumns[value][rowColumnSubBoard];
-                valuePossibleCountSubBoards[value][rowColumnSubBoard] = solverToCopy.valuePossibleCountSubBoards[value][rowColumnSubBoard];
-            }
-        }
-    }
-
-    /**
      * @author Abinav, Yahya & Danny
      */
     public boolean possibleValuesInCells() {
@@ -74,6 +48,7 @@ public class Solver
                    if(!listOfPosNumbers.isEmpty())
                    {
                        possibleNumbers.put(currentPosition,listOfPosNumbers);
+                       possibleNumbersBeginning.put(currentPosition,listOfPosNumbers); // for testing (temp)
                    }
                    else
                    {
@@ -89,11 +64,11 @@ public class Solver
     /**
      * @author Abinav & Yahya
      */
-    public void printPossibilities() {
+    public void printPossibilities(boolean initial) {
         for (int rows = 0; rows < boardSize; rows++) {
             for (int columns = 0; columns < boardSize; columns++) {
                 String currentPosition = rows + "," + columns;
-                List<Integer> values = possibleNumbers.get(currentPosition);
+                List<Integer> values = initial ? possibleNumbersBeginning.get(currentPosition) : possibleNumbers.get(currentPosition); // for testing (temp)
                 if (values != null) {
                     System.out.println("Position: (" + rows + "," + columns + ") Possible Values: " + values);
                 }
@@ -133,17 +108,6 @@ public class Solver
     }
 
     /**
-     * @author Danny, Yahya & Abinav
-     */
-    public boolean isBoardSolvable()
-    {
-        solvedBoard = new Board(board);
-        solvedBoard.getSolver().board = solvedBoard;
-
-        return solvedBoard.getSolver().solveWithBacktracking();  // has to be with backtracking to avoid singular strategy boards
-    }
-
-    /**
      * @author Danny, Abinav & Yahya
      */
     public boolean solveWithStrategies()
@@ -161,58 +125,95 @@ public class Solver
             while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
 
             // solving strategies go here
-            hiddenSingles();
-            nakedPairs();
-            nakedTriples();
-            hiddenPairs();
-            hiddenTriples();
-            nakedQuads();
-            hiddenQuads();
-            intersectionRemoval();
-            simpleColouring();
-            swordFish();
-            wingStrategies();
-            bug();
+            //hiddenSingles();
+            //nakedPairs();
+            //nakedTriples();
+            //hiddenPairs();
+            //hiddenTriples();
+            //nakedQuads();
+            //hiddenQuads();
+            //intersectionRemoval();
+            //simpleColouring();
+            //swordFish();
+            //wingStrategies();
+            //bug();
 
-            if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with strategies, try backtracking (last resort)
+            if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with smart strategies, try backtracking (last resort)
             {
-                return solveWithBacktracking();
+                System.out.println("Solved with backtracking!");
+
+                return solveWithBacktracking(sortKeysForBacktracking());
             }
         }
+
+        System.out.println("Solved without backtracking!");
 
         return true;
     }
 
     /**
-     * @author Abinav, Danny, Yahya
+     * @author Danny
      */
-    public boolean solveWithBacktracking()
+    private List<String> sortKeysForBacktracking()
     {
-        for(int row = 0; row < boardSize; row++)
-        {
-            for(int column = 0; column < boardSize; column++)
-            {
-                if(board.getBoard()[row][column] == 0)
-                {
-                    for(int valueToTry = 1; valueToTry <= boardSize; valueToTry++)
-                    {
-                        if(board.checkPlacementRow(row, valueToTry) && board.checkPlacementColumn(column, valueToTry) && board.checkPlacementSubBoard(row, column, valueToTry))
-                        {
-                            board.setBoardValue(row, column, valueToTry);
+        // Create a list of keys sorted by the size of their value-lists
+        List<List<Integer>> possibleValuesSorted = new ArrayList<>(possibleNumbers.values()); // needed because we can't sort keys by themselves
+        possibleValuesSorted = possibleValuesSorted.stream().sorted(Comparator.comparingInt(List::size)).toList(); // sorted by size (incrementally)
 
-                            if(solveWithBacktracking())
-                            {
-                                return true;
-                            }
-                            else
-                            {
-                                board.setBoardValue(row, column, 0);
-                            }
+        List<String> possibleKeysSorted = new ArrayList<>();
+
+        for(List<Integer> possibleValues : possibleValuesSorted)
+        {
+            for(String possibleKey : possibleNumbers.keySet())
+            {
+                if(possibleNumbers.get(possibleKey) == possibleValues) // has to be == because we are looking for the same objects, not contents
+                {
+                    possibleKeysSorted.add(possibleKey);
+                }
+            }
+        }
+
+        return possibleKeysSorted;
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public boolean solveWithBacktracking(List<String> possibleKeysSorted)
+    {
+        if(possibleKeysSorted.isEmpty())
+        {
+            // base case
+            return true;
+        }
+        else
+        {
+            // recursive case
+            for(String key : possibleKeysSorted)
+            {
+                int row = Integer.parseInt(String.valueOf(key.charAt(0)));
+                int column = Integer.parseInt(String.valueOf(key.charAt(2)));
+
+                for(Integer value : possibleNumbers.get(key))
+                {
+                    if(board.checkPlacementRow(row, value) && board.checkPlacementColumn(column, value) && board.checkPlacementSubBoard(row, column, value))
+                    {
+                        board.setBoardValue(row, column, value);
+                        possibleKeysSorted.remove(key);
+
+                        if(solveWithBacktracking(possibleKeysSorted))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            board.setBoardValue(row, column, 0);
+                            possibleKeysSorted.add(key);
                         }
                     }
-
-                    return false;
                 }
+
+                return false;
             }
         }
 
@@ -234,7 +235,7 @@ public class Solver
                 board.placeValueInCell(row, column, values.get(0));
                 updatePossibleCounts(values.get(0), null, row, column,false);
 
-                removeNumberFromOtherCandidate(key,values,Collections.emptyList());
+                removeNumberFromOtherCandidate(key,values);
                 keysToRemove.add(key);
             }
         }
@@ -269,7 +270,9 @@ public class Solver
     /**
      * @author Abinav
      */
-    public void removeNumberFromOtherCandidate(String key,List<Integer> values, List<String> cellsContainingCandidate) {
+    public void removeNumberFromOtherCandidate(String key,List<Integer> values) {
+        List<String> keysToRemove = new ArrayList<>();
+
         String[] part = key.split(",");
         int row = Integer.parseInt(part[0]);
         int column = Integer.parseInt(part[1]);
@@ -283,10 +286,7 @@ public class Solver
             int subBoardNoOfKey2 = board.findSubBoardNumber(rowOfKey2,columnOfKey2);
             List<Integer> valuesOfKey2 = possibleNumbers.get(Key2);
             if((row == rowOfKey2) || (column == columnOfKey2) || (subBoardNo == subBoardNoOfKey2)){
-                if(valuesOfKey2.contains(values.get(0)))
-                {
-                    updatePossibleCounts(values.get(0), null, rowOfKey2, columnOfKey2,false);
-                }
+                updatePossibleCounts(values.get(0), null, rowOfKey2, columnOfKey2,false);
 
                 valuesOfKey2.removeAll(values);
             }
@@ -518,7 +518,7 @@ public class Solver
                             possibleNumbers.get(key).removeAll(values);
                             List<Integer> tal = new ArrayList<>();
                             tal.add(number);
-                            removeNumberFromOtherCandidate(key,tal,Collections.emptyList());
+                            removeNumberFromOtherCandidate(key,tal);
                         }
                     }
                 }
@@ -557,7 +557,7 @@ public class Solver
                             possibleNumbers.get(key).removeAll(values);
                             List<Integer> tal = new ArrayList<>();
                             tal.add(number);
-                            removeNumberFromOtherCandidate(key, tal,Collections.emptyList());
+                            removeNumberFromOtherCandidate(key, tal);
                         }
                     }
                 }
@@ -948,8 +948,6 @@ public class Solver
                             }
                         }
                     }
-                    printPossibilities();
-
                 }
 
             }
