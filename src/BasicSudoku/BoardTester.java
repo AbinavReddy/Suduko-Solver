@@ -4,16 +4,15 @@ public class BoardTester
 {
     public static void main(String[] args)
     {
-        Board testBoard = new Board(3, false);
-        Solver testSolver = testBoard.getSolver();
+        Board board = new Board(3, false);
+        Board solverBoard = board.getSolver().board;
+        Solver solver = board.getSolver();
 
-        printBoard(testBoard);
-        testSolver.printPossibilities();
+        printBoard(board);
+        solver.printPossibilities(true);
         //testSolver.solveWithStrategies();
-        printBoard(testSolver.board);
-        testSolver.printPossibilities();
-
-        System.out.println();
+        printBoard(solverBoard);
+        solver.printPossibilities(false);
     }
 
     public static void printBoard(Board boardToPrint)

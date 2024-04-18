@@ -44,7 +44,7 @@ public class Board
             Board boardForSolving = new Board(this);
             solver = new Solver(boardForSolving);
         }
-        while((boardLengthWidth == 3 && (isBoardSolvable && !solver.isBoardSolvable() || !isBoardSolvable && solver.isBoardSolvable())) || !solver.possibleValuesInCells());
+        while((boardLengthWidth == 3 && (isBoardSolvable && !solveBoard() || !isBoardSolvable && solveBoard())) || !solver.possibleValuesInCells());
     }
 
     /**
@@ -275,14 +275,9 @@ public class Board
      */
     public boolean solveBoard()
     {
-        if(!solver.solveWithStrategies())
-        {
-            errorMessage = "ERROR: The solver was unable to solve the puzzle!";
+        solver.possibleValuesInCells();
 
-            return false;
-        }
-
-        return true;
+        return solver.solveWithStrategies();
     }
 
     /**
@@ -323,13 +318,5 @@ public class Board
     public Solver getSolver()
     {
         return solver;
-    }
-
-    /**
-     * @author Danny
-     */
-    public boolean getIsBoardSolvable()
-    {
-        return isBoardSolvable;
     }
 }
