@@ -10,6 +10,8 @@ public class Solver
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
     private HashMap<String, List<Integer>> possibleNumbersBeginning = new HashMap<>(); // for testing (temp)
     private Set<String> processedKeys = new HashSet<>();
+
+    private Set<String> processedNakedSingleKeys = new HashSet<>();
     private int possibleNumbersCount;
     private int[][] valuePossibleCountRows; // [value][row]
     private int[][] valuePossibleCountColumns; // [value][column]
@@ -228,13 +230,16 @@ public class Solver
             int column = Integer.parseInt(parts[1]);
             List<Integer> values = possibleNumbers.get(key);
             if (values.size() == 1) {
-                board.placeValueInCell(row, column, values.get(0));
-                updatePossibleCounts(values.get(0), null, row, column,false);
-
-                removeNumberFromOtherCandidate(key,values);
+                if(processedNakedSingleKeys.contains(key)) processedNakedSingleKeys.remove(key);
+                board.placeValueInCell(row, column, possibleNumbers.get(key).get(0));
+                updatePossibleCounts(possibleNumbers.get(key).get(0), null, row, column,false);
                 keysToRemove.add(key);
+                removeNumberFromOtherCandidate(key,values, keysToRemove);
+
             }
         }
+        System.out.println();
+
 
         for (String key : keysToRemove) {
             possibleNumbers.remove(key);
@@ -266,27 +271,31 @@ public class Solver
     /**
      * @author Abinav
      */
-    public void removeNumberFromOtherCandidate(String key,List<Integer> values) {
-        List<String> keysToRemove = new ArrayList<>();
-
+    public List<String> removeNumberFromOtherCandidate(String key,List<Integer> values, List<String> keysToRemove) {
         String[] part = key.split(",");
         int row = Integer.parseInt(part[0]);
         int column = Integer.parseInt(part[1]);
         int subBoardNo = board.findSubBoardNumber(row,column);
 
         for (String Key2 : possibleNumbers.keySet()) {
-            if(Key2.equals(key) ) continue;
+            if(Key2.equals(key) || processedKeys.contains(Key2)) continue;
             String[] parts = Key2.split(",");
             int rowOfKey2 = Integer.parseInt(parts[0]);
             int columnOfKey2 = Integer.parseInt(parts[1]);
             int subBoardNoOfKey2 = board.findSubBoardNumber(rowOfKey2,columnOfKey2);
-            List<Integer> valuesOfKey2 = possibleNumbers.get(Key2);
-            if((row == rowOfKey2) || (column == columnOfKey2) || (subBoardNo == subBoardNoOfKey2)){
-                updatePossibleCounts(values.get(0), null, rowOfKey2, columnOfKey2,false);
-
+            List<Integer> valuesOfKey2 = possibleNumbers.get(Key2);;
+            if(((row == rowOfKey2) || (column == columnOfKey2) || (subBoardNo == subBoardNoOfKey2)) && valuesOfKey2.containsAll(values)){
                 valuesOfKey2.removeAll(values);
+                updatePossibleCounts(55, values, rowOfKey2, columnOfKey2,false);
+                System.out.println();
+                if(valuesOfKey2.size() == 1)
+                {
+                    processedNakedSingleKeys.add(Key2);
+                }
             }
         }
+        System.out.println();
+        return keysToRemove;
     }
 
     /**
@@ -514,7 +523,7 @@ public class Solver
                             possibleNumbers.get(key).removeAll(values);
                             List<Integer> tal = new ArrayList<>();
                             tal.add(number);
-                            removeNumberFromOtherCandidate(key,tal);
+                            removeNumberFromOtherCandidate(key,tal,Collections.emptyList());
                         }
                     }
                 }
@@ -553,7 +562,7 @@ public class Solver
                             possibleNumbers.get(key).removeAll(values);
                             List<Integer> tal = new ArrayList<>();
                             tal.add(number);
-                            removeNumberFromOtherCandidate(key, tal);
+                            removeNumberFromOtherCandidate(key, tal,Collections.emptyList());
                         }
                     }
                 }
