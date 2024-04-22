@@ -8,11 +8,15 @@ public class BoardTester
         Board solverBoard = board.getSolver().board;
         Solver solver = board.getSolver();
 
+        solver.nsProblemDebug();
+
+        /*
         printBoard(board);
         solver.printPossibilities(true);
         //testSolver.solveWithStrategies();
         printBoard(solverBoard);
         solver.printPossibilities(false);
+        */
     }
 
     public static void printBoard(Board boardToPrint)

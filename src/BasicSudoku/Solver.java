@@ -10,8 +10,6 @@ public class Solver
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
     private HashMap<String, List<Integer>> possibleNumbersBeginning = new HashMap<>(); // for testing (temp)
     private Set<String> processedKeys = new HashSet<>();
-
-    private Set<String> processedNakedSingleKeys = new HashSet<>();
     private int possibleNumbersCount;
     private int[][] valuePossibleCountRows; // [value][row]
     private int[][] valuePossibleCountColumns; // [value][column]
@@ -109,41 +107,75 @@ public class Solver
         }
     }
 
+    // life pro-tip level debugging
+    public void nsProblemDebug()
+    {
+        for(int iterations = 0; iterations < 1000; iterations++)
+        {
+            System.out.println(iterations);
+
+            Board testBoard = new Board(3, false);
+
+            for(int row = 0; row < boardSize; row++)
+            {
+                for(int column = 0; column < boardSize; column++)
+                {
+                    if(testBoard.getSolver().board.getBoard()[row][column] == 0)
+                    {
+                        BoardTester.printBoard(testBoard.getSolver().board);
+                        testBoard.getSolver().printPossibilities(false);
+
+                        System.out.println();
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * @author Danny, Abinav & Yahya
      */
     public boolean solveWithStrategies()
     {
+        // Add all strategies to a list to avoid repetitive code
+        List<Runnable> strategies = new ArrayList<>();
+        strategies.add(this::nakedSingles);
+
+        boolean possibleNumbersChanged;
+        int possibleCountBefore;
+        int currentStrategy = 0;
+
         while(!board.isGameFinished())
         {
-            int possibleCountBefore;
+            possibleNumbersChanged = false;
 
             do
             {
                 possibleCountBefore = possibleNumbersCount;
 
-                nakedSingles(); // doesn't update possibleCounts correctly
+                strategies.get(currentStrategy).run();
+
+                if(possibleCountBefore != possibleNumbersCount)
+                {
+                    possibleNumbersChanged = true;
+                }
             }
-            while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
+            while(possibleCountBefore != possibleNumbersCount);
 
-            // solving strategies go here
-            //hiddenSingles();
-            //nakedPairs();
-            //nakedTriples(); // minus problem because of nakedSingles
-            //hiddenPairs();
-            //hiddenTriples();
-            //nakedQuads();
-            //hiddenQuads();
-            //intersectionRemoval();
-            //simpleColouring();
-            //swordFish();
-            //wingStrategies(); // minus problem because of nakedSingles
-            //bug(); // minus problem because of nakedSingles
-
-            if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with smart strategies, try backtracking (last resort)
+            if(possibleNumbersChanged)
             {
-                return solveWithBacktracking(sortKeysForBacktracking()); // problem with lists of size = 1
+                currentStrategy = 0; // effective, reset to the first strategy
             }
+            else
+            {
+                if(currentStrategy == strategies.size() - 1 && !board.isGameFinished())  // board is unsolvable with smart strategies, try backtracking (last resort)
+                {
+                    return solveWithBacktracking(sortKeysForBacktracking());
+                }
+
+                currentStrategy++; // ineffective, go to the next strategy
+            }
+
         }
 
         return true;
@@ -219,83 +251,95 @@ public class Solver
     }
 
     /**
-     * @author Abinav & Yahya
+     * @author Danny, Abinav & Yahya
      */
-    public void nakedSingles() {
-        List<String> keysToRemove = new ArrayList<>();
+    public void nakedSingles()
+    {
+        HashMap<String, Integer> keysValuesToRemove = new HashMap<>();
 
-        for (String key : possibleNumbers.keySet()) {
-            String[] parts = key.split(",");
-            int row = Integer.parseInt(parts[0]);
-            int column = Integer.parseInt(parts[1]);
-            List<Integer> values = possibleNumbers.get(key);
-            if (values.size() == 1) {
-                if(processedNakedSingleKeys.contains(key)) processedNakedSingleKeys.remove(key);
-                board.placeValueInCell(row, column, possibleNumbers.get(key).get(0));
-                updatePossibleCounts(possibleNumbers.get(key).get(0), null, row, column,false);
-                keysToRemove.add(key);
-                removeNumberFromOtherCandidate(key,values, keysToRemove);
-
+        for(String key : possibleNumbers.keySet())
+        {
+            if(possibleNumbers.get(key).size() == 1)
+            {
+                keysValuesToRemove.put(key, possibleNumbers.get(key).get(0));
             }
         }
-        System.out.println();
 
-
-        for (String key : keysToRemove) {
-            possibleNumbers.remove(key);
+        for(String key : keysValuesToRemove.keySet())
+        {
+            removeValueFromObservableCells(key, keysValuesToRemove.get(key));
         }
 
-        EliminateEmptyLists();
+        eliminateEmptyLists();
     }
 
     /**
-     * @author Abinav
+     * @author Danny, Abinav & Yahya
      */
-    public void EliminateEmptyLists(){
-        List<String> removeKeys = new ArrayList<>();
-
-        for (String key : possibleNumbers.keySet()){
-            String[] parts = key.split(",");
-            int row = Integer.parseInt(parts[0]);
-            int column = Integer.parseInt(parts[1]);
-            List<Integer> values = possibleNumbers.get(key);
-            if(values.isEmpty()) removeKeys.add(key);
+    public boolean removeValueFromObservableCells(String originKey, Integer value)
+    {
+        if(possibleNumbers.get(originKey) == null || possibleNumbers.get(originKey).isEmpty())
+        {
+            // base case
+            return true;
         }
+        else
+        {
+            // recursive case
+            String[] parts = originKey.split(",");
+            int originRow = Integer.parseInt(parts[0]);
+            int originColumn = Integer.parseInt(parts[1]);
+            int originSubBoard = board.findSubBoardNumber(originRow, originColumn);
 
-        for (String keys : removeKeys) {
-            possibleNumbers.remove(keys);
-        }
+            board.placeValueInCell(originRow, originColumn, value);
+            possibleNumbers.remove(originKey);
+            updatePossibleCounts(value, null, originRow, originColumn,false);
 
-    }
+            for(String candidateKey : possibleNumbers.keySet())
+            {
+                parts = candidateKey.split(",");
+                int candidateRow = Integer.parseInt(parts[0]);
+                int candidateColumn = Integer.parseInt(parts[1]);
+                int candidateSubBoard = board.findSubBoardNumber(candidateRow, candidateColumn);
 
-    /**
-     * @author Abinav
-     */
-    public List<String> removeNumberFromOtherCandidate(String key,List<Integer> values, List<String> keysToRemove) {
-        String[] part = key.split(",");
-        int row = Integer.parseInt(part[0]);
-        int column = Integer.parseInt(part[1]);
-        int subBoardNo = board.findSubBoardNumber(row,column);
-
-        for (String Key2 : possibleNumbers.keySet()) {
-            if(Key2.equals(key) || processedKeys.contains(Key2)) continue;
-            String[] parts = Key2.split(",");
-            int rowOfKey2 = Integer.parseInt(parts[0]);
-            int columnOfKey2 = Integer.parseInt(parts[1]);
-            int subBoardNoOfKey2 = board.findSubBoardNumber(rowOfKey2,columnOfKey2);
-            List<Integer> valuesOfKey2 = possibleNumbers.get(Key2);;
-            if(((row == rowOfKey2) || (column == columnOfKey2) || (subBoardNo == subBoardNoOfKey2)) && valuesOfKey2.containsAll(values)){
-                valuesOfKey2.removeAll(values);
-                updatePossibleCounts(55, values, rowOfKey2, columnOfKey2,false);
-                System.out.println();
-                if(valuesOfKey2.size() == 1)
+                if(originRow == candidateRow || originColumn == candidateColumn || originSubBoard == candidateSubBoard)
                 {
-                    processedNakedSingleKeys.add(Key2);
+                    if(possibleNumbers.get(candidateKey).contains(value))
+                    {
+                        if(possibleNumbers.get(candidateKey).size() == 1)
+                        {
+                            return removeValueFromObservableCells(candidateKey, value);
+                        }
+
+                        possibleNumbers.get(candidateKey).remove(value);
+                        updatePossibleCounts(value, null, candidateRow, candidateColumn,false);
+                    }
                 }
             }
         }
-        System.out.println();
-        return keysToRemove;
+
+        return true;
+    }
+
+    /**
+     * @author Abinav, Yahya & Danny
+     */
+    public void eliminateEmptyLists()
+    {
+        List<String> emptyKeys = new ArrayList<>();
+
+        for(String key : possibleNumbers.keySet())
+        {
+            if(possibleNumbers.get(key).isEmpty())
+            {
+                emptyKeys.add(key);
+            }
+        }
+
+        for(String key : emptyKeys)
+        {
+            possibleNumbers.remove(key);
+        }
     }
 
     /**
@@ -521,9 +565,7 @@ public class Solver
                             board.placeValueInCell(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), number);
                             updatePossibleCounts(100,values,Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),false);
                             possibleNumbers.get(key).removeAll(values);
-                            List<Integer> tal = new ArrayList<>();
-                            tal.add(number);
-                            removeNumberFromOtherCandidate(key,tal,Collections.emptyList());
+                            removeValueFromObservableCells(key, number);
                         }
                     }
                 }
@@ -560,9 +602,7 @@ public class Solver
                             board.placeValueInCell(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), number);
                             updatePossibleCounts(100, values, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
                             possibleNumbers.get(key).removeAll(values);
-                            List<Integer> tal = new ArrayList<>();
-                            tal.add(number);
-                            removeNumberFromOtherCandidate(key, tal,Collections.emptyList());
+                            removeValueFromObservableCells(key, number);
                         }
                     }
                 }
@@ -1900,7 +1940,7 @@ public class Solver
                 }
                 scCandidates.clear();
             }
-            EliminateEmptyLists();
+            eliminateEmptyLists();
         }
     }
 
