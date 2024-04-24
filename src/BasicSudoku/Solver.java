@@ -114,36 +114,53 @@ public class Solver
      */
     public boolean solveWithStrategies()
     {
+        // Add all strategies to a list to avoid repetitive code
+        List<Runnable> strategies = new ArrayList<>();
+        strategies.add(this::nakedSingles); // working
+        //strategies.add(this::hiddenSingles); // working
+        //strategies.add(this::hiddenTriples); // not working
+        //strategies.add(this::pointingDuplicatesWithBLR); // working
+        //strategies.add(this::xWing); // working
+        //strategies.add(this::yWingWithXYZExtension); // working
+        //strategies.add(this::wXYZWingWithExtension); // not working
+
+        boolean possibleValuesChanged;
+        int possibleCountBefore;
+        int currentStrategy = 0;
+
+        possibleValuesInCells(); // find possibilities of empty cells
+
         while(!board.isGameFinished())
         {
-            int possibleCountBefore;
+            possibleValuesChanged = false;
 
             do
             {
-                possibleCountBefore = possibleNumbersCount;
+                possibleCountBefore = possibleValuesCount;
 
-                nakedSingles(); // doesn't update possibleCounts correctly
+                strategies.get(currentStrategy).run();
+
+                if(possibleCountBefore != possibleValuesCount)
+                {
+                    possibleValuesChanged = true;
+                }
             }
-            while(possibleCountBefore != possibleNumbersCount); // run nakedSingles till there are no cells of size <= 1
+            while(possibleCountBefore != possibleValuesCount);
 
-            // solving strategies go here
-            //hiddenSingles();
-            //nakedPairs();
-            //nakedTriples(); // minus problem because of nakedSingles
-            //hiddenPairs();
-            //hiddenTriples();
-            //nakedQuads();
-            //hiddenQuads();
-            //intersectionRemoval();
-            //simpleColouring();
-            //swordFish();
-            //wingStrategies(); // minus problem because of nakedSingles
-            //bug(); // minus problem because of nakedSingles
-
-            if(possibleCountBefore == possibleNumbersCount && !board.isGameFinished()) // board is unsolvable with smart strategies, try backtracking (last resort)
+            if(possibleValuesChanged)
             {
-                return solveWithBacktracking(sortKeysForBacktracking()); // problem with lists of size = 1
+                currentStrategy = 0; // effective, reset to the first strategy (nakedSingles)
             }
+            else
+            {
+                if(currentStrategy == strategies.size() - 1 && !board.isGameFinished())  // board is unsolvable with strategies, try backtracking (last resort)
+                {
+                    return solveWithBacktracking(sortKeysForBacktracking());
+                }
+
+                currentStrategy++; // ineffective, go to the next strategy
+            }
+
         }
 
         return true;
@@ -2110,12 +2127,10 @@ public class Solver
     /**
      * @author Danny
      */
-    public void intersectionRemoval()
+    private void pointingDuplicatesWithBLR()
     {
         pointingDuplicatesWithBLR(true);
-        nakedSingles();
         pointingDuplicatesWithBLR(false);
-        nakedSingles();
     }
 
     /**
@@ -2220,20 +2235,10 @@ public class Solver
     /**
      * @author Danny
      */
-    public void wingStrategies()
+    private void xWing()
     {
         xWing(true);
-        nakedSingles();
         xWing(false);
-        nakedSingles();
-        yWingWithXYZExtension(false);
-        nakedSingles();
-        yWingWithXYZExtension(true);
-        nakedSingles();
-        wXYZWingWithExtension(false);
-        nakedSingles();
-        wXYZWingWithExtension(true);
-        nakedSingles();
     }
 
     /**
@@ -2327,6 +2332,15 @@ public class Solver
                 }
             }
         }
+    }
+    
+    /**
+     * @author Danny
+     */
+    private void yWingWithXYZExtension()
+    {
+        yWingWithXYZExtension(false);
+        yWingWithXYZExtension(true);
     }
 
     /**
@@ -2489,6 +2503,15 @@ public class Solver
                 }
             }
         }
+    }
+
+    /**
+     * @author Danny
+     */
+    private void wXYZWingWithExtension()
+    {
+        wXYZWingWithExtension(false);
+        //wXYZWingExtended(true);
     }
 
     /**
@@ -2912,5 +2935,32 @@ public class Solver
             }
         }
     }
+
+    // god tier debugging
+    public void nsProblemDebug()
+    {
+        for(int iterations = 1; iterations <= 1000; iterations++)
+        {
+            System.out.println("Iteration: " + iterations);
+
+            Board testBoard = new Board(3, false);
+
+            for(int row = 0; row < boardSize; row++)
+            {
+                for(int column = 0; column < boardSize; column++)
+                {
+                    if(testBoard.getSolver().board.getBoard()[row][column] == 0)
+                    {
+                        BoardTester.printBoard(testBoard.getSolver().board);
+                        testBoard.getSolver().printPossibleValues(false);
+
+                        System.out.println();
+                    }
+                }
+            }
+        }
+    }
 }
+
+
 
