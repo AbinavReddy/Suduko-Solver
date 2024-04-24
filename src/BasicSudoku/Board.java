@@ -275,8 +275,6 @@ public class Board
      */
     public boolean solveBoard()
     {
-        solver.possibleValuesInCells();
-
         return solver.solveWithStrategies();
     }
 
