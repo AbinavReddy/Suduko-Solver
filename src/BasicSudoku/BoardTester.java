@@ -8,7 +8,7 @@ public class BoardTester
         Board solverBoard = board.getSolver().board;
         Solver solver = board.getSolver();
 
-        solver.zeroProblemDebug();
+        solver.nsProblemDebug();
 
         //printBoard(board);
         //solver.printPossibilities(true);

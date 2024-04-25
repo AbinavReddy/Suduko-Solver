@@ -136,16 +136,16 @@ public class Solver
 
             do
             {
-                possibleCountBefore = possibleValuesCount;
+                possibleCountBefore = possibleNumbersCount;
 
                 strategies.get(currentStrategy).run();
 
-                if(possibleCountBefore != possibleValuesCount)
+                if(possibleCountBefore != possibleNumbersCount)
                 {
                     possibleValuesChanged = true;
                 }
             }
-            while(possibleCountBefore != possibleValuesCount);
+            while(possibleCountBefore != possibleNumbersCount);
 
             if(possibleValuesChanged)
             {
@@ -1267,7 +1267,6 @@ public class Solver
         if(unionOfValues.size() >= 2) {
             for (int i = 0; i < valuesList.size(); i++) {
                 for (int j = i + 1; j < valuesList.size(); j++) {
-                    boolean foundHiddenPair = true;
                     Set<Integer> combinations = new HashSet<>();
                     combinations.add(valuesList.get(i));
                     combinations.add(valuesList.get(j));
@@ -2952,7 +2951,7 @@ public class Solver
                     if(testBoard.getSolver().board.getBoard()[row][column] == 0)
                     {
                         BoardTester.printBoard(testBoard.getSolver().board);
-                        testBoard.getSolver().printPossibleValues(false);
+                        testBoard.getSolver().printPossibilities(false);
 
                         System.out.println();
                     }
