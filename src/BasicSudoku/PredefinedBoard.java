@@ -42,9 +42,8 @@ public class PredefinedBoard {
             {0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
 
-
     public static int[][] selectBoardRandomly (){
-        int randomNumber = 0; // random.nextInt(3);
+        int randomNumber = 3; // random.nextInt(3);
 
         switch (randomNumber){
             case 0:

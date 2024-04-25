@@ -9,13 +9,11 @@ public class Solver
     final int boardLengthWidth;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
     private HashMap<String, List<Integer>> possibleNumbersBeginning = new HashMap<>(); // for testing (temp)
-    private Set<String> processedKeys = new HashSet<>();
-
-    private Set<String> processedNakedSingleKeys = new HashSet<>();
-    private int possibleNumbersCount;
+    private int possibleValuesCount;
     private int[][] valuePossibleCountRows; // [value][row]
     private int[][] valuePossibleCountColumns; // [value][column]
     private int[][] valuePossibleCountSubBoards; // [value][sub-board]
+    private Set<String> processedKeys = new HashSet<>();
 
     /**
      * @author Danny
@@ -26,87 +24,10 @@ public class Solver
         boardSize = board.getBoardSize();
         boardLengthWidth = board.getBoardLengthWidth();
 
-        possibleNumbersCount = 0;
+        possibleValuesCount = 0;
         valuePossibleCountRows = new int[boardSize + 1][boardSize];
         valuePossibleCountColumns = new int[boardSize + 1][boardSize];
         valuePossibleCountSubBoards = new int[boardSize + 1][boardSize];
-    }
-
-    /**
-     * @author Abinav, Yahya & Danny
-     */
-    public boolean possibleValuesInCells() {
-        for (int rows = 0; rows < boardSize; rows++) {
-            for (int columns = 0; columns < boardSize; columns++) {
-                if (board.getBoard()[rows][columns] == 0) {
-                    String currentPosition = rows + "," + columns;
-                    List<Integer> listOfPosNumbers = new ArrayList<Integer>();
-                    for (int number = 1; number <= boardSize; number++) {
-                        if (board.checkPlacementRow(rows, number) && board.checkPlacementColumn(columns, number) && board.checkPlacementSubBoard(rows, columns, number)) {
-                            listOfPosNumbers.add(number);
-                            updatePossibleCounts(number, null, rows, columns, true);
-                        }
-                    }
-                   if(!listOfPosNumbers.isEmpty())
-                   {
-                       possibleNumbers.put(currentPosition,listOfPosNumbers);
-                       possibleNumbersBeginning.put(currentPosition,listOfPosNumbers); // for testing (temp)
-                   }
-                   else
-                   {
-                       return false;
-                   }
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @author Abinav & Yahya
-     */
-    public void printPossibilities(boolean initial) {
-        for (int rows = 0; rows < boardSize; rows++) {
-            for (int columns = 0; columns < boardSize; columns++) {
-                String currentPosition = rows + "," + columns;
-                List<Integer> values = initial ? possibleNumbersBeginning.get(currentPosition) : possibleNumbers.get(currentPosition); // for testing (temp)
-                if (values != null) {
-                    System.out.println("Position: (" + rows + "," + columns + ") Possible Values: " + values);
-                }
-            }
-        }
-    }
-
-    /**
-     * @author Danny
-     */
-    public void updatePossibleCounts(int value, List<Integer> valueList, int row, int column, boolean increase)
-    {
-        if(increase)
-        {
-            possibleNumbersCount++;
-            valuePossibleCountRows[value][row]++;
-            valuePossibleCountColumns[value][column]++;
-            valuePossibleCountSubBoards[value][board.findSubBoardNumber(row, column)]++;
-        }
-        else if(valueList == null)
-        {
-            possibleNumbersCount--;
-            valuePossibleCountRows[value][row]--;
-            valuePossibleCountColumns[value][column]--;
-            valuePossibleCountSubBoards[value][board.findSubBoardNumber(row, column)]--;
-        }
-        else
-        {
-            for(Integer valueInList : valueList)
-            {
-                possibleNumbersCount--;
-                valuePossibleCountRows[valueInList][row]--;
-                valuePossibleCountColumns[valueInList][column]--;
-                valuePossibleCountSubBoards[valueInList][board.findSubBoardNumber(row, column)]--;
-            }
-        }
     }
 
     /**
@@ -118,11 +39,19 @@ public class Solver
         List<Runnable> strategies = new ArrayList<>();
         strategies.add(this::nakedSingles); // working
         //strategies.add(this::hiddenSingles); // working
-        //strategies.add(this::hiddenTriples); // not working
+        //strategies.add(this::nakedPairs); // working
+        //strategies.add(this::nakedTriples); // not working (with other strategies)
+        //strategies.add(this::hiddenPairs); // working
+        //strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
+        //strategies.add(this::nakedQuads); // working
+        //strategies.add(this::hiddenQuads); // not working (alone and with other strategies)
         //strategies.add(this::pointingDuplicatesWithBLR); // working
         //strategies.add(this::xWing); // working
+        //strategies.add(this::simpleColouring); // working
         //strategies.add(this::yWingWithXYZExtension); // working
-        //strategies.add(this::wXYZWingWithExtension); // not working
+        //strategies.add(this::swordFish); // not working (alone and with other strategies)
+        //strategies.add(this::bug); not working (alone and with other strategies)
+        //strategies.add(this::wXYZWingExtended); // working
 
         boolean possibleValuesChanged;
         int possibleCountBefore;
@@ -136,16 +65,16 @@ public class Solver
 
             do
             {
-                possibleCountBefore = possibleNumbersCount;
+                possibleCountBefore = possibleValuesCount;
 
                 strategies.get(currentStrategy).run();
 
-                if(possibleCountBefore != possibleNumbersCount)
+                if(possibleCountBefore != possibleValuesCount)
                 {
                     possibleValuesChanged = true;
                 }
             }
-            while(possibleCountBefore != possibleNumbersCount);
+            while(possibleCountBefore != possibleValuesCount);
 
             if(possibleValuesChanged)
             {
@@ -171,17 +100,17 @@ public class Solver
      */
     private List<String> sortKeysForBacktracking()
     {
-        // Create a list of keys sorted by the size of their value-lists
+        // Create a list of keys sorted incrementally by the size of their value-lists
         List<List<Integer>> possibleValuesSorted = new ArrayList<>(possibleNumbers.values()); // needed because we can't sort keys by themselves
-        possibleValuesSorted = possibleValuesSorted.stream().sorted(Comparator.comparingInt(List::size)).toList(); // sorted by size (incrementally)
+        possibleValuesSorted = possibleValuesSorted.stream().sorted(Comparator.comparingInt(List::size)).toList();
 
         List<String> possibleKeysSorted = new ArrayList<>();
 
         for(List<Integer> possibleValues : possibleValuesSorted)
         {
-            for(String possibleKey : possibleNumbers.keySet())
+            for(String possibleKey : this.possibleNumbers.keySet())
             {
-                if(possibleNumbers.get(possibleKey) == possibleValues) // has to be == because we are looking for the same objects, not contents
+                if(this.possibleNumbers.get(possibleKey) == possibleValues) // has to be == because we are looking for the same objects, not contents
                 {
                     possibleKeysSorted.add(possibleKey);
                 }
@@ -194,7 +123,7 @@ public class Solver
     /**
      * @author Danny, Abinav & Yahya
      */
-    public boolean solveWithBacktracking(List<String> possibleKeysSorted)
+    private boolean solveWithBacktracking(List<String> possibleKeysSorted)
     {
         if(possibleKeysSorted.isEmpty())
         {
@@ -236,141 +165,166 @@ public class Solver
     }
 
     /**
-     * @author Abinav & Yahya
+     * @author Abinav, Yahya & Danny
      */
-    public void nakedSingles() {
-        List<String> keysToRemove = new ArrayList<>();
-
-        for (String key : possibleNumbers.keySet()) {
-            String[] parts = key.split(",");
-            int row = Integer.parseInt(parts[0]);
-            int column = Integer.parseInt(parts[1]);
-            List<Integer> values = possibleNumbers.get(key);
-            if (values.size() == 1) {
-                if(processedNakedSingleKeys.contains(key)) processedNakedSingleKeys.remove(key);
-                board.placeValueInCell(row, column, possibleNumbers.get(key).get(0));
-                updatePossibleCounts(possibleNumbers.get(key).get(0), null, row, column,false);
-                keysToRemove.add(key);
-                removeNumberFromOtherCandidate(key,values, keysToRemove);
-
-            }
-        }
-        System.out.println();
-
-
-        for (String key : keysToRemove) {
-            possibleNumbers.remove(key);
-        }
-
-        EliminateEmptyLists();
-    }
-
-    /**
-     * @author Abinav
-     */
-    public void EliminateEmptyLists(){
-        List<String> removeKeys = new ArrayList<>();
-
-        for (String key : possibleNumbers.keySet()){
-            String[] parts = key.split(",");
-            int row = Integer.parseInt(parts[0]);
-            int column = Integer.parseInt(parts[1]);
-            List<Integer> values = possibleNumbers.get(key);
-            if(values.isEmpty()) removeKeys.add(key);
-        }
-
-        for (String keys : removeKeys) {
-            possibleNumbers.remove(keys);
-        }
-
-    }
-
-    /**
-     * @author Abinav
-     */
-    public List<String> removeNumberFromOtherCandidate(String key,List<Integer> values, List<String> keysToRemove) {
-        String[] part = key.split(",");
-        int row = Integer.parseInt(part[0]);
-        int column = Integer.parseInt(part[1]);
-        int subBoardNo = board.findSubBoardNumber(row,column);
-
-        for (String Key2 : possibleNumbers.keySet()) {
-            if(Key2.equals(key) || processedKeys.contains(Key2)) continue;
-            String[] parts = Key2.split(",");
-            int rowOfKey2 = Integer.parseInt(parts[0]);
-            int columnOfKey2 = Integer.parseInt(parts[1]);
-            int subBoardNoOfKey2 = board.findSubBoardNumber(rowOfKey2,columnOfKey2);
-            List<Integer> valuesOfKey2 = possibleNumbers.get(Key2);;
-            if(((row == rowOfKey2) || (column == columnOfKey2) || (subBoardNo == subBoardNoOfKey2)) && valuesOfKey2.containsAll(values)){
-                valuesOfKey2.removeAll(values);
-                updatePossibleCounts(55, values, rowOfKey2, columnOfKey2,false);
-                System.out.println();
-                if(valuesOfKey2.size() == 1)
-                {
-                    processedNakedSingleKeys.add(Key2);
+    public boolean possibleValuesInCells() {
+        for (int rows = 0; rows < boardSize; rows++) {
+            for (int columns = 0; columns < boardSize; columns++) {
+                if (board.getBoard()[rows][columns] == 0) {
+                    String currentPosition = rows + "," + columns;
+                    List<Integer> listOfPosNumbers = new ArrayList<Integer>();
+                    for (int number = 1; number <= boardSize; number++) {
+                        if (board.checkPlacementRow(rows, number) && board.checkPlacementColumn(columns, number) && board.checkPlacementSubBoard(rows, columns, number)) {
+                            listOfPosNumbers.add(number);
+                        }
+                    }
+                   if(!listOfPosNumbers.isEmpty()) {
+                       updatePossibleNumbersAndCounts(currentPosition,null, listOfPosNumbers, true);
+                   }
+                   else {
+                       return false;
+                   }
                 }
             }
         }
-        System.out.println();
-        return keysToRemove;
+        return true;
     }
 
     /**
-     * @author Abinav
+     * @author Abinav & Yahya
      */
-    private void returnCandidatesInColumns(int column) {
-
-        Map<String, List<Integer>> columnCandidates = new HashMap<>();
-        for (String key : possibleNumbers.keySet()) {
-            String[] parts = key.split(",");
-            int keyColumn = Integer.parseInt(parts[1]);
-            if (keyColumn == column) {
-                columnCandidates.put(key, possibleNumbers.get(key));
+    public void printPossibleNumbers(boolean initial) {
+        for (int rows = 0; rows < boardSize; rows++) {
+            for (int columns = 0; columns < boardSize; columns++) {
+                String currentPosition = rows + "," + columns;
+                List<Integer> values = initial ? possibleNumbersBeginning.get(currentPosition) : possibleNumbers.get(currentPosition); // for testing (temp)
+                if (values != null) {
+                    System.out.println("Position: (" + rows + "," + columns + ") Possible Values: " + values);
+                }
             }
         }
-            findNakedPairs(columnCandidates);
     }
 
     /**
-     * @author Abinav
+     * @author Danny
      */
-    private void returnCandidatesInSubBoard(int subBoard) {
-        Map<String, List<Integer>> subBoardCandidates = new HashMap<>();
-        for (String key : possibleNumbers.keySet()) {
-            String[] parts = key.split(",");
-            int keyRow = Integer.parseInt(parts[0]);
-            int keyColumn = Integer.parseInt(parts[1]);
-            if (board.findSubBoardNumber(keyRow, keyColumn) == subBoard) {
-                subBoardCandidates.put(key, possibleNumbers.get(key));
+    private void updatePossibleNumbersAndCounts(String key, Integer valueToUpdate, List<Integer> valuesToUpdate, boolean increase)
+    {
+        String[] parts = key.split(",");
+        int row = Integer.parseInt(parts[0]);
+        int column = Integer.parseInt(parts[1]);
+
+        if(increase) // only used in the beginning (intensely)
+        {
+            possibleNumbers.put(key, valuesToUpdate);
+            possibleNumbersBeginning.put(key, valuesToUpdate); // for testing (temp)
+
+            for(Integer value : valuesToUpdate)
+            {
+                possibleValuesCount++;
+                valuePossibleCountRows[value][row]++;
+                valuePossibleCountColumns[value][column]++;
+                valuePossibleCountSubBoards[value][board.findSubBoardNumber(row, column)]++;
+            }
+        }
+        else
+        {
+            if(valueToUpdate != null)
+            {
+                possibleNumbers.get(key).remove(valueToUpdate);
+
+                possibleValuesCount--;
+                valuePossibleCountRows[valueToUpdate][row]--;
+                valuePossibleCountColumns[valueToUpdate][column]--;
+                valuePossibleCountSubBoards[valueToUpdate][board.findSubBoardNumber(row, column)]--;
+            }
+            else
+            {
+                possibleNumbers.get(key).removeAll(valuesToUpdate);
+
+                for(Integer value : valuesToUpdate)
+                {
+                    possibleValuesCount--;
+                    valuePossibleCountRows[value][row]--;
+                    valuePossibleCountColumns[value][column]--;
+                    valuePossibleCountSubBoards[value][board.findSubBoardNumber(row, column)]--;
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    private void nakedSingles()
+    {
+        HashMap<String, Integer> keysValuesToRemove = new HashMap<>();
+
+        for(String key : possibleNumbers.keySet())
+        {
+            if(possibleNumbers.get(key).size() == 1)
+            {
+                keysValuesToRemove.put(key, possibleNumbers.get(key).get(0));
             }
         }
 
-            findNakedPairs(subBoardCandidates);
+        for(String originKey : keysValuesToRemove.keySet())
+        {
+            String[] parts = originKey.split(",");
+            int originRow = Integer.parseInt(parts[0]);
+            int originColumn = Integer.parseInt(parts[1]);
+            int value = keysValuesToRemove.get(originKey);
 
+            board.placeValueInCell(originRow, originColumn, value);
+            updatePossibleNumbersAndCounts(originKey, value, null, false);
+            possibleNumbers.remove(originKey);
+
+            removeValueFromObservableCells(originRow, originColumn, value);
+        }
+
+        eliminateEmptyLists();
     }
 
     /**
-     * @author Abinav
+     * @author Danny, Abinav & Yahya
      */
-    private void returnCandidatesInRows(int row) {
-        Map<String, List<Integer>> rowCandidates = new HashMap<>();
-        for (String key : possibleNumbers.keySet()) {
-            String[] parts = key.split(",");
-            int keyRow = Integer.parseInt(parts[0]);
-            if (keyRow == row) {
-                rowCandidates.put(key, possibleNumbers.get(key));
+    private void removeValueFromObservableCells(int originRow, int originColumn, Integer value)
+    {
+        for(String candidateKey : possibleNumbers.keySet())
+        {
+            String[] parts = candidateKey.split(",");
+            int candidateRow = Integer.parseInt(parts[0]);
+            int candidateColumn = Integer.parseInt(parts[1]);
+
+            if(originRow == candidateRow || originColumn == candidateColumn || board.findSubBoardNumber(originRow, originColumn) == board.findSubBoardNumber(candidateRow, candidateColumn))
+            {
+                if(possibleNumbers.get(candidateKey).contains(value))
+                {
+                    updatePossibleNumbersAndCounts(candidateKey, value, null, false);
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Abinav & Danny
+     */
+    private void eliminateEmptyLists()
+    {
+        List<String> emptyKeys = new ArrayList<>();
+
+        for(String key : possibleNumbers.keySet())
+        {
+            if(possibleNumbers.get(key).isEmpty())
+            {
+                emptyKeys.add(key);
             }
         }
 
-            findNakedPairs(rowCandidates);
-    }
-
-    /**
-     * @author Abinav
-     */
-    public void NP(){
-        nakedPairs();
-        nakedSingles();
+        for(String key : emptyKeys)
+        {
+            possibleNumbers.remove(key);
+        }
     }
 
     /**
@@ -477,651 +431,83 @@ public class Solver
             int columnOfKeys = Integer.parseInt(parts[1]);
             int subBoardOfKeys = board.findSubBoardNumber(rowOfKeys,columnOfKeys);
             List<Integer> valuesOfKeys = possibleNumbers.get(originalKey);
-            if((rowOfKey1 == rowOfKeys) && (rowOfKey2 == rowOfKeys) && code == 0){
-                valuesOfKeys.removeAll(values);
-                updatePossibleCounts(5,values,rowOfKeys,columnOfKeys,false);
-            } else if ((columnOfKey1 == columnOfKeys) && (columnOfKey2 == columnOfKeys) && code == 1){
-                valuesOfKeys.removeAll(values);
-                updatePossibleCounts(5,values,rowOfKeys,columnOfKeys,false);
-            }
-            else if ((subBoardOfKey1 == subBoardOfKeys) && (subBoardOfKey2 == subBoardOfKeys) && code == 2) {
-                valuesOfKeys.removeAll(values);
-                updatePossibleCounts(5,values,rowOfKeys,columnOfKeys,false);
-            }
-        }
-    }
-
-    /**
-     * @author Yahya
-     */
-    public void hiddenSingles(){
-
-        // hidden singles in rows
-        hiddenSinglesForRowAndCol(true);
-        nakedSingles();
-
-        // hidden singles in columns
-        hiddenSinglesForRowAndCol(false);
-        nakedSingles();
-
-        // hidden singles in subboard
-        hiddenSinglesForSubBoard();
-        nakedSingles();
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void hiddenSinglesForRowAndCol(boolean proccingrows) {
-
-        for (int index = 0; index < boardSize; index++) {
-            List<String> cellKeys = new ArrayList<>();
-            for (int rows = 0; rows < boardSize; rows++) {
-                for (int columns = 0; columns < boardSize; columns++) {
-                    String key = rows + "," + columns;
-                    int rowcolumn = proccingrows ? rows : columns;
-                    if (possibleNumbers.get(key) != null && index == rowcolumn) {
-                        cellKeys.add(key);
-
-                    }
+            if((rowOfKey1 == rowOfKeys) && (rowOfKey2 == rowOfKeys) && code == 0 && (valuesOfKeys.contains(values.get(0)) || valuesOfKeys.contains(values.get(1)))){
+                if(valuesOfKeys.contains(values.get(0)) && valuesOfKeys.contains(values.get(1))) {
+                    updatePossibleNumbersAndCounts(originalKey, null, values, false);
+                }else if(valuesOfKeys.contains(values.get(0))){
+                    updatePossibleNumbersAndCounts(originalKey, values.get(0), null, false);
+                } else if (valuesOfKeys.contains(values.get(1))) {
+                    updatePossibleNumbersAndCounts(originalKey, values.get(1), null, false);
+                }
+            } else if ((columnOfKey1 == columnOfKeys) && (columnOfKey2 == columnOfKeys) && code == 1 && (valuesOfKeys.contains(values.get(0)) || valuesOfKeys.contains(values.get(1)))){
+                if(valuesOfKeys.contains(values.get(0)) && valuesOfKeys.contains(values.get(1))) {
+                    updatePossibleNumbersAndCounts(originalKey, null, values, false);
+                }else if(valuesOfKeys.contains(values.get(0))){
+                    updatePossibleNumbersAndCounts(originalKey, values.get(0), null, false);
+                } else if (valuesOfKeys.contains(values.get(1))) {
+                    updatePossibleNumbersAndCounts(originalKey, values.get(1), null, false);
                 }
             }
-
-            for(int number = 1; number <= boardSize; number++) {
-                int count = proccingrows ? valuePossibleCountRows[number][index] : valuePossibleCountColumns[number][index];
-                if (count == 1 ) {
-                    for(String key : cellKeys) {
-                        if(possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size()>1){
-                            String[] parts = key.split(",");
-                            List<Integer> values = possibleNumbers.get(key);
-                            //board.setBoardValue(number,Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
-                            board.placeValueInCell(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), number);
-                            updatePossibleCounts(100,values,Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),false);
-                            possibleNumbers.get(key).removeAll(values);
-                            List<Integer> tal = new ArrayList<>();
-                            tal.add(number);
-                            removeNumberFromOtherCandidate(key,tal,Collections.emptyList());
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void hiddenSinglesForSubBoard() {
-
-        for (int index = 0; index < boardSize; index++) {
-            List<String> cellKeys = new ArrayList<>();
-            for (int rows = 0; rows < boardSize; rows++) {
-                for (int columns = 0; columns < boardSize; columns++) {
-                    String key = rows + "," + columns;
-                    int subBoardsNumber = board.findSubBoardNumber(rows,columns);
-                    if (possibleNumbers.get(key) != null && index == subBoardsNumber) {
-                        cellKeys.add(key);
-
-                    }
-                }
-            }
-            for (int number = 1; number <= boardSize; number++) {
-
-                if (valuePossibleCountSubBoards[number][index] == 1) {
-                    for (String key : cellKeys) {
-                        if (possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size() > 1) {
-                            String[] parts = key.split(",");
-                            List<Integer> values = possibleNumbers.get(key);
-                            //board.setBoardValue(number,Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
-                            board.placeValueInCell(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), number);
-                            updatePossibleCounts(100, values, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
-                            possibleNumbers.get(key).removeAll(values);
-                            List<Integer> tal = new ArrayList<>();
-                            tal.add(number);
-                            removeNumberFromOtherCandidate(key, tal,Collections.emptyList());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
-     * @author Yahya
-     */
-    public void hiddenTriples(){
-
-        // hidden triples in rows
-        hiddenTriplesCRcombo(true);
-        nakedSingles();
-
-        // hidden Triples in columns
-        hiddenTriplesCRcombo(false);
-        nakedSingles();
-
-        // hidden Triples in subboard
-        hiddenTriplesForSubBoards();
-        nakedSingles();
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void hiddenTriplesForSubBoards(){
-        List<String> quads;
-        for(int boardNo = 0; boardNo < boardSize; boardNo++) {
-            List<List<Integer>> possibleValues = new ArrayList<>();
-            List<String> cellKeys = new ArrayList<>();
-            for (int row = 0; row < boardSize; row++) {
-                for (int col = 0; col < boardSize; col++) {
-                    String key = row + "," + col;
-                    List<Integer> cellPossibleValues = possibleNumbers.get(key);
-                    boolean verifySubBoardNo = board.findSubBoardNumber(row,col) == boardNo;
-                    if(!verifySubBoardNo) continue;
-                    if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
-                        possibleValues.add(cellPossibleValues);
-                        cellKeys.add(key);
-                    }
-                }
-            }
-
-            if(cellKeys.size() >= 3) {
-                for (int i = 0; i < possibleValues.size(); i++) {
-                    for (int j = i + 1; j < possibleValues.size(); j++) {
-                        for (int k = j + 1; k < possibleValues.size(); k++) {
-
-                            quads = new ArrayList<>();
-                            Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
-                            unionOfValues.addAll(possibleValues.get(j));
-                            unionOfValues.addAll(possibleValues.get(k));
-                            quads.add(cellKeys.get(i));
-                            quads.add(cellKeys.get(j));
-                            quads.add(cellKeys.get(k));
-                            Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
-                            boolean quadsVerified = verifyTriples(quads, combos);
-                            if ( quadsVerified) {
-                                for (String position : quads) {
-
-
-
-                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
-                                    valuesDuplicate.removeAll(combos);
-                                    String[] pos = position.split(",");
-                                    updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
-                                    possibleNumbers.get(position).retainAll(combos);
-
-
-                                }
-                            }
-
-                        }
-                    }
+            else if ((subBoardOfKey1 == subBoardOfKeys) && (subBoardOfKey2 == subBoardOfKeys) && code == 2 && (valuesOfKeys.contains(values.get(0)) || valuesOfKeys.contains(values.get(1)))) {
+                if(valuesOfKeys.contains(values.get(0)) && valuesOfKeys.contains(values.get(1))) {
+                    updatePossibleNumbersAndCounts(originalKey, null, values, false);
+                }else if(valuesOfKeys.contains(values.get(0))){
+                    updatePossibleNumbersAndCounts(originalKey, values.get(0), null, false);
+                } else if (valuesOfKeys.contains(values.get(1))) {
+                    updatePossibleNumbersAndCounts(originalKey, values.get(1), null, false);
                 }
             }
         }
     }
 
     /**
-     * @author Yahya
+     * @author Abinav
      */
-    private void hiddenTriplesCRcombo(boolean processRows) {
+    private void returnCandidatesInColumns(int column) {
 
-
-        List<String> quads;
-
-        for (int intial = 0; intial < boardSize; intial++) {
-            List<List<Integer>> possibleValues = new ArrayList<>();
-            List<String> cellKeys = new ArrayList<>();
-
-            // Collect possible values and keys for all cells in the row/column
-            for (int secondary = 0; secondary < boardSize; secondary++) {
-                String key = processRows? intial + "," + secondary : secondary + "," + intial;
-                List<Integer> cellPossibleValues = possibleNumbers.get(key);
-                if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
-                    possibleValues.add(cellPossibleValues);
-                    cellKeys.add(key);
-                }
-            }
-            if(cellKeys.size() >= 3) {
-                for (int i = 0; i < possibleValues.size(); i++) {
-                    for (int j = i + 1; j < possibleValues.size(); j++) {
-                        for (int k = j + 1; k < possibleValues.size(); k++) {
-                            quads = new ArrayList<>();
-                            Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
-                            unionOfValues.addAll(possibleValues.get(j));
-                            unionOfValues.addAll(possibleValues.get(k));
-                            quads.add(cellKeys.get(i));
-                            quads.add(cellKeys.get(j));
-                            quads.add(cellKeys.get(k));
-
-                            Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
-                            boolean quadsVerified = verifyTriples(quads, combos);
-
-                            if ( quadsVerified) {
-
-
-                                for (String position : quads) {
-
-                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
-                                    valuesDuplicate.removeAll(combos);
-                                    String[] pos = position.split(",");
-                                    updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
-                                    possibleNumbers.get(position).retainAll(combos);
-
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @author Yahya
-     */
-    private boolean verifyTriples(List<String> quads, Set<Integer> combos) {
-
-        if(!combos.isEmpty()) {
-            for (String position : quads) {
-                for (Integer number : possibleNumbers.get(position)) {
-                    if (!combos.contains(number)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @author Yahya
-     */
-    private Set<Integer> findHiddenTriples(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
-
-        List<Integer> valuesList = new ArrayList<>(unionOfValues);
-        if(unionOfValues.size() >= 4) {
-            for (int i = 0; i < valuesList.size(); i++) {
-                for (int j = i + 1; j < valuesList.size(); j++) {
-                    for (int k = j + 1; k < valuesList.size(); k++) {
-                        boolean foundHiddenQuads = true;
-                        Set<Integer> combinations = new HashSet<>();
-                        combinations.add(valuesList.get(i));
-                        combinations.add(valuesList.get(j));
-                        combinations.add(valuesList.get(k));
-                        if (combinations.size() == 3) {
-                            boolean isValidCombination = true;
-                            // Check each cell outside the quads to ensure the combination doesn't appear
-                            for (String cellKey : cellKeys) {
-                                if (!quads.contains(cellKey)) { // Exclude cells in quads
-                                    List<Integer> possibleNumbersForCell = possibleNumbers.get(cellKey);
-                                    for (Integer number : combinations) {
-                                        if (possibleNumbersForCell.contains(number)) {
-                                            isValidCombination = false;
-                                            break; // Break from checking this combination
-                                        }
-                                    }
-                                    if (!isValidCombination) {
-                                        break; // Break from checking cells as one number was found outside quads
-                                    }
-                                }
-                            }
-
-                            if (isValidCombination) {
-                                return combinations; // Found a valid combination
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return new HashSet<>();
-    }
-
-
-    /**
-     * @author Yahya
-     */
-    public void nakedTriples() {
-        nakedTriplesForRows();
-        nakedSingles();
-        nakedTriplesForColumns();
-        nakedSingles();
-        nakedTriplesForSubBoards();
-        nakedSingles();
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void nakedTriplesForRows() {
-        // Loop through all groups - starting with rows
-        List<String> triples;
-        for (int row = 0; row < boardSize; row++) {
-            List<List<Integer>> possibleValues = new ArrayList<>();
-            List<String> cellKeys = new ArrayList<>();
-
-            // Collect possible values and keys for all cells in the row
-            for (int col = 0; col < boardSize; col++) {
-                String key = row + "," + col;
-                List<Integer> cellPossibleValues = possibleNumbers.get(key);
-                if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
-                    possibleValues.add(cellPossibleValues);
-                    cellKeys.add(key);
-                }
-            }
-
-            // Find Naked Triples among these values
-            for (int i = 0; i < possibleValues.size(); i++) {
-                for (int j = i + 1; j < possibleValues.size(); j++) {
-                    for (int k = j + 1; k < possibleValues.size(); k++) {
-                        triples = new ArrayList<>();
-                        Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
-                        unionOfValues.addAll(possibleValues.get(j));
-                        unionOfValues.addAll(possibleValues.get(k));
-                        triples.add(cellKeys.get(i));
-                        triples.add(cellKeys.get(j));
-                        triples.add(cellKeys.get(k));
-
-                        if (unionOfValues.size() == 3) { // A Naked Triple is found
-                            List<Integer> tripleValues = new ArrayList<>(unionOfValues);
-                            // Remove these numbers from other cells' possible values in the same row
-                            for (int col = 0; col < boardSize; col++) {
-                                String key = row + "," + col;
-                                if(possibleNumbers.get(key)!= null && !triples.contains(key)) {
-                                    if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
-
-                                        possibleNumbers.get(key).removeAll(unionOfValues);
-                                        updatePossibleCounts(1000, unionOfValues.stream().toList(), row, col, false);
-
-
-
-
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void nakedTriplesForColumns() {
-        // Loop through all groups - starting with rows
-        List<String> triples;
-        for (int col = 0; col < boardSize; col++) {
-            List<List<Integer>> possibleValues = new ArrayList<>();
-            List<String> cellKeys = new ArrayList<>();
-
-            // Collect possible values and keys for all cells in the row
-            for (int row = 0; row < boardSize; row++) {
-                String key = row + "," + col;
-                List<Integer> cellPossibleValues = possibleNumbers.get(key);
-                if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
-                    possibleValues.add(cellPossibleValues);
-                    cellKeys.add(key);
-                }
-            }
-
-            // Find Naked Triples among these values
-            for (int i = 0; i < possibleValues.size(); i++) {
-                for (int j = i + 1; j < possibleValues.size(); j++) {
-                    for (int k = j + 1; k < possibleValues.size(); k++) {
-                        triples = new ArrayList<>();
-                        Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
-                        unionOfValues.addAll(possibleValues.get(j));
-                        unionOfValues.addAll(possibleValues.get(k));
-                        triples.add(cellKeys.get(i));
-                        triples.add(cellKeys.get(j));
-                        triples.add(cellKeys.get(k));
-
-                        if (possibleValues.size() == 3 && unionOfValues.size() == 3) { // A Naked Triple is found
-                            List<Integer> tripleValues = new ArrayList<>(unionOfValues);
-                            // Remove these numbers from other cells' possible values in the same row
-                            for (int row = 0; row < boardSize; row++) {
-                                String key = row + "," + col;
-                                if (possibleNumbers.get(key) != null && !triples.contains(key)) {
-                                    if (possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
-                                        possibleNumbers.get(key).removeAll(unionOfValues);
-                                        updatePossibleCounts(1000, unionOfValues.stream().toList(), row, col, false);
-
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void nakedTriplesForSubBoards(){
-
-        for (int i =0; i < boardSize; i++)
-        {
-            for(int j=1; j<= boardSize; j++)
-            {
-
-                List<String> triples;
-                List<List<Integer>> possibleValues = new ArrayList<>();
-                List<String> cellKeys = new ArrayList<>();
-                int startingRow = (i / boardLengthWidth) * boardLengthWidth;
-                int startingColumn = (i - startingRow) * boardLengthWidth;
-                Set<Integer> unionOfValues;
-                triples = new ArrayList<>();
-
-                for(int k = 0; k < boardLengthWidth; k++)// added to rows
-                {
-
-                    for(int l = 0; l < boardLengthWidth; l++) // added to columns
-                    {
-
-                        String key = (startingRow + k) + "," + (startingColumn + l);
-                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(j))
-                        {
-
-                            List<Integer> cellPossibleValues = possibleNumbers.get(key);
-                            if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
-                                possibleValues.add(cellPossibleValues);
-                                cellKeys.add(key);
-                                triples.add(key);
-
-                            }
-
-                        }
-
-                    }
-                }
-                unionOfValues = new HashSet<>();
-                for(List<Integer> possible: possibleValues)
-                {
-                    unionOfValues.addAll(possible);
-
-                }
-
-                if (possibleValues.size() == 3 && unionOfValues.size() == 3) { // A Naked Triple is found
-                    List<Integer> tripleValues = new ArrayList<>(unionOfValues);
-                    // Remove these numbers from other cells' possible values in the same row
-                    for(int k = 0; k < boardLengthWidth; k++)// added to rows
-                    {
-                        for(int l = 0; l < boardLengthWidth; l++) // added to columns
-                        {
-                            String key = (startingRow + k) + "," + (startingColumn + l);
-                            if (possibleNumbers.get(key)!= null && !triples.contains(key) ) {
-
-                                if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2)))
-                                {
-                                    possibleNumbers.get(key).removeAll(unionOfValues);
-                                    updatePossibleCounts(1000, unionOfValues.stream().toList(), startingRow, startingColumn, false);
-
-                                }
-
-                            }
-                        }
-                    }
-                }
-
-            }
-
-        }
-    }
-
-    /**
-     * @author Yahya
-     */
-    public void bug() {
-        applybug();
-        nakedSingles();
-    }
-
-    /**
-     * @author Yahya
-     */
-    private boolean applybug() {
-        HashMap<String, List<Integer>> bivalueCells = findBivalueCells();
-        String trivalueCellKey = findTrivalueCell();
-        if (!trivalueCellKey.isEmpty()) {
-            boolean result = checkAndResolveBug(trivalueCellKey);
-            return result;
-        }
-        return false;
-    }
-
-    /**
-     * @author Yahya
-     */
-    private HashMap<String, List<Integer>> findBivalueCells() {
-        HashMap<String, List<Integer>> bivalueCells = new HashMap<>();
+        Map<String, List<Integer>> columnCandidates = new HashMap<>();
         for (String key : possibleNumbers.keySet()) {
-            List<Integer> values = possibleNumbers.get(key);
-            if (values.size() == 2) {
-                String[] parts = key.split(",");
-                int row = Integer.parseInt(parts[0]);
-                int column = Integer.parseInt(parts[1]);
-                int subBoard = board.findSubBoardNumber(row, column);
-
-                // Check the appearance frequency within row, column, and sub-board
-                bivalueCells.put(key, new ArrayList<>(values));
+            String[] parts = key.split(",");
+            int keyColumn = Integer.parseInt(parts[1]);
+            if (keyColumn == column) {
+                columnCandidates.put(key, possibleNumbers.get(key));
             }
         }
-
-        return bivalueCells;
+        findNakedPairs(columnCandidates);
     }
 
     /**
-     * @author Yahya
+     * @author Abinav
      */
-    private String findTrivalueCell() {
+    private void returnCandidatesInSubBoard(int subBoard) {
+        Map<String, List<Integer>> subBoardCandidates = new HashMap<>();
         for (String key : possibleNumbers.keySet()) {
-            List<Integer> values = possibleNumbers.get(key);
-            if (values.size() == 3) {
-                return key;
-            }
-        }
-        return "";
-    }
-
-    /**
-     * @author Yahya
-     */
-    private boolean checkAndResolveBug(String trivalueCellKey) {
-        List<Integer> values = possibleNumbers.get(trivalueCellKey);
-        String[] parts = trivalueCellKey.split(",");
-        int row = Integer.parseInt(parts[0]);
-        int column = Integer.parseInt(parts[1]);
-        int subBoard = board.findSubBoardNumber(row, column);
-
-        // Gather all cells in the row, column, and sub-board
-        List<String> rowKeys = getRowKeys(row);
-        List<String> columnKeys = getColumnKeys(column);
-        List<String> subBoardKeys = getCellsInSubBoard(subBoard);
-
-        // Count the occurrences of each number
-        int[] countsInRow = new int[board.getBoardSize() + 1];
-        int[] countsInColumn = new int[board.getBoardSize() + 1];
-        int[] countsInSubBoard = new int[board.getBoardSize() + 1];
-        updateCounts(rowKeys, countsInRow);
-        updateCounts(columnKeys, countsInColumn);
-        updateCounts(subBoardKeys, countsInSubBoard);
-        for (int value : values) {
-            if (countsInRow[value] == 3 && countsInColumn[value] == 3 && countsInSubBoard[value] == 3) {
-                // If the value appears exactly three times in row, column, and sub-board
-                board.placeValueInCell(row, column, value);
-                possibleNumbers.put(trivalueCellKey, List.of(value));  // Set correct value
-                // Update counts for all related cells after setting the value
-                for (String key : rowKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
-                for (String key : columnKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
-                for (String key : subBoardKeys) updatePossibleCounts(value, possibleNumbers.get(key), Integer.parseInt(key.split(",")[0]), Integer.parseInt(key.split(",")[1]), false);
-
-                return true;
+            String[] parts = key.split(",");
+            int keyRow = Integer.parseInt(parts[0]);
+            int keyColumn = Integer.parseInt(parts[1]);
+            if (board.findSubBoardNumber(keyRow, keyColumn) == subBoard) {
+                subBoardCandidates.put(key, possibleNumbers.get(key));
             }
         }
 
-        return false;
+        findNakedPairs(subBoardCandidates);
+
     }
 
     /**
-     * @author Yahya
+     * @author Abinav
      */
-    private void updateCounts(List<String> keys, int[] counts) {
-        for (String key : keys) {
-            List<Integer> possibleValues = possibleNumbers.get(key);
-            if (possibleValues != null) {
-                for (int value : possibleValues) {
-                    counts[value]++;
-                }
+    private void returnCandidatesInRows(int row) {
+        Map<String, List<Integer>> rowCandidates = new HashMap<>();
+        for (String key : possibleNumbers.keySet()) {
+            String[] parts = key.split(",");
+            int keyRow = Integer.parseInt(parts[0]);
+            if (keyRow == row) {
+                rowCandidates.put(key, possibleNumbers.get(key));
             }
         }
-    }
 
-    /**
-     * @author Yahya
-     */
-    private List<String> getRowKeys(int row) {
-        List<String> keys = new ArrayList<>();
-        for (int col = 0; col < board.getBoardSize(); col++) {
-            keys.add(row + "," + col);
-        }
-        return keys;
-    }
-
-    /**
-     * @author Yahya
-     */
-    private List<String> getColumnKeys(int column) {
-        List<String> keys = new ArrayList<>();
-        for (int row = 0; row < board.getBoardSize(); row++) {
-            keys.add(row + "," + column);
-        }
-        return keys;
-    }
-
-    /**
-     * @author Yahya
-     */
-    public List<String> getCellsInSubBoard(int subBoardIndex) {
-        List<String> cellKeys = new ArrayList<>();
-        int subBoardSize = board.getBoardLengthWidth();  // Assuming square sub-boards in a square grid
-        int startingRow = (subBoardIndex / subBoardSize) * subBoardSize;
-        int startingColumn = (subBoardIndex - startingRow) * subBoardSize;
-
-        for (int row = startingRow; row < startingRow + subBoardSize; row++) {
-            for (int column = startingColumn; column < startingColumn + subBoardSize; column++) {
-                cellKeys.add(row + "," + column);  // Collecting cell keys in "row,column" format
-            }
-        }
-        return cellKeys;
+        findNakedPairs(rowCandidates);
     }
 
     /**
@@ -1130,15 +516,12 @@ public class Solver
     public void hiddenPairs(){
         // hidden quads in rows
         hiddenPairsCRcombo(true);
-        nakedSingles();
 
         // hidden quads in columns
         hiddenPairsCRcombo(false);
-        nakedSingles();
 
         // hidden quads in subboard
         hiddenPairsForSubBoards();
-        nakedSingles();
     }
 
     /**
@@ -1173,11 +556,9 @@ public class Solver
                         boolean pairsVerified = verifyPairs(pairs, combos);
                         if ( pairsVerified) {
                             for (String position : pairs) {
-                                String[] pos = position.split(",");
                                 List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
-                                possibleNumbers.get(position).retainAll(combos);
                                 valuesDuplicate.removeAll(combos);
-                                updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
+                                updatePossibleNumbersAndCounts(position, null, valuesDuplicate, false);
                             }
                         }
                     }
@@ -1217,11 +598,9 @@ public class Solver
                         boolean pairsVerified = verifyPairs(pairs, combos);
                         if ( pairsVerified) {
                             for (String position : pairs) {
-                                String[] pos = position.split(",");
                                 List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
-                                possibleNumbers.get(position).retainAll(combos);
                                 valuesDuplicate.removeAll(combos);
-                                updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
+                                updatePossibleNumbersAndCounts(position, null, valuesDuplicate, false);
                             }
                         }
                     }
@@ -1267,6 +646,7 @@ public class Solver
         if(unionOfValues.size() >= 2) {
             for (int i = 0; i < valuesList.size(); i++) {
                 for (int j = i + 1; j < valuesList.size(); j++) {
+                    boolean foundHiddenPair = true;
                     Set<Integer> combinations = new HashSet<>();
                     combinations.add(valuesList.get(i));
                     combinations.add(valuesList.get(j));
@@ -1305,13 +685,10 @@ public class Solver
     public void nakedQuads(){
         // finds naked quads in rows
         nakedQuadsCRcombo(true);
-        nakedSingles();
         // finds naked quads in columns
         nakedQuadsCRcombo(false);
-        nakedSingles();
-
+        // finds naked quads in sub-boards
         nakedQuadForSubBoards();
-        nakedSingles();
     }
 
     /**
@@ -1354,12 +731,8 @@ public class Solver
                                     String position = processRows? intial + "," + other : other + "," + intial;
                                     if(possibleNumbers.get(position)==null || quads.contains(position)) continue;
                                     if ( possibleNumbers.get(position).contains(quadValues.get(0)) || possibleNumbers.get(position).contains(quadValues.get(1)) || possibleNumbers.get(position).contains(quadValues.get(2)) || possibleNumbers.get(position).contains(quadValues.get(3))) {
-                                        String[] pos = position.split(",");
-
-                                        possibleNumbers.get(position).removeAll(unionOfValues);
-                                        updatePossibleCounts(10,unionOfValues.stream().toList(),Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
-                                        //system.out.println();
-
+                                        List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(position), unionOfValues);
+                                        updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
                                     }
                                 }
                             }
@@ -1368,6 +741,23 @@ public class Solver
                 }
             }
         }
+    }
+
+    /**
+     * @author Abinav
+     */
+    private  List<Integer> findWhichNumbersPresent (List<Integer> valuesPresent, Set<Integer> unionOfValues) {
+
+        List<Integer> valuesContained = new ArrayList<>();
+
+
+        for(Integer number : unionOfValues){
+            if(valuesPresent.contains(number)){
+                valuesContained.add(number);
+            }
+        }
+
+        return valuesContained;
     }
 
     /**
@@ -1412,9 +802,8 @@ public class Solver
                             String key = (startingRow + k) + "," + (startingColumn + l);
                             if (possibleNumbers.get(key)!= null && !quads.contains(key) ) {
                                 if( possibleNumbers.get(key).contains(quadValues.get(0)) || possibleNumbers.get(key).contains(quadValues.get(1)) || possibleNumbers.get(key).contains(quadValues.get(2)) && possibleNumbers.get(key).contains(quadValues.get(3))) {
-                                    String[] pos = key.split(",");
-                                    updatePossibleCounts(10,unionOfValues.stream().toList(),Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
-                                    possibleNumbers.get(key).removeAll(unionOfValues);
+                                    List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
+                                    updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                 }
                             }
                         }
@@ -1430,15 +819,12 @@ public class Solver
     public void hiddenQuads(){
         // hidden quads in rows
         hiddenQuadsCRcombo(true);
-        nakedSingles();
 
         // hidden quads in columns
         hiddenQuadsCRcombo(false);
-        nakedSingles();
 
         // hidden quads in subboard
         hiddenQuadForSubBoards();
-        nakedSingles();
     }
 
     /**
@@ -1480,11 +866,9 @@ public class Solver
                                 boolean quadsVerified = verifyQuads(quads, combos);
                                 if ( quadsVerified) {
                                     for (String position : quads) {
-                                        String[] pos = position.split(",");
-                                        List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
-                                        valuesDuplicate.removeAll(combos);
-                                        updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
-                                        possibleNumbers.get(position).retainAll(combos);
+                                        List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
+                                        valuesPresent.removeAll(combos);
+                                        updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
                                     }
                                 }
                             }
@@ -1532,10 +916,9 @@ public class Solver
                                 boolean quadsVerified = verifyQuads(quads, combos);
                                 if ( quadsVerified) {
                                     for (String position : quads) {
-                                        String[] pos = position.split(",");
-                                        List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
-                                        possibleNumbers.get(position).retainAll(combos);
-                                        updatePossibleCounts(5,valuesDuplicate,Integer.parseInt(pos[0]),Integer.parseInt(pos[1]),false);
+                                        List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
+                                        valuesPresent.removeAll(combos);
+                                        updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
                                     }
                                 }
                             }
@@ -1552,8 +935,17 @@ public class Solver
     private boolean verifyQuads(List<String> quads, Set<Integer> combos) {
         if(!combos.isEmpty()) {
             int count = 0;
+            boolean containsOtherCandidates = false;
+            boolean notContainsTwoCandidates = false;
             for (String position : quads) {
                 List<Integer> numbersInPosition = possibleNumbers.get(position);
+
+                if(numbersInPosition == null)
+                {
+                    continue;
+                }
+
+                // check if the cell contains other numbers than combos
                 for (Integer number : numbersInPosition) {
                     if (!combos.contains(number)) {
                         count++;
@@ -1561,8 +953,28 @@ public class Solver
                     }
                 }
                 if (count >= 2) {
-                    return true;
+                    containsOtherCandidates = true;
+                    break;
                 }
+            }
+
+
+// check if the cell contains atleast two elements of combos
+            for(String keys : quads) {
+
+                int occurrence = 0;
+                for(Integer number : combos){
+                    if(possibleNumbers.get(keys) != null && !possibleNumbers.get(keys).contains(number)){
+                        occurrence++;
+                    }
+                }
+                if(occurrence < 2){
+                    notContainsTwoCandidates = true;
+                    break;
+                }
+            }
+            if(containsOtherCandidates && notContainsTwoCandidates){
+                return true;
             }
         }
         return false;
@@ -1592,7 +1004,7 @@ public class Solver
                                     if (!quads.contains(cellKey)) { // Exclude cells in quads
                                         List<Integer> possibleNumbersForCell = possibleNumbers.get(cellKey);
                                         for (Integer number : combinations) {
-                                            if (possibleNumbersForCell.contains(number)) {
+                                            if (possibleNumbersForCell != null && possibleNumbersForCell.contains(number)) {
                                                 isValidCombination = false;
                                                 break; // Break from checking this combination
                                             }
@@ -1622,19 +1034,15 @@ public class Solver
     public void swordFish(){
         // swordfish technique on rows where each cell contains only 2 cells
         findSwordFishCandidates(true,2);
-        nakedSingles();
 
         // swordfish technique on columns
         findSwordFishCandidates(false,2);
-        nakedSingles();
 
         // swordfish technique on rows
         findSwordFishCandidates(true,3);
-        nakedSingles();
 
         // swordfish technique on columns
         findSwordFishCandidates(false,3);
-        nakedSingles();
     }
 
     /**
@@ -1702,7 +1110,7 @@ public class Solver
                         int windowSize = pairOrTriple; // pairs or triples in rows/columns
 
                         int minListLength = Math.min(processForSF.get(j).size(),
-                                Math.min(processForSF.get(k).size(), processForSF.get(n).size()));
+                            Math.min(processForSF.get(k).size(), processForSF.get(n).size()));
 
                         for (int i = 0; i < minListLength - 1; i++) {
 
@@ -1768,8 +1176,7 @@ public class Solver
                     for (Integer setElement : uniqueCOR) {
                         if (setElement == column) {
                             if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
-                                updatePossibleCounts(number,null, row, column, false);
-                                possibleNumbers.get(key).remove((Integer) number);
+                                updatePossibleNumbersAndCounts(key, number, null, false);
                             }
                         }
                     }
@@ -1777,8 +1184,7 @@ public class Solver
                     for (Integer setElement : uniqueCOR) {
                         if (setElement == row) {
                             if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
-                                updatePossibleCounts(number, null,row, column, false);
-                                possibleNumbers.get(key).remove((Integer) number);
+                                updatePossibleNumbersAndCounts(key, number, null, false);
                             }
                         }
                     }
@@ -1873,9 +1279,7 @@ public class Solver
                             for(int start = minCol+1; start < maxCol; start++){
                                 String nogle = linkStart[0]+","+start;
                                 if(possibleNumbers.get(nogle) != null && possibleNumbers.get(nogle).contains(number) && !scCandidates.containsKey(nogle)){
-                                    List<Integer> valuesOfKey2 = possibleNumbers.get(nogle);
-                                    valuesOfKey2.remove(Integer.valueOf(number));
-                                    updatePossibleCounts(Integer.valueOf(number),null,Integer.parseInt(linkStart[0]),start,false);
+                                    updatePossibleNumbersAndCounts(nogle, number, null, false);
                                     cellsContainingCandidate.remove(nogle);
                                 }
                             }
@@ -1886,9 +1290,7 @@ public class Solver
                             for(int start = minRow+1; start < maxRow; start++){
                                 String nogle = start+","+ linkStart[1];
                                 if(possibleNumbers.get(nogle) != null && possibleNumbers.get(nogle).contains(number) && !scCandidates.containsKey(nogle)){
-                                    List<Integer> valuesOfKey2 = possibleNumbers.get(nogle);
-                                    valuesOfKey2.remove(Integer.valueOf(number));
-                                    updatePossibleCounts(Integer.valueOf(number),null,start,Integer.parseInt(linkStart[1]),false);
+                                    updatePossibleNumbersAndCounts(nogle, number, null, false);
                                     cellsContainingCandidate.remove(nogle);
                                 }
                             }
@@ -1899,16 +1301,12 @@ public class Solver
                             String position2 = Integer.parseInt(linkEnd[0]) + "," + Integer.parseInt(linkStart[1]);
 
                             if(possibleNumbers.get(position1) != null && possibleNumbers.get(position1).contains(number) && !scCandidates.containsKey(position1)){
-                                List<Integer> valuesOfKey2 = possibleNumbers.get(position1);
-                                valuesOfKey2.remove(Integer.valueOf(number));
-                                updatePossibleCounts(Integer.valueOf(number),null,Integer.parseInt(linkStart[0]),Integer.parseInt(linkEnd[1]),false);
+                                updatePossibleNumbersAndCounts(position1, number, null, false);
                                 cellsContainingCandidate.remove(position1);
 
                             }
                             if(possibleNumbers.get(position2) != null && possibleNumbers.get(position2).contains(number) && !scCandidates.containsKey(position2)){
-                                List<Integer> valuesOfKey2 = possibleNumbers.get(position2);
-                                valuesOfKey2.remove(Integer.valueOf(number));
-                                updatePossibleCounts(Integer.valueOf(number),null,Integer.parseInt(linkEnd[0]),Integer.parseInt(linkStart[1]),false);
+                                updatePossibleNumbersAndCounts(position2, number, null, false);
                                 cellsContainingCandidate.remove(position2);
                             }
                         }
@@ -1916,7 +1314,6 @@ public class Solver
                 }
                 scCandidates.clear();
             }
-            EliminateEmptyLists();
         }
     }
 
@@ -2013,7 +1410,6 @@ public class Solver
     private boolean handleTwoColorsSameHouse(Map<String, Integer> scCandidates, int number,List<String> cellsContainingCandidate) {
         List<String> blueColoredCells = new ArrayList<>();
         List<String> greenColoredCells = new ArrayList<>();
-        List<String> keysToRemove = new ArrayList<>();
         List<Integer> numberList = new ArrayList<>();
         numberList.add(number);
 
@@ -2078,9 +1474,8 @@ public class Solver
                 int row = Integer.parseInt(coord1[0]);
                 int column = Integer.parseInt(coord1[1]);
                 List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(cell1));
-                possibleNumbers.get(cell1).retainAll(numberList);
                 valuesDuplicate.removeAll(numberList);
-                updatePossibleCounts(5,valuesDuplicate,row,column,false);
+                updatePossibleNumbersAndCounts(cell1, null, valuesDuplicate, false);
                 cellsContainingCandidate.remove(cell1);
             }
 
@@ -2089,9 +1484,8 @@ public class Solver
                 String[] coord2 = cell2.split(",");
                 int row = Integer.parseInt(coord2[0]);
                 int column = Integer.parseInt(coord2[1]);
-                possibleNumbers.get(cell2).remove(Integer.valueOf(number));
+                updatePossibleNumbersAndCounts(cell2, number, null, false);
                 cellsContainingCandidate.remove(cell2);
-                updatePossibleCounts(number,null,row,column,false);
             }
         }
 
@@ -2102,9 +1496,8 @@ public class Solver
                 int row = Integer.parseInt(coord3[0]);
                 int column = Integer.parseInt(coord3[1]);
                 List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(cell3));
-                possibleNumbers.get(cell3).retainAll(numberList);
                 valuesDuplicate.removeAll(numberList);
-                updatePossibleCounts(5,valuesDuplicate,row,column,false);
+                updatePossibleNumbersAndCounts(cell3, null, valuesDuplicate, false);
                 cellsContainingCandidate.remove(cell3);
             }
 
@@ -2113,14 +1506,591 @@ public class Solver
                 String[] coord4 = cell4.split(",");
                 int row = Integer.parseInt(coord4[0]);
                 int column = Integer.parseInt(coord4[1]);
-                possibleNumbers.get(cell4).remove(Integer.valueOf(number));
+                updatePossibleNumbersAndCounts(cell4, number, null, false);
                 cellsContainingCandidate.remove(cell4);
-                updatePossibleCounts(number,null,row,column,false);
             }
         }
 
         boolean bool = greenCellsSameHouse || blueCellsSameHouse;
         return bool;
+    }
+
+    /**
+     * @author Yahya
+     */
+    public void nakedTriples() {
+        nakedTriplesForRows();
+        nakedTriplesForColumns();
+        nakedTriplesForSubBoards();
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void nakedTriplesForRows() {
+        // Loop through all groups - starting with rows
+        List<String> triples;
+        for (int row = 0; row < boardSize; row++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+
+            // Collect possible values and keys for all cells in the row
+            for (int col = 0; col < boardSize; col++) {
+                String key = row + "," + col;
+                List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
+                    possibleValues.add(cellPossibleValues);
+                    cellKeys.add(key);
+                }
+            }
+
+            // Find Naked Triples among these values
+            for (int i = 0; i < possibleValues.size(); i++) {
+                for (int j = i + 1; j < possibleValues.size(); j++) {
+                    for (int k = j + 1; k < possibleValues.size(); k++) {
+                        triples = new ArrayList<>();
+                        Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                        unionOfValues.addAll(possibleValues.get(j));
+                        unionOfValues.addAll(possibleValues.get(k));
+                        triples.add(cellKeys.get(i));
+                        triples.add(cellKeys.get(j));
+                        triples.add(cellKeys.get(k));
+
+                        if (unionOfValues.size() == 3) { // A Naked Triple is found
+                            List<Integer> tripleValues = new ArrayList<>(unionOfValues);
+                            // Remove these numbers from other cells' possible values in the same row
+                            for (int col = 0; col < boardSize; col++) {
+                                String key = row + "," + col;
+                                if(possibleNumbers.get(key)!= null && !triples.contains(key)) {
+                                    if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+                                        updatePossibleNumbersAndCounts(key, null, unionOfValues.stream().toList(), false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void nakedTriplesForColumns() {
+        // Loop through all groups - starting with rows
+        List<String> triples;
+        for (int col = 0; col < boardSize; col++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+
+            // Collect possible values and keys for all cells in the row
+            for (int row = 0; row < boardSize; row++) {
+                String key = row + "," + col;
+                List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
+                    possibleValues.add(cellPossibleValues);
+                    cellKeys.add(key);
+                }
+            }
+
+            // Find Naked Triples among these values
+            for (int i = 0; i < possibleValues.size(); i++) {
+                for (int j = i + 1; j < possibleValues.size(); j++) {
+                    for (int k = j + 1; k < possibleValues.size(); k++) {
+                        triples = new ArrayList<>();
+                        Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                        unionOfValues.addAll(possibleValues.get(j));
+                        unionOfValues.addAll(possibleValues.get(k));
+                        triples.add(cellKeys.get(i));
+                        triples.add(cellKeys.get(j));
+                        triples.add(cellKeys.get(k));
+
+                        if (possibleValues.size() == 3 && unionOfValues.size() == 3) { // A Naked Triple is found
+                            List<Integer> tripleValues = new ArrayList<>(unionOfValues);
+                            // Remove these numbers from other cells' possible values in the same row
+                            for (int row = 0; row < boardSize; row++) {
+                                String key = row + "," + col;
+                                if (possibleNumbers.get(key) != null && !triples.contains(key)) {
+                                    if (possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+                                        updatePossibleNumbersAndCounts(key, null, unionOfValues.stream().toList(), false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void nakedTriplesForSubBoards(){
+
+        for (int i =0; i < boardSize; i++)
+        {
+            for(int j=1; j<= boardSize; j++)
+            {
+
+                List<String> triples;
+                List<List<Integer>> possibleValues = new ArrayList<>();
+                List<String> cellKeys = new ArrayList<>();
+                int startingRow = (i / boardLengthWidth) * boardLengthWidth;
+                int startingColumn = (i - startingRow) * boardLengthWidth;
+                Set<Integer> unionOfValues;
+                triples = new ArrayList<>();
+
+                for(int k = 0; k < boardLengthWidth; k++)// added to rows
+                {
+                    for(int l = 0; l < boardLengthWidth; l++) // added to columns
+                    {
+                        String key = (startingRow + k) + "," + (startingColumn + l);
+                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(j))
+                        {
+                            List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                            if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
+                                possibleValues.add(cellPossibleValues);
+                                cellKeys.add(key);
+                                triples.add(key);
+
+                            }
+
+                        }
+
+                    }
+                }
+                unionOfValues = new HashSet<>();
+                for(List<Integer> possible: possibleValues)
+                {
+                    unionOfValues.addAll(possible);
+
+                }
+
+                if (possibleValues.size() == 3 && unionOfValues.size() == 3) { // A Naked Triple is found
+                    List<Integer> tripleValues = new ArrayList<>(unionOfValues);
+                    // Remove these numbers from other cells' possible values in the same row
+                    for(int k = 0; k < boardLengthWidth; k++)// added to rows
+                    {
+                        for(int l = 0; l < boardLengthWidth; l++) // added to columns
+                        {
+                            String key = (startingRow + k) + "," + (startingColumn + l);
+                            if (possibleNumbers.get(key)!= null && !triples.contains(key) ) {
+                                if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+                                    updatePossibleNumbersAndCounts(key, null, unionOfValues.stream().toList(), false);
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    /**
+     * @author Yahya
+     */
+    public void hiddenSingles(){
+
+        // hidden singles in rows
+        hiddenSinglesForRowAndCol(true);
+
+        // hidden singles in columns
+        hiddenSinglesForRowAndCol(false);
+
+        // hidden singles in subboard
+        hiddenSinglesForSubBoard();
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void hiddenSinglesForRowAndCol(boolean proccingrows) {
+
+        for (int index = 0; index < boardSize; index++) {
+            List<String> cellKeys = new ArrayList<>();
+            for (int rows = 0; rows < boardSize; rows++) {
+                for (int columns = 0; columns < boardSize; columns++) {
+                    String key = rows + "," + columns;
+                    int rowcolumn = proccingrows ? rows : columns;
+                    if (possibleNumbers.get(key) != null && index == rowcolumn) {
+                        cellKeys.add(key);
+
+                    }
+                }
+            }
+
+            for(int number = 1; number <= boardSize; number++) {
+                int count = proccingrows ? valuePossibleCountRows[number][index] : valuePossibleCountColumns[number][index];
+                if (count == 1 ) {
+                    for(String key : cellKeys) {
+                        if(possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size()>1){
+                            List<Integer> keyValues = new ArrayList<>(possibleNumbers.get(key));
+                            keyValues.remove((Integer) number);
+                            updatePossibleNumbersAndCounts(key, null, keyValues, false);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void hiddenSinglesForSubBoard() {
+
+        for (int index = 0; index < boardSize; index++) {
+            List<String> cellKeys = new ArrayList<>();
+            for (int rows = 0; rows < boardSize; rows++) {
+                for (int columns = 0; columns < boardSize; columns++) {
+                    String key = rows + "," + columns;
+                    int subBoardsNumber = board.findSubBoardNumber(rows,columns);
+                    if (possibleNumbers.get(key) != null && index == subBoardsNumber) {
+                        cellKeys.add(key);
+
+                    }
+                }
+            }
+            for (int number = 1; number <= boardSize; number++) {
+
+                if (valuePossibleCountSubBoards[number][index] == 1) {
+                    for (String key : cellKeys) {
+                        if (possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size() > 1) {
+                            List<Integer> keyValues = new ArrayList<>(possibleNumbers.get(key));
+                            keyValues.remove((Integer) number);
+                            updatePossibleNumbersAndCounts(key, null, keyValues, false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Yahya
+     */
+    public void hiddenTriples(){
+
+        // hidden triples in rows
+        hiddenTriplesCRcombo(true);
+
+        // hidden Triples in columns
+        hiddenTriplesCRcombo(false);
+
+        // hidden Triples in subboard
+        hiddenTriplesForSubBoards();
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void hiddenTriplesForSubBoards(){
+        List<String> quads;
+        for(int boardNo = 0; boardNo < boardSize; boardNo++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+            for (int row = 0; row < boardSize; row++) {
+                for (int col = 0; col < boardSize; col++) {
+                    String key = row + "," + col;
+                    List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                    boolean verifySubBoardNo = board.findSubBoardNumber(row,col) == boardNo;
+                    if(!verifySubBoardNo) continue;
+                    if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
+                        possibleValues.add(cellPossibleValues);
+                        cellKeys.add(key);
+                    }
+                }
+            }
+
+            if(cellKeys.size() >= 3) {
+                for (int i = 0; i < possibleValues.size(); i++) {
+                    for (int j = i + 1; j < possibleValues.size(); j++) {
+                        for (int k = j + 1; k < possibleValues.size(); k++) {
+
+                            quads = new ArrayList<>();
+                            Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                            unionOfValues.addAll(possibleValues.get(j));
+                            unionOfValues.addAll(possibleValues.get(k));
+                            quads.add(cellKeys.get(i));
+                            quads.add(cellKeys.get(j));
+                            quads.add(cellKeys.get(k));
+                            Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
+                            boolean quadsVerified = verifyTriples(quads, combos);
+                            if ( quadsVerified) {
+                                for (String position : quads) {
+                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
+                                    valuesDuplicate.removeAll(combos);
+                                    updatePossibleNumbersAndCounts(position, null, valuesDuplicate, false);
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void hiddenTriplesCRcombo(boolean processRows) {
+
+
+        List<String> quads;
+
+        for (int intial = 0; intial < boardSize; intial++) {
+            List<List<Integer>> possibleValues = new ArrayList<>();
+            List<String> cellKeys = new ArrayList<>();
+
+            // Collect possible values and keys for all cells in the row/column
+            for (int secondary = 0; secondary < boardSize; secondary++) {
+                String key = processRows? intial + "," + secondary : secondary + "," + intial;
+                List<Integer> cellPossibleValues = possibleNumbers.get(key);
+                if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
+                    possibleValues.add(cellPossibleValues);
+                    cellKeys.add(key);
+                }
+            }
+            if(cellKeys.size() >= 3) {
+                for (int i = 0; i < possibleValues.size(); i++) {
+                    for (int j = i + 1; j < possibleValues.size(); j++) {
+                        for (int k = j + 1; k < possibleValues.size(); k++) {
+                            quads = new ArrayList<>();
+                            Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
+                            unionOfValues.addAll(possibleValues.get(j));
+                            unionOfValues.addAll(possibleValues.get(k));
+                            quads.add(cellKeys.get(i));
+                            quads.add(cellKeys.get(j));
+                            quads.add(cellKeys.get(k));
+
+                            Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
+                            boolean quadsVerified = verifyTriples(quads, combos);
+
+                            if ( quadsVerified) {
+
+
+                                for (String position : quads) {
+                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
+                                    valuesDuplicate.removeAll(combos);
+                                    updatePossibleNumbersAndCounts(position, null, valuesDuplicate, false);
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Yahya
+     */
+    private boolean verifyTriples(List<String> quads, Set<Integer> combos) {
+
+        if(!combos.isEmpty()) {
+            for (String position : quads) {
+                for (Integer number : possibleNumbers.get(position)) {
+                    if (!combos.contains(number)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @author Yahya
+     */
+    private Set<Integer> findHiddenTriples(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
+
+        List<Integer> valuesList = new ArrayList<>(unionOfValues);
+        if(unionOfValues.size() >= 4) {
+            for (int i = 0; i < valuesList.size(); i++) {
+                for (int j = i + 1; j < valuesList.size(); j++) {
+                    for (int k = j + 1; k < valuesList.size(); k++) {
+                        boolean foundHiddenQuads = true;
+                        Set<Integer> combinations = new HashSet<>();
+                        combinations.add(valuesList.get(i));
+                        combinations.add(valuesList.get(j));
+                        combinations.add(valuesList.get(k));
+                        if (combinations.size() == 3) {
+                            boolean isValidCombination = true;
+                            // Check each cell outside the quads to ensure the combination doesn't appear
+                            for (String cellKey : cellKeys) {
+                                if (!quads.contains(cellKey)) { // Exclude cells in quads
+                                    for (Integer number : combinations) {
+                                        if (possibleNumbers.get(cellKey).contains(number)) {
+                                            isValidCombination = false;
+                                            break; // Break from checking this combination
+                                        }
+                                    }
+                                    if (!isValidCombination) {
+                                        break; // Break from checking cells as one number was found outside quads
+                                    }
+                                }
+                            }
+
+                            if (isValidCombination) {
+                                return combinations; // Found a valid combination
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return new HashSet<>();
+    }
+
+    /**
+     * @author Yahya
+     */
+    public void bug() {
+        applybug();
+    }
+
+    /**
+     * @author Yahya
+     */
+    private boolean applybug() {
+        HashMap<String, List<Integer>> bivalueCells = findBivalueCells();
+        String trivalueCellKey = findTrivalueCell();
+        if (!trivalueCellKey.isEmpty()) {
+            boolean result = checkAndResolveBug(trivalueCellKey);
+            return result;
+        }
+        return false;
+    }
+
+    /**
+     * @author Yahya
+     */
+    private HashMap<String, List<Integer>> findBivalueCells() {
+        HashMap<String, List<Integer>> bivalueCells = new HashMap<>();
+        for (String key : possibleNumbers.keySet()) {
+            List<Integer> values = possibleNumbers.get(key);
+            if (values.size() == 2) {
+                String[] parts = key.split(",");
+                int row = Integer.parseInt(parts[0]);
+                int column = Integer.parseInt(parts[1]);
+                int subBoard = board.findSubBoardNumber(row, column);
+
+                // Check the appearance frequency within row, column, and sub-board
+                bivalueCells.put(key, new ArrayList<>(values));
+            }
+        }
+
+        return bivalueCells;
+    }
+
+    /**
+     * @author Yahya
+     */
+    private String findTrivalueCell() {
+        for (String key : possibleNumbers.keySet()) {
+            List<Integer> values = possibleNumbers.get(key);
+            if (values.size() == 3) {
+                return key;
+            }
+        }
+        return "";
+    }
+
+    /**
+     * @author Yahya
+     */
+    private boolean checkAndResolveBug(String trivalueCellKey) {
+        List<Integer> values = possibleNumbers.get(trivalueCellKey);
+        String[] parts = trivalueCellKey.split(",");
+        int row = Integer.parseInt(parts[0]);
+        int column = Integer.parseInt(parts[1]);
+        int subBoard = board.findSubBoardNumber(row, column);
+
+        // Gather all cells in the row, column, and sub-board
+        List<String> rowKeys = getRowKeys(row);
+        List<String> columnKeys = getColumnKeys(column);
+        List<String> subBoardKeys = getCellsInSubBoard(subBoard);
+
+        // Count the occurrences of each number
+        int[] countsInRow = new int[board.getBoardSize() + 1];
+        int[] countsInColumn = new int[board.getBoardSize() + 1];
+        int[] countsInSubBoard = new int[board.getBoardSize() + 1];
+        updateCounts(rowKeys, countsInRow);
+        updateCounts(columnKeys, countsInColumn);
+        updateCounts(subBoardKeys, countsInSubBoard);
+        for (int value : values) {
+            if (countsInRow[value] == 3 && countsInColumn[value] == 3 && countsInSubBoard[value] == 3) {
+                // If the value appears exactly three times in row, column, and sub-board
+                List<Integer> valuesToBeRemoved = new ArrayList<>(possibleNumbers.get(trivalueCellKey));
+                valuesToBeRemoved.remove((Integer) value);
+                updatePossibleNumbersAndCounts(trivalueCellKey, null, valuesToBeRemoved, false); // Set correct value and update counts
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void updateCounts(List<String> keys, int[] counts) {
+        for (String key : keys) {
+            List<Integer> possibleValues = possibleNumbers.get(key);
+            if (possibleValues != null) {
+                for (int value : possibleValues) {
+                    counts[value]++;
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Yahya
+     */
+    private List<String> getRowKeys(int row) {
+        List<String> keys = new ArrayList<>();
+        for (int col = 0; col < board.getBoardSize(); col++) {
+            keys.add(row + "," + col);
+        }
+        return keys;
+    }
+
+    /**
+     * @author Yahya
+     */
+    private List<String> getColumnKeys(int column) {
+        List<String> keys = new ArrayList<>();
+        for (int row = 0; row < board.getBoardSize(); row++) {
+            keys.add(row + "," + column);
+        }
+        return keys;
+    }
+
+    /**
+     * @author Yahya
+     */
+    public List<String> getCellsInSubBoard(int subBoardIndex) {
+        List<String> cellKeys = new ArrayList<>();
+        int subBoardSize = board.getBoardLengthWidth();  // Assuming square sub-boards in a square grid
+        int startingRow = (subBoardIndex / subBoardSize) * subBoardSize;
+        int startingColumn = (subBoardIndex - startingRow) * subBoardSize;
+
+        for (int row = startingRow; row < startingRow + subBoardSize; row++) {
+            for (int column = startingColumn; column < startingColumn + subBoardSize; column++) {
+                cellKeys.add(row + "," + column);  // Collecting cell keys in "row,column" format
+            }
+        }
+        return cellKeys;
     }
 
     /**
@@ -2186,9 +2156,7 @@ public class Solver
                                     {
                                         if(board.findSubBoardNumber(substituteA, substituteB) != previousSubBoard) // remove value from row or column if on other sub-boards
                                         {
-                                            updatePossibleCounts(value, null, substituteA, substituteB,false);
-
-                                            possibleNumbers.get(key).remove((Integer) value);
+                                            updatePossibleNumbersAndCounts(key, value, null, false);
                                         }
                                     }
                                 }
@@ -2216,9 +2184,7 @@ public class Solver
 
                                             if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(value))
                                             {
-                                                updatePossibleCounts(value, null, startingRow + substituteA, startingColumn + substituteB,false);
-
-                                                possibleNumbers.get(key).remove((Integer) value); // remove value from the rest of the sub-board
+                                                updatePossibleNumbersAndCounts(key, value, null, false);
                                             }
                                         }
                                     }
@@ -2278,9 +2244,11 @@ public class Solver
                             rowColumnPositions.add(new int[] {substituteA, substituteB}); // store position of value
                         }
 
-                        if(rowOrColumnB == boardSize - 1) // last iteration
+                        if(rowColumnPositions.size() == 2) // both positions found
                         {
                             processedForXWings.add(rowColumnPositions); // add positions to x-wing candidates list
+
+                            break;
                         }
                     }
                 }
@@ -2313,9 +2281,7 @@ public class Solver
 
                                         if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(value))
                                         {
-                                            updatePossibleCounts(value, null, substituteC, substituteD,false);
-
-                                            possibleNumbers.get(key).remove((Integer) value);
+                                            updatePossibleNumbersAndCounts(key, value, null, false);
                                         }
 
                                         if(processed == 0) // switch to process other row or column
@@ -2345,14 +2311,23 @@ public class Solver
     /**
      * @author Danny
      */
-    private void yWingWithXYZExtension(boolean runWithExtension)
+    private void yWingWithXYZExtension()
+    {
+        yWingWithXYZExtension(false);
+        yWingWithXYZExtension(true);
+    }
+
+    /**
+     * @author Danny
+     */
+    private void yWingWithXYZExtension(boolean runXYZExtension)
     {
         List<int[]> cellsWithValue;
         List<int[]> hingeCells;
         List<int[]> pincerCandidateCells;
         List<int[]> pincerCells;
         List<int[]> pincersProcessed;
-        int pincersValuesNeeded = !runWithExtension ? 2 : 3;
+        int pincersValuesNeeded = !runXYZExtension ? 2 : 3;
 
         for(int value = 1; value <= boardSize; value++)
         {
@@ -2377,12 +2352,12 @@ public class Solver
                             {
                                 pincerCandidateCells.add(new int[]{row, column});
                             }
-                            else if(runWithExtension && possibleNumbers.get(key).size() == 3) // save keys of size 3 that contains value (hinges)
+                            else if(runXYZExtension && possibleNumbers.get(key).size() == 3) // save keys of size 3 that contains value (hinges)
                             {
                                 hingeCells.add(new int[]{row, column});
                             }
                         }
-                        else if(!runWithExtension && possibleNumbers.get(key).size() == 2) // save keys of size 2 that doesn't contain value (hinges)
+                        else if(!runXYZExtension && possibleNumbers.get(key).size() == 2) // save keys of size 2 that doesn't contain value (hinges)
                         {
                             hingeCells.add(new int[] {row, column});
                         }
@@ -2421,7 +2396,7 @@ public class Solver
                             {
                                 if(hingeRow == pincerCandidateRow || hingeColumn == pincerCandidateColumn || board.findSubBoardNumber(hingeRow, hingeColumn) == board.findSubBoardNumber(pincerCandidateRow, pincerCandidateColumn)) // pincer has to be visible from the hinge
                                 {
-                                    if(runWithExtension && pincerCells.isEmpty()) // in extended yWing (XYZWing) the hinge itself is always a pincer
+                                    if(runXYZExtension && pincerCells.isEmpty()) // in extended yWing (XYZWing) the hinge itself is always a pincer
                                     {
                                         pincerCells.add(hinge);
                                     }
@@ -2440,29 +2415,26 @@ public class Solver
                 {
                     pincersProcessed = new ArrayList<>();
 
-                    if(runWithExtension) // possibly add the hinge cell
+                    if(runXYZExtension) // possibly add the hinge cell
                     {
                         pincersProcessed.add(pincerCells.get(0));
                     }
 
-                    List<int[]> processedBeforeA; // variables for resetting instead of removing (less intensive and faster)
-                    List<int[]> processedBeforeB;
+                    // Find and process all pincer combinations
+                    List<int[]> pincersProcessedStart = new ArrayList<>(pincersProcessed);
 
-                    for(int pincerA = (!runWithExtension ? 0 : 1); pincerA < pincerCells.size() - 1; pincerA++)
+                    for(int pincerA = (!runXYZExtension ? 0 : 1); pincerA < pincerCells.size() - 1; pincerA++)
                     {
-                        processedBeforeA = new ArrayList<>(pincersProcessed);
-                        pincersProcessed.add(pincerCells.get(pincerA));
-
                         for(int pincerB = pincerA + 1; pincerB < pincerCells.size(); pincerB++)
                         {
-                            processedBeforeB = new ArrayList<>(pincersProcessed);
+                            pincersProcessed.add(pincerCells.get(pincerA)); // always add pincerA and pincerB to combination
                             pincersProcessed.add(pincerCells.get(pincerB));
 
-                            // Make sure all hinge-values are present in the non-hinge pincers of the combination
+                            // Make sure all hinge values are present in the non-hinge pincers of the combination
                             boolean[] hingeValuesPresent = new boolean[possibleNumbers.get(hingeKey).size()];
                             int hingeValuesInPincers = 0;
 
-                            for(int pincer = (!runWithExtension ? 0 : 1); pincer < pincersProcessed.size(); pincer++)
+                            for(int pincer = (!runXYZExtension ? 0 : 1); pincer < pincersProcessed.size(); pincer++)
                             {
                                 for(int hingeValue = 0; hingeValue < hingeValuesPresent.length; hingeValue++)
                                 {
@@ -2494,10 +2466,8 @@ public class Solver
                                 advancedWingElimination(value, cellsWithValue, pincersProcessed);
                             }
 
-                            pincersProcessed = processedBeforeB; // resetting
+                            pincersProcessed = new ArrayList<>(pincersProcessedStart); // reset combination
                         }
-
-                        pincersProcessed = processedBeforeA;
                     }
                 }
             }
@@ -2507,23 +2477,23 @@ public class Solver
     /**
      * @author Danny
      */
-    private void wXYZWingWithExtension()
+    private void wXYZWingExtended()
     {
-        wXYZWingWithExtension(false);
-        //wXYZWingExtended(true);
+        wXYZWingExtended(false);
+        wXYZWingExtended(true);
     }
 
     /**
      * @author Danny
      */
-    private void wXYZWingWithExtension(boolean runWithExtension)
+    private void wXYZWingExtended(boolean runExtended)
     {
         List<int[]> cellsWithValue;
         List<int[]> hingeCells;
         List<int[]> pincerCandidateCells;
         List<int[]> pincerCells;
         List<int[]> pincersProcessed;
-        int pincersValuesNeeded = !runWithExtension ? 4 : 5;
+        int pincersValuesNeeded = !runExtended ? 4 : 5;
 
         for(int value = 1; value <= boardSize; value++)
         {
@@ -2548,7 +2518,7 @@ public class Solver
                             {
                                 pincerCandidateCells.add(new int[] {row, column});
                             }
-                            else if(possibleNumbers.get(key).size() == 3 || possibleNumbers.get(key).size() == 4 || (runWithExtension && possibleNumbers.get(key).size() == 5)) // save keys of size 3-5 that contains value (both)
+                            else if(possibleNumbers.get(key).size() == 3 || possibleNumbers.get(key).size() == 4 || (runExtended && possibleNumbers.get(key).size() == 5)) // save keys of size 3-5 that contains value (both)
                             {
                                 hingeCells.add(new int[] {row, column});
                                 pincerCandidateCells.add(new int[] {row, column});
@@ -2556,7 +2526,7 @@ public class Solver
                         }
                         else
                         {
-                            if(possibleNumbers.get(key).size() == 2 || possibleNumbers.get(key).size() == 3 || (runWithExtension && possibleNumbers.get(key).size() == 4)) // save keys of size 2-4 that doesn't contain value (hinges)
+                            if(possibleNumbers.get(key).size() == 2 || possibleNumbers.get(key).size() == 3 || (runExtended && possibleNumbers.get(key).size() == 4)) // save keys of size 2-4 that doesn't contain value (hinges)
                             {
                                 hingeCells.add(new int[] {row, column});
                             }
@@ -2576,18 +2546,17 @@ public class Solver
                     }
 
                     pincerCells = new ArrayList<>();
-                    Set<Integer> unionHingeValues = new HashSet<>();
+                    Set<Integer> hingeValuesUnion = new HashSet<>();
 
-                    boolean multipleHinges = firstHinge != secondHinge;
+                    int hingesInvolved = firstHinge == secondHinge ? 1 : 2;
                     String hingeKeyA = hingeCells.get(firstHinge)[0] + "," + hingeCells.get(firstHinge)[1];
-                    String hingeKeyB = !multipleHinges ? null : hingeCells.get(secondHinge)[0] + "," + hingeCells.get(secondHinge)[1];
+                    String hingeKeyB = hingesInvolved == 1 ? null : hingeCells.get(secondHinge)[0] + "," + hingeCells.get(secondHinge)[1];
 
                     for(int[] pincer : pincerCandidateCells)
                     {
                         String pincerKey = pincer[0] + "," + pincer[1];
 
-                        // Make sure the pincer has at least one value in common with both hinges
-                        int hingesInvolved = !multipleHinges ? 1 : 2;
+                        // Make sure the pincer has at least one value in common with the hinges
                         int valuesInCommon = 0;
 
                         for(int hinge = 0; hinge < hingesInvolved; hinge++)
@@ -2620,21 +2589,21 @@ public class Solver
                             int pincerCandidateRow = pincer[0];
                             int pincerCandidateColumn = pincer[1];
 
-                            if((hingeRowA != pincerCandidateRow || hingeColumnA != pincerCandidateColumn) && (!multipleHinges || hingeRowB != pincerCandidateRow || hingeColumnB != pincerCandidateColumn)) // pincer can't be the same as the hinges
+                            if((hingeRowA != pincerCandidateRow || hingeColumnA != pincerCandidateColumn) && (hingesInvolved == 1 || hingeRowB != pincerCandidateRow || hingeColumnB != pincerCandidateColumn)) // pincer can't be the same as the hinges
                             {
                                 if(hingeRowA == pincerCandidateRow || hingeColumnA == pincerCandidateColumn || board.findSubBoardNumber(hingeRowA, hingeColumnA) == board.findSubBoardNumber(pincerCandidateRow, pincerCandidateColumn)) // pincer has to be visible from first hinge
                                 {
-                                    if(!multipleHinges || hingeRowB == pincerCandidateRow || hingeColumnB == pincerCandidateColumn || board.findSubBoardNumber(hingeRowB, hingeColumnB) == board.findSubBoardNumber(pincerCandidateRow, pincerCandidateColumn)) // pincer has to be visible from second hinge
+                                    if(hingesInvolved == 1 || hingeRowB == pincerCandidateRow || hingeColumnB == pincerCandidateColumn || board.findSubBoardNumber(hingeRowB, hingeColumnB) == board.findSubBoardNumber(pincerCandidateRow, pincerCandidateColumn)) // pincer has to be visible from second hinge
                                     {
                                         if(pincerCells.isEmpty()) // in wXYZWing the hinges themselves are always pincers
                                         {
                                             pincerCells.add(hingeCells.get(firstHinge));
-                                            unionHingeValues.addAll(possibleNumbers.get(hingeKeyA));
+                                            hingeValuesUnion.addAll(possibleNumbers.get(hingeKeyA));
 
-                                            if(multipleHinges)
+                                            if(hingesInvolved == 2)
                                             {
                                                 pincerCells.add(hingeCells.get(secondHinge));
-                                                unionHingeValues.addAll(possibleNumbers.get(hingeKeyB));
+                                                hingeValuesUnion.addAll(possibleNumbers.get(hingeKeyB));
                                             }
                                         }
 
@@ -2645,78 +2614,57 @@ public class Solver
                         }
                     }
 
-                    // Process every combination of found pincer cells (with hinges always) for potential value elimination
+                    // Process every combination of found pincer cells (hinges always present) for potential value elimination
                     if(pincerCells.size() >= pincersValuesNeeded)
                     {
-                        pincersProcessed = new ArrayList<>();
-                        Set<Integer> unionPincerValues = new HashSet<>(unionHingeValues);
-                        List<Integer> unionHingeValueList = unionHingeValues.stream().toList(); // get all unique hinge values on a list
+                        pincersProcessed = new ArrayList<>(Collections.singleton(pincerCells.get(0))); // always add the first hinge cell
+                        List<Integer> unionHingeValueList = hingeValuesUnion.stream().toList(); // get all unique hinge values on a list
+                        Set<Integer> pincerValueUnion = new HashSet<>(hingeValuesUnion);
 
-                        pincersProcessed.add(pincerCells.get(0)); // always add first hinge cell
-
-                        if(multipleHinges) // possibly add second hinge cell
+                        if(hingesInvolved == 2) // add the second hinge
                         {
                             pincersProcessed.add(pincerCells.get(1));
+                            pincerValueUnion.addAll(possibleNumbers.get(pincerCells.get(1)[0] + "," + pincerCells.get(1)[1]));
                         }
 
-                        List<int[]> processedBeforeA; // variables for resetting instead of removing (less intensive and faster)
-                        List<int[]> processedBeforeB;
-                        List<int[]> processedBeforeC;
-                        List<int[]> processedBeforeD;
-                        Set<Integer> unionBeforeA;
-                        Set<Integer> unionBeforeB;
-                        Set<Integer> unionBeforeC;
-                        Set<Integer> unionBeforeD;
+                        // Find and process all pincer combinations
+                        List<int[]> pincersProcessedStart = new ArrayList<>(pincersProcessed);
+                        Set<Integer> pincerValueUnionStart = new HashSet<>(pincerValueUnion);
 
-                        for(int pincerA = (!multipleHinges ? 1 : 2); pincerA < pincerCells.size() - 1; pincerA++)
+                        for(int pincerA = hingesInvolved; pincerA < pincerCells.size() - 1; pincerA++)
                         {
-                            processedBeforeA = new ArrayList<>(pincersProcessed);
-                            pincersProcessed.add(pincerCells.get(pincerA));
-                            unionBeforeA = new HashSet<>(unionPincerValues);
-                            unionPincerValues.addAll(possibleNumbers.get(pincerCells.get(pincerA)[0] + "," + pincerCells.get(pincerA)[1]));
-
                             for(int pincerB = pincerA + 1; pincerB < pincerCells.size(); pincerB++)
                             {
-                                processedBeforeB = new ArrayList<>(pincersProcessed);
-                                pincersProcessed.add(pincerCells.get(pincerB));
-                                unionBeforeB = new HashSet<>(unionPincerValues);
-                                unionPincerValues.addAll(possibleNumbers.get(pincerCells.get(pincerB)[0] + "," + pincerCells.get(pincerB)[1]));
-
-                                for(int pincerC = (!(multipleHinges && !runWithExtension) ? pincerB + 1 : pincerB); pincerC < pincerCells.size(); pincerC++)
+                                for(int pincerC = (!runExtended ? (hingesInvolved != 1 ? pincerB : pincerB + 1) : pincerB + 1); pincerC < pincerCells.size(); pincerC++)
                                 {
-                                    processedBeforeC = null;
-                                    unionBeforeC = null;
-
-                                    if(!(multipleHinges && !runWithExtension))
+                                    for(int pincerD = (!runExtended ? pincerC : (hingesInvolved != 1 ? pincerC : pincerC + 1)); pincerD < pincerCells.size(); pincerD++)
                                     {
-                                        processedBeforeC = new ArrayList<>(pincersProcessed);
-                                        pincersProcessed.add(pincerCells.get(pincerC));
-                                        unionBeforeC = new HashSet<>(unionPincerValues);
-                                        unionPincerValues.addAll(possibleNumbers.get(pincerCells.get(pincerC)[0] + "," + pincerCells.get(pincerC)[1]));
-                                    }
+                                        pincersProcessed.add(pincerCells.get(pincerA)); // always add pincerA and pincerB to combination
+                                        pincersProcessed.add(pincerCells.get(pincerB));
+                                        pincerValueUnion.addAll(possibleNumbers.get(pincerCells.get(pincerA)[0] + "," + pincerCells.get(pincerA)[1]));
+                                        pincerValueUnion.addAll(possibleNumbers.get(pincerCells.get(pincerB)[0] + "," + pincerCells.get(pincerB)[1]));
 
-                                    for(int pincerD = (!multipleHinges && runWithExtension ? pincerC + 1 : pincerC); pincerD < pincerCells.size(); pincerD++)
-                                    {
-                                        processedBeforeD = null;
-                                        unionBeforeD = null;
-
-                                        if(!multipleHinges && runWithExtension)
+                                        if(hingesInvolved == 1 || runExtended) // add pincerC to combination
                                         {
-                                            processedBeforeD = new ArrayList<>(pincersProcessed);
-                                            pincersProcessed.add(pincerCells.get(pincerD));
-                                            unionBeforeD = new HashSet<>(unionPincerValues);
-                                            unionPincerValues.addAll(possibleNumbers.get(pincerCells.get(pincerD)[0] + "," + pincerCells.get(pincerD)[1]));
+                                            pincersProcessed.add(pincerCells.get(pincerC));
+                                            pincerValueUnion.addAll(possibleNumbers.get(pincerCells.get(pincerC)[0] + "," + pincerCells.get(pincerC)[1]));
                                         }
 
-                                        // Make sure all hinge-values are present in the non-hinge pincers of the combination
+                                        if(hingesInvolved == 1 && runExtended) // add pincerD to combination
+                                        {
+                                            pincersProcessed.add(pincerCells.get(pincerD));
+                                            pincerValueUnion.addAll(possibleNumbers.get(pincerCells.get(pincerD)[0] + "," + pincerCells.get(pincerD)[1]));
+                                        }
+
+                                        // Make sure all hinge values are present in the non-hinge pincers of the combination
                                         boolean[] hingeValuesPresent = new boolean[unionHingeValueList.size()];
                                         int hingeValuesInPincers = 0;
 
-                                        for(int pincer = (!multipleHinges ? 1 : 2); pincer < pincersProcessed.size(); pincer++) // skip hinges
+                                        for(int pincer = hingesInvolved; pincer < pincersProcessed.size(); pincer++) // skip hinges
                                         {
                                             for(int hingeValue = 0; hingeValue < unionHingeValueList.size(); hingeValue++)
                                             {
-                                                if(unionHingeValueList.get(hingeValue) == value)
+                                                if(unionHingeValueList.get(hingeValue) == value) // value is always present in pincers
                                                 {
                                                     if(!hingeValuesPresent[hingeValue])
                                                     {
@@ -2738,22 +2686,22 @@ public class Solver
                                             }
                                         }
 
-                                        // Perform final checks of the pincer combination
-                                        if(hingeValuesInPincers == pincersValuesNeeded)
+                                        // Perform final checks of the combination
+                                        if(pincerValueUnion.size() == pincersValuesNeeded && hingeValuesInPincers == pincersValuesNeeded)
                                         {
                                             boolean hasNonRestricted = false;
                                             boolean allValuesObservable = true; // it is simpler to detect a negative here
 
                                             nestedLoops:
                                             {
-                                                for(Integer unionValue : unionPincerValues)
+                                                for(Integer unionValue : pincerValueUnion)
                                                 {
                                                     // Check if there is at least one non-restricted pincer with value and none with other values
                                                     if(unionValue == value)
                                                     {
-                                                        for(int nonRestrictedPincer = !multipleHinges ? 1 : 2; nonRestrictedPincer < (pincersValuesNeeded - 1); nonRestrictedPincer++) // skip hinges because they are always observable
+                                                        for(int nonRestrictedPincer = hingesInvolved; nonRestrictedPincer < (pincersValuesNeeded - 1); nonRestrictedPincer++) // skip hinges because they are always observable
                                                         {
-                                                            for(int otherPincer = !multipleHinges ? 1 : 2; otherPincer < pincersProcessed.size(); otherPincer++)
+                                                            for(int otherPincer = hingesInvolved; otherPincer < pincersProcessed.size(); otherPincer++)
                                                             {
                                                                 if(otherPincer == nonRestrictedPincer)
                                                                 {
@@ -2789,7 +2737,7 @@ public class Solver
                                                     // Check if all pincers with same union values (except value) are observable by each other
                                                     List<int[]> unionValuePresent = new ArrayList<>();
 
-                                                    for(int pincer = !multipleHinges ? 1 : 2; pincer < pincersProcessed.size(); pincer++) // skip hinges because they are always observable
+                                                    for(int pincer = hingesInvolved; pincer < pincersProcessed.size(); pincer++) // skip hinges because they are always observable
                                                     {
                                                         if(possibleNumbers.get(pincersProcessed.get(pincer)[0] + "," + pincersProcessed.get(pincer)[1]).contains(unionValue))
                                                         {
@@ -2827,34 +2775,21 @@ public class Solver
                                             }
                                         }
 
-                                        if(!multipleHinges && runWithExtension)
-                                        {
-                                            pincersProcessed = processedBeforeD; // resetting
-                                            unionPincerValues = unionBeforeD;
-                                        }
-                                        else // only run the loop once
+                                        pincersProcessed = new ArrayList<>(pincersProcessedStart); // reset combination
+                                        pincerValueUnion = new HashSet<>(pincerValueUnionStart);
+
+                                        if(!(runExtended && hingesInvolved == 1)) // pincerD not part of combination, so only run loop once
                                         {
                                             break;
                                         }
                                     }
 
-                                    if(!(multipleHinges && !runWithExtension))
-                                    {
-                                        pincersProcessed = processedBeforeC;
-                                        unionPincerValues = unionBeforeC;
-                                    }
-                                    else
+                                    if(!runExtended && hingesInvolved == 2) // pincerC not part of combination, so only run loop once
                                     {
                                         break;
                                     }
                                 }
-
-                                pincersProcessed = processedBeforeB;
-                                unionPincerValues = unionBeforeB;
                             }
-
-                            pincersProcessed = processedBeforeA;
-                            unionPincerValues = unionBeforeA;
                         }
                     }
                 }
@@ -2869,45 +2804,45 @@ public class Solver
     {
         List<String> observedCollectively = new ArrayList<>();
         List<List<String>> observedIndividually = new ArrayList<>();
-        int[] pincerAKey = pincersProcessed.get(0);
-        int[] pincerBKey = pincersProcessed.get(1);
-        int[] pincerCKey = pincersProcessed.size() >= 3 ? pincersProcessed.get(2) : null;
-        int[] pincerDKey = pincersProcessed.size() >= 4 ? pincersProcessed.get(3) : null;
-        int[] pincerEKey = pincersProcessed.size() == 5 ? pincersProcessed.get(4) : null;
+        int[] pincerA = pincersProcessed.get(0);
+        int[] pincerB = pincersProcessed.get(1);
+        int[] pincerC = pincersProcessed.size() >= 3 ? pincersProcessed.get(2) : null;
+        int[] pincerD = pincersProcessed.size() >= 4 ? pincersProcessed.get(3) : null;
+        int[] pincerE = pincersProcessed.size() == 5 ? pincersProcessed.get(4) : null;
 
         // Find collectively and individually observed non-pincer cells with value
-        for(int[] pincerKey : pincersProcessed)
+        for(int[] pincer : pincersProcessed)
         {
-            int pincerRow = pincerKey[0];
-            int pincerColumn = pincerKey[1];
+            int pincerRow = pincer[0];
+            int pincerColumn = pincer[1];
+            String pincerKey = (pincerRow + "," + pincerColumn);
 
-            if(!possibleNumbers.get(pincerRow + "," + pincerColumn).contains(value)) // only pincers containing value matters
+            if(!possibleNumbers.get(pincerKey).contains(value)) // only pincers containing value matters
             {
                 continue;
             }
 
             observedIndividually.add(new ArrayList<>());
 
-            for(int[] cellKey : cellsWithValue)
+            for(int[] cell : cellsWithValue)
             {
-                if(Arrays.equals(cellKey, pincerAKey) || Arrays.equals(cellKey, pincerBKey) || pincerCKey != null && Arrays.equals(cellKey, pincerCKey) || pincerDKey != null && Arrays.equals(cellKey, pincerDKey) || pincerEKey != null && Arrays.equals(cellKey, pincerEKey)) // skip if pincer cell
+                if(Arrays.equals(cell, pincerA) || Arrays.equals(cell, pincerB) || pincerC != null && Arrays.equals(cell, pincerC) || pincerD != null && Arrays.equals(cell, pincerD) || pincerE != null && Arrays.equals(cell, pincerE)) // skip if pincer cell
                 {
                     continue;
                 }
 
-                int cellRow = cellKey[0];
-                int cellColumn = cellKey[1];
+                int cellRow = cell[0];
+                int cellColumn = cell[1];
+                String cellKey = (cellRow + "," + cellColumn);
 
                 if(cellRow == pincerRow || cellColumn == pincerColumn || board.findSubBoardNumber(cellRow, cellColumn) == board.findSubBoardNumber(pincerRow, pincerColumn)) // cell with value is observable from pincer
                 {
-                    String key = (cellRow + "," + cellColumn);
-
-                    if(!observedCollectively.contains(key)) // add to list of collectively observed cells (without duplicates)
+                    if(!observedCollectively.contains(cellKey)) // add to list of collectively observed cells (without duplicates)
                     {
-                        observedCollectively.add(key);
+                        observedCollectively.add(cellKey);
                     }
 
-                    observedIndividually.get(observedIndividually.size() - 1).add(key); // add to list of individually observed cells
+                    observedIndividually.get(observedIndividually.size() - 1).add(cellKey); // add to list of individually observed cells
                 }
             }
         }
@@ -2923,43 +2858,44 @@ public class Solver
                 }
                 else if(individualKeys.equals(observedIndividually.get(observedIndividually.size() - 1))) // last iteration, we can eliminate value from cell
                 {
-                    if(possibleNumbers.get(collectiveKey).contains(value)) // only remove if not already removed by another pincer combination
+                    if(possibleNumbers.get(collectiveKey) != null && possibleNumbers.get(collectiveKey).contains(value)) // only remove if not already removed by another pincer combination
                     {
-                        String[] parts = collectiveKey.split(",");
-
-                        updatePossibleCounts(value, null, Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), false);
-                        possibleNumbers.get(collectiveKey).remove((Integer) value);
+                        updatePossibleNumbersAndCounts(collectiveKey, value, null, false);
                     }
                 }
             }
         }
     }
 
-    // god tier debugging
-    public void nsProblemDebug()
+    // god tier debugging (it is!)
+    public void emptyCellsDebug()
     {
         for(int iterations = 1; iterations <= 1000; iterations++)
         {
             System.out.println("Iteration: " + iterations);
 
             Board testBoard = new Board(3, false);
-
             for(int row = 0; row < boardSize; row++)
             {
                 for(int column = 0; column < boardSize; column++)
                 {
                     if(testBoard.getSolver().board.getBoard()[row][column] == 0)
                     {
+                        BoardTester.printBoard(testBoard);
+                        testBoard.getSolver().printPossibleNumbers(true);
                         BoardTester.printBoard(testBoard.getSolver().board);
-                        testBoard.getSolver().printPossibilities(false);
+                        testBoard.getSolver().printPossibleNumbers(false);
 
-                        System.out.println();
+                        System.out.println("Failed...");
+                    }
+                    else if(iterations == 1000)
+                    {
+                        System.out.println("Success!");
+
+                        return;
                     }
                 }
             }
         }
     }
 }
-
-
-
