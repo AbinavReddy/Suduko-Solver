@@ -2298,6 +2298,15 @@ public class Solver
             }
         }
     }
+    
+    /**
+     * @author Danny
+     */
+    private void yWingWithXYZExtension()
+    {
+        yWingWithXYZExtension(false);
+        yWingWithXYZExtension(true);
+    }
 
     /**
      * @author Danny
