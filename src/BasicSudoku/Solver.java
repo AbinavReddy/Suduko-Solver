@@ -2298,15 +2298,6 @@ public class Solver
             }
         }
     }
-    
-    /**
-     * @author Danny
-     */
-    private void yWingWithXYZExtension()
-    {
-        yWingWithXYZExtension(false);
-        yWingWithXYZExtension(true);
-    }
 
     /**
      * @author Danny
@@ -2874,7 +2865,7 @@ public class Solver
         {
             System.out.println("Iteration: " + iterations);
 
-            Board testBoard = new Board(3, false);
+            Board testBoard = new Board(3);
             for(int row = 0; row < boardSize; row++)
             {
                 for(int column = 0; column < boardSize; column++)

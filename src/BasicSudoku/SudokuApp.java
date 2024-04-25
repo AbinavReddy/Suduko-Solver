@@ -35,7 +35,7 @@ private void setBoard(ActionEvent event){
         String text = textField.getText();
         System.out.println(text);
         if(Integer.parseInt(text) > 0){
-            board = new Board(Integer.parseInt(text), false);
+            board = new Board(Integer.parseInt(text));
             changeScene(primaryStage);
         }
     }

@@ -16,7 +16,7 @@ public class Board
     /**
      * @author Danny, Abinav & Yahya
      */
-    public Board(int boardLengthWidth, boolean emptySubBoardsAllowed)
+    public Board(int boardLengthWidth)
     {
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
@@ -41,7 +41,7 @@ public class Board
 
         do
         {
-            initializeBoard(boardLengthWidth * 10, emptySubBoardsAllowed);
+            initializeBoard(boardLengthWidth * 10);
 
             Board boardForSolving = new Board(this);
             solver = new Solver(boardForSolving);
@@ -73,7 +73,7 @@ public class Board
     /**
      * @author Danny & Abinav
      */
-    private void initializeBoard(int filledFromStart, boolean subBoardsCanBeEmpty)
+    private void initializeBoard(int filledFromStart)
     {
         board = new int[boardSize][boardSize];
         filledCells = 0;
@@ -82,35 +82,6 @@ public class Board
         int value;
         int row;
         int column;
-
-        if(!subBoardsCanBeEmpty)
-        {
-            int[] filledInSubBoards = new int[boardSize];
-            int startingRow;
-            int startingColumn;
-            int endingRow;
-            int endingColumn;
-
-            for(int subBoard = 0; subBoard < boardSize; subBoard++)
-            {
-                while(filledInSubBoards[subBoard] == 0) // make sure there is at least one filled cell in each sub-board
-                {
-                    startingRow = (subBoard / boardLengthWidth) * boardLengthWidth;
-                    startingColumn = (subBoard - startingRow) * boardLengthWidth;
-                    endingRow = startingRow + (boardLengthWidth - 1);
-                    endingColumn = startingColumn + (boardLengthWidth - 1);
-
-                    value = randomNumber.nextInt(1, boardSize + 1);
-                    row = randomNumber.nextInt(startingRow, endingRow);
-                    column = randomNumber.nextInt(startingColumn, endingColumn);
-
-                    if(placeValueInCell(row, column, value))
-                    {
-                        filledInSubBoards[findSubBoardNumber(row, column)]++;
-                    }
-                }
-            }
-        }
 
         while(filledCells != filledFromStart) // fill cells randomly until reaching the wanted amount of filled cells
         {
