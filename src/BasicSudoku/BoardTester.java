@@ -8,14 +8,14 @@ public class BoardTester
         Board solverBoard = board.getSolver().board;
         Solver solver = board.getSolver();
 
-        solver.nsProblemDebug();
+        solver.emptyCellsDebug();
 
         /*
         printBoard(board);
-        solver.printPossibilities(true);
-        //testSolver.solveWithStrategies();
+        solver.printPossibleNumbers(true);
+        solver.solveWithStrategies();
         printBoard(solverBoard);
-        solver.printPossibilities(false);
+        solver.printPossibleNumbers(false);
         */
     }
 

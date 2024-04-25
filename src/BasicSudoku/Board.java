@@ -23,7 +23,6 @@ public class Board
         availableCells = boardSize * boardSize;
 
         /*
-        // temp
         board = new int[boardSize][boardSize];
         filledCells = 0;
 
@@ -31,11 +30,14 @@ public class Board
 
         initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
 
+        Board boardForSolving = new Board(this);
+        solver = new Solver(boardForSolving);
+
         solver.possibleValuesInCells();
         */
 
         Random chooseSolvable = new Random();
-        isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (20% chance), 1-4 = solvable (80% chance)
+        isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
 
         do
         {
@@ -163,13 +165,13 @@ public class Board
         }
         else if(board[row][column] != 0)
         {
-            errorMessage = "ERROR: Can't place a value in a filled cell!";
+            errorMessage = "ERROR: Can't place a value in a filled cell!" + " " + row + "," + column + " (" + value + ")";
 
             return false;
         }
         else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value))
         {
-            errorMessage = "ERROR: Value already in row, column or sub-board!";
+            errorMessage = "ERROR: Value already in row, column or sub-board!" + " " + row + "," + column + " (" + value + ")";
 
             return false;
         }
@@ -275,8 +277,6 @@ public class Board
      */
     public boolean solveBoard()
     {
-        solver.possibleValuesInCells();
-
         return solver.solveWithStrategies();
     }
 
@@ -302,14 +302,6 @@ public class Board
     public int getBoardSize()
     {
         return boardSize;
-    }
-
-    /**
-     * @author Danny
-     */
-    public String getErrorMessage()
-    {
-        return errorMessage;
     }
 
     /**
