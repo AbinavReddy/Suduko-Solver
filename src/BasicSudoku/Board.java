@@ -22,11 +22,13 @@ public class Board
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
-        /*
-        board = new int[boardSize][boardSize];
+
+         /*
+         board = new int[boardSize][boardSize];
+
         filledCells = 0;
 
-        solver = new Solver(this);
+
 
         initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
 
@@ -36,7 +38,9 @@ public class Board
         solver.possibleValuesInCells();
         */
 
-        Random chooseSolvable = new Random();
+
+
+       Random chooseSolvable = new Random();
         isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
 
         do
