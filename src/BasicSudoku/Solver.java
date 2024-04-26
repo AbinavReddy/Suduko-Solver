@@ -45,7 +45,7 @@ public class Solver
         //strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
         strategies.add(this::nakedQuads); // working
         strategies.add(this::hiddenQuads); // working
-        strategies.add(this::pointingDuplicatesWithBLR); // working
+        strategies.add(this::pointingPairsWithBLR); // working
         strategies.add(this::xWing); // working
         strategies.add(this::simpleColouring); // working
         strategies.add(this::yWingWithXYZExtension); // working
