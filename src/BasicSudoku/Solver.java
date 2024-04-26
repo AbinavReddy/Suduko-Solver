@@ -38,21 +38,20 @@ public class Solver
         // Add all strategies to a list to avoid repetitive code
         List<Runnable> strategies = new ArrayList<>();
         strategies.add(this::nakedSingles); // working
-        strategies.add(this::hiddenSingles); // working
+         strategies.add(this::hiddenSingles); // working
         strategies.add(this::nakedPairs); // working
-        //strategies.add(this::nakedTriples); // not working (with other strategies)
-        strategies.add(this::hiddenPairs); // working
-        //strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
+        strategies.add(this::nakedTriples); // not working (with other strategies)
+         strategies.add(this::hiddenPairs); // working
+        // strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
         strategies.add(this::nakedQuads); // working
-        strategies.add(this::hiddenQuads); // working
-        strategies.add(this::pointingPairsWithBLR); // working
-        strategies.add(this::xWing); // working
-        strategies.add(this::simpleColouring); // working
-        strategies.add(this::yWingWithXYZExtension); // working
-        strategies.add(this::swordFish); // working
-
-        //strategies.add(this::bug); not working (alone and with other strategies)
-        strategies.add(this::wXYZWingExtended); // working
+         strategies.add(this::hiddenQuads); // working
+         strategies.add(this::pointingPairsWithBLR); // working
+         strategies.add(this::xWing); // working
+         strategies.add(this::simpleColouring); // working
+         strategies.add(this::yWingWithXYZExtension); // working
+         strategies.add(this::swordFish); // working
+        //strategies.add(this::bug); //not working (alone and with other strategies)
+         strategies.add(this::wXYZWingExtended); // working
 
         boolean possibleValuesChanged;
         int possibleCountBefore;
@@ -1643,7 +1642,8 @@ public class Solver
                                 String key = row + "," + col;
                                 if(possibleNumbers.get(key)!= null && !triples.contains(key)) {
                                     if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
-                                        updatePossibleNumbersAndCounts(key, null, unionOfValues.stream().toList(), false);
+                                        List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
+                                        updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                     }
                                 }
                             }
@@ -1693,7 +1693,8 @@ public class Solver
                                 String key = row + "," + col;
                                 if (possibleNumbers.get(key) != null && !triples.contains(key)) {
                                     if (possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
-                                        updatePossibleNumbersAndCounts(key, null, unionOfValues.stream().toList(), false);
+                                        List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
+                                        updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                     }
                                 }
                             }
@@ -1758,7 +1759,8 @@ public class Solver
                             String key = (startingRow + k) + "," + (startingColumn + l);
                             if (possibleNumbers.get(key)!= null && !triples.contains(key) ) {
                                 if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
-                                    updatePossibleNumbersAndCounts(key, null, unionOfValues.stream().toList(), false);
+                                    List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
+                                    updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                 }
                             }
                         }
