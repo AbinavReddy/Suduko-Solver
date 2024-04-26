@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="1200.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="BasicSudoku.SudokuApp">
     <children>
-        <Button layoutX="672.0" layoutY="277.0" mnemonicParsing="false" onAction="#setBoard" text="Set Board" />
-        <TextField fx:id="textField" layoutX="501.0" layoutY="277.0" />
+        <Button layoutX="606.0" layoutY="300.0" mnemonicParsing="false" onAction="#initializeSudoku" text="Start puzzling!" />
+        <TextField fx:id="boardSizeField" layoutX="577.0" layoutY="261.0" promptText="board size" />
+      <Label layoutX="460.0" layoutY="124.0" text="Menu Scene">
+         <font>
+            <Font size="70.0" />
+         </font>
+      </Label>
     </children>
 </AnchorPane>
