@@ -12,6 +12,7 @@
             <Font size="70.0" />
          </font>
       </Label>
-      <Button fx:id="solveButton" layoutX="1109.0" layoutY="1102.0" mnemonicParsing="false" text="Solve for me!" />
+      <Button layoutX="1109.0" layoutY="1102.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
+      <Button layoutX="107.0" layoutY="1115.0" mnemonicParsing="false" onAction="#goToMenuScene" text="Menu" />
     </children>
 </AnchorPane>

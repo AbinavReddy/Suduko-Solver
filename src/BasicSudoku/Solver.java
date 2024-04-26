@@ -49,7 +49,7 @@ public class Solver
         //strategies.add(this::xWing); // working
         //strategies.add(this::simpleColouring); // working
         //strategies.add(this::yWingWithXYZExtension); // working
-        //strategies.add(this::swordFish); // not working (alone and with other strategies)
+        strategies.add(this::swordFish); // not working (alone and with other strategies)
         //strategies.add(this::bug); not working (alone and with other strategies)
         //strategies.add(this::wXYZWingExtended); // working
 
