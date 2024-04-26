@@ -45,7 +45,7 @@ public class Solver
         //strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
         //strategies.add(this::nakedQuads); // working
         //strategies.add(this::hiddenQuads); // working
-        //strategies.add(this::pointingDuplicatesWithBLR); // working
+        strategies.add(this::pointingPairsWithBLR); // working
         //strategies.add(this::xWing); // working
         //strategies.add(this::simpleColouring); // working
         //strategies.add(this::yWingWithXYZExtension); // working
@@ -214,7 +214,7 @@ public class Solver
         int row = Integer.parseInt(parts[0]);
         int column = Integer.parseInt(parts[1]);
 
-        if(increase) // only used in the beginning (intensely)
+        if(increase) // only used when generating boards (intensely)
         {
             possibleNumbers.put(key, valuesToUpdate);
             possibleNumbersBeginning.put(key, valuesToUpdate); // for testing (temp)
@@ -307,7 +307,7 @@ public class Solver
     }
 
     /**
-     * @author Abinav & Danny
+     * @author Abinav
      */
     private void eliminateEmptyLists()
     {
@@ -970,7 +970,7 @@ public class Solver
             }
 
 
-// check if the cell contains atleast two elements of combos
+            // check if the cell contains atleast two elements of combos
             for(String keys : quads) {
 
                 int occurrence = 0;
@@ -1037,198 +1037,6 @@ public class Solver
         }
 
         return new HashSet<>();
-    }
-
-    /**
-     * @author Abinav
-     */
-    public void swordFish(){
-        // swordfish technique on rows where each cell contains only 2 cells
-        findSwordFishCandidates(true,2);
-
-        // swordfish technique on columns
-        findSwordFishCandidates(false,2);
-
-        // swordfish technique on rows
-        findSwordFishCandidates(true,3);
-
-        // swordfish technique on columns
-        findSwordFishCandidates(false,3);
-    }
-
-    /**
-     * @author Abinav
-     */
-    private void findSwordFishCandidates(boolean processingRows, int pairOrTriple) {
-        int valuePossibleCount;
-        List<int[]> rowColumnPositions;
-        List<List<int[]>> processForSF;
-
-        int substituteA = 0; // variables used to avoid repetitive code
-        int substituteB = 0;
-
-
-        for (int number = 1; number <= boardSize; number++){ // value
-            processForSF = new ArrayList<>();
-            for (int j = 0; j < boardSize; j++) { // row or column
-                valuePossibleCount = processingRows ? valuePossibleCountRows[number][j] : valuePossibleCountColumns[number][j];
-                rowColumnPositions = new ArrayList<>();
-
-                if (valuePossibleCount == 2 || valuePossibleCount == 3 ){ // skip if value already present or possible more than 2 places in row or column
-
-                    for (int k = 0; k < boardSize; k++){ // row or column
-
-                        substituteA = processingRows ? j : k;
-                        substituteB = processingRows ? k : j;
-
-                        String key = (substituteA + "," + substituteB);
-
-                        if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
-                            rowColumnPositions.add(new int[]{substituteA, substituteB}); // store position of value
-                        }
-
-                        if (k == boardSize - 1) {
-                            processForSF.add(rowColumnPositions);
-                            for (int[] position : rowColumnPositions) {
-                            }
-                        }
-                    }
-                }
-            }
-            handleSFCandidates( pairOrTriple, substituteA,number, processingRows,  processForSF);
-
-        }
-    }
-
-    /**
-     * @author Abinav
-     */
-    private void handleSFCandidates( int pairOrTriple,int substituteA,int number,boolean processingRows, List<List<int[]>> processForSF) {
-        if (processForSF.size() >= 3) // enough candidates found
-        {
-            substituteA = processingRows ? 1 : 0; // 0 = row index, 1 = column index
-
-            for (int j = 0; j < processForSF.size() - 2; j++) {
-                for (int k = j + 1; k < processForSF.size() - 1; k++) {
-                    for (int n = k + 1; n < processForSF.size(); n++) {
-
-
-                        Set<Integer> uniqueCOR = new HashSet<>();
-                        List<Integer> emptyList = new ArrayList<>();
-                        List<String> candidates = new ArrayList<>();
-
-
-                        int windowSize = pairOrTriple; // pairs or triples in rows/columns
-
-                        int minListLength = Math.min(processForSF.get(j).size(),
-                            Math.min(processForSF.get(k).size(), processForSF.get(n).size()));
-
-                        for (int i = 0; i < minListLength - 1; i++) {
-
-                            // For list j
-                            for (int w = i; w < i + windowSize && w < processForSF.get(j).size(); w++) {
-                                int[] coord = processForSF.get(j).get(w);
-                                uniqueCOR.add(coord[substituteA]);
-                                emptyList.add(coord[substituteA]);
-                                String row = Integer.toString(coord[0]);
-                                String column = Integer.toString(coord[1]);
-                                String key = row + "," + column;
-                                candidates.add(key);
-                            }
-
-                            // For list k
-                            for (int w = i; w < i + windowSize && w < processForSF.get(k).size(); w++) {
-                                int[] coord = processForSF.get(k).get(w);
-                                uniqueCOR.add(coord[substituteA]);
-                                emptyList.add(coord[substituteA]);
-                                String row = Integer.toString(coord[0]);
-                                String column = Integer.toString(coord[1]);
-                                String key = row + "," + column;
-                                candidates.add(key);
-                            }
-
-                            // For list n
-                            for (int w = i; w < i + windowSize && w < processForSF.get(n).size(); w++) {
-                                int[] coord = processForSF.get(n).get(w);
-                                uniqueCOR.add(coord[substituteA]);
-                                emptyList.add(coord[substituteA]);
-                                String row = Integer.toString(coord[0]);
-                                String column = Integer.toString(coord[1]);
-                                String key = row + "," + column;
-                                candidates.add(key);
-                            }
-                            boolean validSF = uniqueCOR.size() == 3 && checkOccurenceOfEachElement(emptyList, uniqueCOR);
-                            eliminateNonSFC(validSF, processingRows, number, j, k, n, substituteA, processForSF, uniqueCOR, candidates);
-
-                        }
-
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @author Abinav
-     */
-    private void eliminateNonSFC(boolean validSF, boolean processingRows, int number,int j, int k, int n,int substituteA, List<List<int[]>> processForSF,Set<Integer> uniqueCOR,List<String> candidates){
-        if (validSF) {
-
-
-            for (String key : possibleNumbers.keySet()) {
-                if (candidates.contains(key)) {
-                    continue;
-                }
-
-                String[] keyPart = key.split(",");
-                int row = Integer.parseInt(keyPart[0]);
-                int column = Integer.parseInt(keyPart[1]);
-                if (processingRows) {
-                    for (Integer setElement : uniqueCOR) {
-                        if (setElement == column) {
-                            if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
-                                updatePossibleNumbersAndCounts(key, number, null, false);
-                            }
-                        }
-                    }
-                } else {
-                    for (Integer setElement : uniqueCOR) {
-                        if (setElement == row) {
-                            if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
-                                updatePossibleNumbersAndCounts(key, number, null, false);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @author Abinav
-     */
-    private boolean checkOccurenceOfEachElement(List<Integer> list, Set<Integer> set){
-        boolean validSFC = true;
-
-        Map<Integer, Integer> frequency = new HashMap<>();
-
-        for(Integer number : set){
-            int count = 0;
-            for(Integer i : list){
-                if(number.equals(i)){
-                    count++;
-                }
-            }
-            frequency.put(number,count);
-        }
-        for(Integer count : frequency.values()){
-            if(count !=2) {
-                validSFC = false;
-                break;
-            }
-        }
-
-        return validSFC;
     }
 
     /**
@@ -1527,6 +1335,279 @@ public class Solver
     }
 
     /**
+     * @author Abinav
+     */
+    public void swordFish(){
+        // swordfish technique on rows where each cell contains only 2 cells
+        findSwordFishCandidates(true,2);
+
+        // swordfish technique on columns
+        findSwordFishCandidates(false,2);
+
+        // swordfish technique on rows
+        findSwordFishCandidates(true,3);
+
+        // swordfish technique on columns
+        findSwordFishCandidates(false,3);
+    }
+
+    /**
+     * @author Abinav
+     */
+    private void findSwordFishCandidates(boolean processingRows, int pairOrTriple) {
+        int valuePossibleCount;
+        List<int[]> rowColumnPositions;
+        List<List<int[]>> processForSF;
+
+        int substituteA = 0; // variables used to avoid repetitive code
+        int substituteB = 0;
+
+
+        for (int number = 1; number <= boardSize; number++){ // value
+            processForSF = new ArrayList<>();
+            for (int j = 0; j < boardSize; j++) { // row or column
+                valuePossibleCount = processingRows ? valuePossibleCountRows[number][j] : valuePossibleCountColumns[number][j];
+                rowColumnPositions = new ArrayList<>();
+
+                if (valuePossibleCount == 2 || valuePossibleCount == 3 ){ // skip if value already present or possible more than 2 places in row or column
+
+                    for (int k = 0; k < boardSize; k++){ // row or column
+
+                        substituteA = processingRows ? j : k;
+                        substituteB = processingRows ? k : j;
+
+                        String key = (substituteA + "," + substituteB);
+
+                        if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
+                            rowColumnPositions.add(new int[]{substituteA, substituteB}); // store position of value
+                        }
+
+                        if (k == boardSize - 1) {
+                            processForSF.add(rowColumnPositions);
+                            for (int[] position : rowColumnPositions) {
+                            }
+                        }
+                    }
+                }
+            }
+            handleSFCandidates( pairOrTriple, substituteA,number, processingRows,  processForSF);
+
+        }
+    }
+
+    /**
+     * @author Abinav
+     */
+    private void handleSFCandidates( int pairOrTriple,int substituteA,int number,boolean processingRows, List<List<int[]>> processForSF) {
+        if (processForSF.size() >= 3) // enough candidates found
+        {
+            substituteA = processingRows ? 1 : 0; // 0 = row index, 1 = column index
+
+            for (int j = 0; j < processForSF.size() - 2; j++) {
+                for (int k = j + 1; k < processForSF.size() - 1; k++) {
+                    for (int n = k + 1; n < processForSF.size(); n++) {
+
+
+                        Set<Integer> uniqueCOR = new HashSet<>();
+                        List<Integer> emptyList = new ArrayList<>();
+                        List<String> candidates = new ArrayList<>();
+
+
+                        int windowSize = pairOrTriple; // pairs or triples in rows/columns
+
+                        int minListLength = Math.min(processForSF.get(j).size(),
+                            Math.min(processForSF.get(k).size(), processForSF.get(n).size()));
+
+                        for (int i = 0; i < minListLength - 1; i++) {
+
+                            // For list j
+                            for (int w = i; w < i + windowSize && w < processForSF.get(j).size(); w++) {
+                                int[] coord = processForSF.get(j).get(w);
+                                uniqueCOR.add(coord[substituteA]);
+                                emptyList.add(coord[substituteA]);
+                                String row = Integer.toString(coord[0]);
+                                String column = Integer.toString(coord[1]);
+                                String key = row + "," + column;
+                                candidates.add(key);
+                            }
+
+                            // For list k
+                            for (int w = i; w < i + windowSize && w < processForSF.get(k).size(); w++) {
+                                int[] coord = processForSF.get(k).get(w);
+                                uniqueCOR.add(coord[substituteA]);
+                                emptyList.add(coord[substituteA]);
+                                String row = Integer.toString(coord[0]);
+                                String column = Integer.toString(coord[1]);
+                                String key = row + "," + column;
+                                candidates.add(key);
+                            }
+
+                            // For list n
+                            for (int w = i; w < i + windowSize && w < processForSF.get(n).size(); w++) {
+                                int[] coord = processForSF.get(n).get(w);
+                                uniqueCOR.add(coord[substituteA]);
+                                emptyList.add(coord[substituteA]);
+                                String row = Integer.toString(coord[0]);
+                                String column = Integer.toString(coord[1]);
+                                String key = row + "," + column;
+                                candidates.add(key);
+                            }
+                            boolean validSF = uniqueCOR.size() == 3 && checkOccurenceOfEachElement(emptyList, uniqueCOR);
+                            eliminateNonSFC(validSF, processingRows, number, j, k, n, substituteA, processForSF, uniqueCOR, candidates);
+
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Abinav
+     */
+    private void eliminateNonSFC(boolean validSF, boolean processingRows, int number,int j, int k, int n,int substituteA, List<List<int[]>> processForSF,Set<Integer> uniqueCOR,List<String> candidates){
+        if (validSF) {
+
+
+            for (String key : possibleNumbers.keySet()) {
+                if (candidates.contains(key)) {
+                    continue;
+                }
+
+                String[] keyPart = key.split(",");
+                int row = Integer.parseInt(keyPart[0]);
+                int column = Integer.parseInt(keyPart[1]);
+                if (processingRows) {
+                    for (Integer setElement : uniqueCOR) {
+                        if (setElement == column) {
+                            if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
+                                updatePossibleNumbersAndCounts(key, number, null, false);
+                            }
+                        }
+                    }
+                } else {
+                    for (Integer setElement : uniqueCOR) {
+                        if (setElement == row) {
+                            if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
+                                updatePossibleNumbersAndCounts(key, number, null, false);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @author Abinav
+     */
+    private boolean checkOccurenceOfEachElement(List<Integer> list, Set<Integer> set){
+        boolean validSFC = true;
+
+        Map<Integer, Integer> frequency = new HashMap<>();
+
+        for(Integer number : set){
+            int count = 0;
+            for(Integer i : list){
+                if(number.equals(i)){
+                    count++;
+                }
+            }
+            frequency.put(number,count);
+        }
+        for(Integer count : frequency.values()){
+            if(count !=2) {
+                validSFC = false;
+                break;
+            }
+        }
+
+        return validSFC;
+    }
+
+    /**
+     * @author Yahya
+     */
+    public void hiddenSingles(){
+
+        // hidden singles in rows
+        hiddenSinglesForRowAndCol(true);
+
+        // hidden singles in columns
+        hiddenSinglesForRowAndCol(false);
+
+        // hidden singles in subboard
+        hiddenSinglesForSubBoard();
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void hiddenSinglesForRowAndCol(boolean proccingrows) {
+
+        for (int index = 0; index < boardSize; index++) {
+            List<String> cellKeys = new ArrayList<>();
+            for (int rows = 0; rows < boardSize; rows++) {
+                for (int columns = 0; columns < boardSize; columns++) {
+                    String key = rows + "," + columns;
+                    int rowcolumn = proccingrows ? rows : columns;
+                    if (possibleNumbers.get(key) != null && index == rowcolumn) {
+                        cellKeys.add(key);
+
+                    }
+                }
+            }
+
+            for(int number = 1; number <= boardSize; number++) {
+                int count = proccingrows ? valuePossibleCountRows[number][index] : valuePossibleCountColumns[number][index];
+                if (count == 1 ) {
+                    for(String key : cellKeys) {
+                        if(possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size()>1){
+                            List<Integer> keyValues = new ArrayList<>(possibleNumbers.get(key));
+                            keyValues.remove((Integer) number);
+                            updatePossibleNumbersAndCounts(key, null, keyValues, false);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * @author Yahya
+     */
+    private void hiddenSinglesForSubBoard() {
+
+        for (int index = 0; index < boardSize; index++) {
+            List<String> cellKeys = new ArrayList<>();
+            for (int rows = 0; rows < boardSize; rows++) {
+                for (int columns = 0; columns < boardSize; columns++) {
+                    String key = rows + "," + columns;
+                    int subBoardsNumber = board.findSubBoardNumber(rows,columns);
+                    if (possibleNumbers.get(key) != null && index == subBoardsNumber) {
+                        cellKeys.add(key);
+
+                    }
+                }
+            }
+            for (int number = 1; number <= boardSize; number++) {
+
+                if (valuePossibleCountSubBoards[number][index] == 1) {
+                    for (String key : cellKeys) {
+                        if (possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size() > 1) {
+                            List<Integer> keyValues = new ArrayList<>(possibleNumbers.get(key));
+                            keyValues.remove((Integer) number);
+                            updatePossibleNumbersAndCounts(key, null, keyValues, false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * @author Yahya
      */
     public void nakedTriples() {
@@ -1698,87 +1779,6 @@ public class Solver
 
             }
 
-        }
-    }
-
-    /**
-     * @author Yahya
-     */
-    public void hiddenSingles(){
-
-        // hidden singles in rows
-        hiddenSinglesForRowAndCol(true);
-
-        // hidden singles in columns
-        hiddenSinglesForRowAndCol(false);
-
-        // hidden singles in subboard
-        hiddenSinglesForSubBoard();
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void hiddenSinglesForRowAndCol(boolean proccingrows) {
-
-        for (int index = 0; index < boardSize; index++) {
-            List<String> cellKeys = new ArrayList<>();
-            for (int rows = 0; rows < boardSize; rows++) {
-                for (int columns = 0; columns < boardSize; columns++) {
-                    String key = rows + "," + columns;
-                    int rowcolumn = proccingrows ? rows : columns;
-                    if (possibleNumbers.get(key) != null && index == rowcolumn) {
-                        cellKeys.add(key);
-
-                    }
-                }
-            }
-
-            for(int number = 1; number <= boardSize; number++) {
-                int count = proccingrows ? valuePossibleCountRows[number][index] : valuePossibleCountColumns[number][index];
-                if (count == 1 ) {
-                    for(String key : cellKeys) {
-                        if(possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size()>1){
-                            List<Integer> keyValues = new ArrayList<>(possibleNumbers.get(key));
-                            keyValues.remove((Integer) number);
-                            updatePossibleNumbersAndCounts(key, null, keyValues, false);
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void hiddenSinglesForSubBoard() {
-
-        for (int index = 0; index < boardSize; index++) {
-            List<String> cellKeys = new ArrayList<>();
-            for (int rows = 0; rows < boardSize; rows++) {
-                for (int columns = 0; columns < boardSize; columns++) {
-                    String key = rows + "," + columns;
-                    int subBoardsNumber = board.findSubBoardNumber(rows,columns);
-                    if (possibleNumbers.get(key) != null && index == subBoardsNumber) {
-                        cellKeys.add(key);
-
-                    }
-                }
-            }
-            for (int number = 1; number <= boardSize; number++) {
-
-                if (valuePossibleCountSubBoards[number][index] == 1) {
-                    for (String key : cellKeys) {
-                        if (possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size() > 1) {
-                            List<Integer> keyValues = new ArrayList<>(possibleNumbers.get(key));
-                            keyValues.remove((Integer) number);
-                            updatePossibleNumbersAndCounts(key, null, keyValues, false);
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -2107,16 +2107,16 @@ public class Solver
     /**
      * @author Danny
      */
-    private void pointingDuplicatesWithBLR()
+    private void pointingPairsWithBLR()
     {
-        pointingDuplicatesWithBLR(true);
-        pointingDuplicatesWithBLR(false);
+        pointingPairsWithBLR(true);
+        pointingPairsWithBLR(false);
     }
 
     /**
      * @author Danny
      */
-    private void pointingDuplicatesWithBLR(boolean processingRows)
+    private void pointingPairsWithBLR(boolean processingRows)
     {
         int targetValueCount = boardLengthWidth - 1;
         int valuePossibleCount;
@@ -2133,7 +2133,7 @@ public class Solver
             {
                 valuePossibleCount = processingRows ? valuePossibleCountRows[value][rowOrColumnA] : valuePossibleCountColumns[value][rowOrColumnA];
 
-                if(valuePossibleCount >= 2) // to do anything, there has to be at least 3 places where value can be
+                if(valuePossibleCount >= 2) // to do anything, there has to be at least 2 places where value can be
                 {
                     valueSubBoardCount = 0;
                     previousSubBoard = processingRows ? board.findSubBoardNumber(rowOrColumnA, 0) : board.findSubBoardNumber(0, rowOrColumnA); // initial sub-board
@@ -2145,10 +2145,12 @@ public class Solver
 
                         if(possibleNumbers.get(substituteA + "," + substituteB) != null && possibleNumbers.get(substituteA + "," + substituteB).contains(value))
                         {
-                            if(previousSubBoard != board.findSubBoardNumber(substituteA, substituteB)) // reset and update if sub-board has changed
+                            int currentSubBoard = board.findSubBoardNumber(substituteA, substituteB);
+
+                            if(previousSubBoard != currentSubBoard) // reset and update if sub-board has changed
                             {
                                 valueSubBoardCount = 0;
-                                previousSubBoard = board.findSubBoardNumber(substituteA, substituteB);
+                                previousSubBoard = currentSubBoard;
                             }
 
                             valueSubBoardCount++;
@@ -2860,7 +2862,7 @@ public class Solver
                 }
                 else if(individualKeys.equals(observedIndividually.get(observedIndividually.size() - 1))) // last iteration, we can eliminate value from cell
                 {
-                    if(possibleNumbers.get(collectiveKey) != null && possibleNumbers.get(collectiveKey).contains(value)) // only remove if not already removed by another pincer combination
+                    if(possibleNumbers.get(collectiveKey).contains(value)) // only remove if not already removed by another pincer combination
                     {
                         updatePossibleNumbersAndCounts(collectiveKey, value, null, false);
                     }
@@ -2869,7 +2871,7 @@ public class Solver
         }
     }
 
-    // god tier debugging (it is!)
+    // god tier debugging - it is! >:(
     public void emptyCellsDebug()
     {
         for(int iterations = 1; iterations <= 1000; iterations++)
@@ -2889,6 +2891,7 @@ public class Solver
                         testBoard.getSolver().printPossibleNumbers(false);
 
                         System.out.println("Failed...");
+                        System.out.println();
                     }
                     else if(iterations == 1000)
                     {
