@@ -44,7 +44,7 @@ public class Solver
         //strategies.add(this::hiddenPairs); // working
         //strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
         //strategies.add(this::nakedQuads); // working
-        //strategies.add(this::hiddenQuads); // not working (alone and with other strategies)
+        //strategies.add(this::hiddenQuads); // working
         //strategies.add(this::pointingDuplicatesWithBLR); // working
         //strategies.add(this::xWing); // working
         //strategies.add(this::simpleColouring); // working
@@ -746,10 +746,9 @@ public class Solver
     /**
      * @author Abinav
      */
-    private  List<Integer> findWhichNumbersPresent (List<Integer> valuesPresent, Set<Integer> unionOfValues) {
+    private List<Integer> findWhichNumbersPresent (List<Integer> valuesPresent, Set<Integer> unionOfValues) {
 
         List<Integer> valuesContained = new ArrayList<>();
-
 
         for(Integer number : unionOfValues){
             if(valuesPresent.contains(number)){
@@ -866,9 +865,15 @@ public class Solver
                                 boolean quadsVerified = verifyQuads(quads, combos);
                                 if ( quadsVerified) {
                                     for (String position : quads) {
+                                        List<Integer> valuesDuplicate = findWhichNumbersPresent(possibleNumbers.get(position), unionOfValues);
                                         List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
-                                        valuesPresent.removeAll(combos);
-                                        updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
+                                        valuesPresent.removeAll(valuesDuplicate);
+                                        if(!valuesPresent.equals(valuesDuplicate)) {
+                                            updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
+                                            //List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
+                                            //valuesPresent.removeAll(combos);
+                                            //updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
+                                        }
                                     }
                                 }
                             }
@@ -916,9 +921,15 @@ public class Solver
                                 boolean quadsVerified = verifyQuads(quads, combos);
                                 if ( quadsVerified) {
                                     for (String position : quads) {
+                                        List<Integer> valuesDuplicate = findWhichNumbersPresent(possibleNumbers.get(position), unionOfValues);
                                         List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
-                                        valuesPresent.removeAll(combos);
-                                        updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
+                                        valuesPresent.removeAll(valuesDuplicate);
+                                        if(!valuesPresent.equals(valuesDuplicate)) {
+                                            updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
+                                            // List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
+                                            //valuesPresent.removeAll(combos);
+                                            //updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
+                                        }
                                     }
                                 }
                             }
