@@ -38,20 +38,22 @@ public class Solver
         // Add all strategies to a list to avoid repetitive code
         List<Runnable> strategies = new ArrayList<>();
         strategies.add(this::nakedSingles); // working
-         strategies.add(this::hiddenSingles); // working
-        strategies.add(this::nakedPairs); // working
-        strategies.add(this::nakedTriples); // not working (with other strategies)
-         strategies.add(this::hiddenPairs); // working
-        // strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
-        strategies.add(this::nakedQuads); // working
-         strategies.add(this::hiddenQuads); // working
-         strategies.add(this::pointingPairsWithBLR); // working
-         strategies.add(this::xWing); // working
-         strategies.add(this::simpleColouring); // working
-         strategies.add(this::yWingWithXYZExtension); // working
-         strategies.add(this::swordFish); // working
-        //strategies.add(this::bug); //not working (alone and with other strategies)
-         strategies.add(this::wXYZWingExtended); // working
+
+        //strategies.add(this::hiddenSingles); // working
+        //strategies.add(this::nakedPairs); // working
+        //strategies.add(this::nakedTriples); // // working
+        //strategies.add(this::hiddenPairs); // working
+        //strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
+        //strategies.add(this::nakedQuads); // working
+        //strategies.add(this::hiddenQuads); // working
+        //strategies.add(this::pointingPairsWithBLR); // working
+        //strategies.add(this::xWing); // working
+        //strategies.add(this::simpleColouring); // working
+        //strategies.add(this::yWingWithXYZExtension); // working
+        //strategies.add(this::swordFish); // not working (alone and with other strategies)
+        //strategies.add(this::bug); not working (alone and with other strategies)
+        //strategies.add(this::wXYZWingExtended); // working
+
 
         boolean possibleValuesChanged;
         int possibleCountBefore;
@@ -1039,8 +1041,6 @@ public class Solver
         return new HashSet<>();
     }
 
-
-
     /**
      * @author Abinav
      */
@@ -1328,11 +1328,12 @@ public class Solver
         return bool;
     }
 
-    
+    /**
+     * @author Abinav
+     */
     public void swordFish(){
         // swordfish technique on rows where each cell contains only 2 cells
         findSwordFishCandidates(true,2);
-
 
         // swordfish technique on columns
         findSwordFishCandidates(false,2);
@@ -1483,7 +1484,6 @@ public class Solver
                 }
             }
         }
-        //System.out.println();
     }
 
     /**

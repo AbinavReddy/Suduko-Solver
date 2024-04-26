@@ -1,80 +1,92 @@
 package BasicSudoku;
 
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.event.ActionEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
+import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
-
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.control.TextField;
+import java.util.Objects;
+import java.io.IOException;
 
 public class SudokuApp
 {
+    Board sudokuBoard;
 
-    Board board;
-
+    // JavaFX related
+    private static Stage appStage;
+    private static Scene activeScene;
     @FXML
-    private TextField textField;
-    private Stage primaryStage;
+    private TextField boardSizeField;
 
     /**
-     * @author Abinav
+     * @author Abinav & Danny
      */
-    public void setPrimaryStage(Stage primaryStage){
-        this.primaryStage = primaryStage;
-    }
+    public void initializeSudoku() throws IOException
+    {
+        int userInput = Integer.parseInt(boardSizeField.getText());
 
-
-    /**
-     * @author Abinav
-     */
-    @FXML
-private void setBoard(ActionEvent event){
-        String text = textField.getText();
-        System.out.println(text);
-        if(Integer.parseInt(text) > 0){
-            board = new Board(Integer.parseInt(text));
-            changeScene(primaryStage);
+        if(userInput > 0)
+        {
+            sudokuBoard = new Board(userInput);
         }
+
+        goToPuzzleScene();
+    }
+
+    /**
+     * @author Danny
+     */
+    public void goToMenuScene() throws IOException
+    {
+        setScene("MenuScene");
+    }
+
+    /**
+     * @author Danny
+     */
+    public void goToPuzzleScene() throws IOException
+    {
+        setScene("PuzzleScene");
+    }
+
+    /**
+     * @author Danny
+     */
+    public void goToSolverScene() throws IOException
+    {
+        setScene("SolverScene");
     }
 
     /**
      * @author Abinav
      */
-    private void changeScene(Stage stage){
-        GridPane gp = new GridPane();
-
-        for (int row = 0; row < board.getBoardSize(); row++) {
-            for (int col = 0; col < board.getBoardSize() ; col++) {
-                TextField cells = new TextField();
-                cells.setPrefSize(32,20); // width = height * 1.6
-               cells.setStyle(
-                        "-fx-font-size: 16px; " +
-                                "-fx-font-family: 'Arial'; " +
-                                "-fx-border-color: #333; " +
-                                "-fx-border-width: 1px; " +
-                                "-fx-background-color: #fff; " +
-                                "-fx-text-fill: #666; " +
-                                "-fx-padding: 5px;"
-                );
-                int value = board.getBoard()[row][col];
-                if ( value == 0){
-                    cells.setEditable(true);
-                    cells.setPromptText("");
-                }else {
-                    cells.setPromptText(Integer.toString(value));
-                    textField.setDisable(true);
-                }
-                gp.add(cells,col,row);
-            }
-        }
-        Scene newScene = new Scene(gp,1200,1200);
-        stage.setScene(newScene);
-        stage.show();
+    public void setStage(Stage nextStage)
+    {
+        appStage = nextStage;
     }
 
-    // trying
+    /**
+     * @author Danny & Abinav
+     */
+    public void setScene(String sceneName) throws IOException
+    {
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("UI/" + sceneName + ".fxml")));
 
+        if(activeScene == null)
+        {
+            activeScene = new Scene(root);
+        }
+        else
+        {
+            activeScene.setRoot(root);
+        }
+
+        appStage.setScene(activeScene); // Construct scene
+        appStage.setTitle("Sudoku"); // Window title
+        appStage.setResizable(true); // Disable resizable window
+        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("UI/sudoku icon.png")))); // Add app icon to stage
+        appStage.show(); // Show window
+    }
 }
