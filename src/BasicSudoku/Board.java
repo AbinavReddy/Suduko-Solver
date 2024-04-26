@@ -83,7 +83,7 @@ public class Board
         int row;
         int column;
 
-        while(filledCells != filledFromStart) // fill cells randomly until reaching the wanted amount of filled cells
+        while(filledCells != filledFromStart) // fill cells randomly until reaching the specified amount of filled cells
         {
             value = randomNumber.nextInt(1, boardSize + 1);
             row = randomNumber.nextInt(0, boardSize);
@@ -210,15 +210,6 @@ public class Board
     }
 
     /**
-     * @author Abinav
-     */
-    public int findSubBoardNumber(int row,int column)
-    {
-        int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
-        return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards);
-    }
-
-    /**
      * @author Danny
      */
     public void setBoardValue(int row, int column, int value)
@@ -233,6 +224,15 @@ public class Board
         }
 
         board[row][column] = value;
+    }
+
+    /**
+     * @author Abinav
+     */
+    public int findSubBoardNumber(int row,int column)
+    {
+        int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
+        return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards);
     }
 
     /**
@@ -281,5 +281,13 @@ public class Board
     public Solver getSolver()
     {
         return solver;
+    }
+
+    /**
+     * @author Danny
+     */
+    public String getErrorMessage()
+    {
+        return errorMessage;
     }
 }
