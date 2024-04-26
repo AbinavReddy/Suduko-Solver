@@ -39,16 +39,16 @@ public class Solver
         List<Runnable> strategies = new ArrayList<>();
         strategies.add(this::nakedSingles); // working
         //strategies.add(this::hiddenSingles); // working
-        strategies.add(this::nakedPairs); // working
+        //strategies.add(this::nakedPairs); // working
         //strategies.add(this::nakedTriples); // not working (with other strategies)
         //strategies.add(this::hiddenPairs); // working
         //strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
-        strategies.add(this::nakedQuads); // working
+        //strategies.add(this::nakedQuads); // working
         //strategies.add(this::hiddenQuads); // working
-        //strategies.add(this::pointingDuplicatesWithBLR); // working
+        strategies.add(this::pointingPairsWithBLR); // working
         //strategies.add(this::xWing); // working
-        strategies.add(this::simpleColouring); // working
-        strategies.add(this::yWingWithXYZExtension); // working
+        //strategies.add(this::simpleColouring); // working
+        //strategies.add(this::yWingWithXYZExtension); // working
         //strategies.add(this::swordFish); // not working (alone and with other strategies)
         //strategies.add(this::bug); not working (alone and with other strategies)
         //strategies.add(this::wXYZWingExtended); // working
@@ -2107,16 +2107,16 @@ public class Solver
     /**
      * @author Danny
      */
-    private void pointingDuplicatesWithBLR()
+    private void pointingPairsWithBLR()
     {
-        pointingDuplicatesWithBLR(true);
-        pointingDuplicatesWithBLR(false);
+        pointingPairsWithBLR(true);
+        pointingPairsWithBLR(false);
     }
 
     /**
      * @author Danny
      */
-    private void pointingDuplicatesWithBLR(boolean processingRows)
+    private void pointingPairsWithBLR(boolean processingRows)
     {
         int targetValueCount = boardLengthWidth - 1;
         int valuePossibleCount;
@@ -2133,7 +2133,7 @@ public class Solver
             {
                 valuePossibleCount = processingRows ? valuePossibleCountRows[value][rowOrColumnA] : valuePossibleCountColumns[value][rowOrColumnA];
 
-                if(valuePossibleCount >= 2) // to do anything, there has to be at least 3 places where value can be
+                if(valuePossibleCount >= 2) // to do anything, there has to be at least 2 places where value can be
                 {
                     valueSubBoardCount = 0;
                     previousSubBoard = processingRows ? board.findSubBoardNumber(rowOrColumnA, 0) : board.findSubBoardNumber(0, rowOrColumnA); // initial sub-board
@@ -2145,10 +2145,12 @@ public class Solver
 
                         if(possibleNumbers.get(substituteA + "," + substituteB) != null && possibleNumbers.get(substituteA + "," + substituteB).contains(value))
                         {
-                            if(previousSubBoard != board.findSubBoardNumber(substituteA, substituteB)) // reset and update if sub-board has changed
+                            int currentSubBoard = board.findSubBoardNumber(substituteA, substituteB);
+
+                            if(previousSubBoard != currentSubBoard) // reset and update if sub-board has changed
                             {
                                 valueSubBoardCount = 0;
-                                previousSubBoard = board.findSubBoardNumber(substituteA, substituteB);
+                                previousSubBoard = currentSubBoard;
                             }
 
                             valueSubBoardCount++;
@@ -2860,7 +2862,7 @@ public class Solver
                 }
                 else if(individualKeys.equals(observedIndividually.get(observedIndividually.size() - 1))) // last iteration, we can eliminate value from cell
                 {
-                    if(possibleNumbers.get(collectiveKey) != null && possibleNumbers.get(collectiveKey).contains(value)) // only remove if not already removed by another pincer combination
+                    if(possibleNumbers.get(collectiveKey).contains(value)) // only remove if not already removed by another pincer combination
                     {
                         updatePossibleNumbersAndCounts(collectiveKey, value, null, false);
                     }
@@ -2869,7 +2871,7 @@ public class Solver
         }
     }
 
-    // god tier debugging (it is!)
+    // god tier debugging - it is! >:(
     public void emptyCellsDebug()
     {
         for(int iterations = 1; iterations <= 1000; iterations++)
