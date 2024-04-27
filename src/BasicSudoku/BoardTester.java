@@ -4,8 +4,8 @@ public class BoardTester
 {
     public static void main(String[] args)
     {
-        Board board = new Board(3);
-        Board solverBoard = board.getSolver().board;
+        SudokuBoard board = new SudokuBoard(3);
+        SudokuBoard solverBoard = board.getSolver().board;
         Solver solver = board.getSolver();
 
         //solver.emptyCellsDebug();
@@ -17,7 +17,7 @@ public class BoardTester
         solver.printPossibleNumbers(false);
     }
 
-    public static void printBoard(Board boardToPrint)
+    public static void printBoard(SudokuBoard boardToPrint)
     {
         int[][] board = boardToPrint.getBoard();
         int boardLengthWidth = boardToPrint.getBoardLengthWidth();

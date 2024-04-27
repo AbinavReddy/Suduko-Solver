@@ -2,7 +2,7 @@ package BasicSudoku;
 
 import java.util.Random;
 
-public class Board
+public class SudokuBoard
 {
     private int[][] board;
     private final int boardLengthWidth;
@@ -16,38 +16,33 @@ public class Board
     /**
      * @author Danny, Abinav & Yahya
      */
-    public Board(int boardLengthWidth)
+    public SudokuBoard(int boardLengthWidth)
     {
         this.boardLengthWidth = boardLengthWidth;
         boardSize = boardLengthWidth * boardLengthWidth;
         availableCells = boardSize * boardSize;
 
-
-         /*
-         board = new int[boardSize][boardSize];
+        /*
+        board = new int[boardSize][boardSize];
 
         filledCells = 0;
 
-
-
         initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
 
-        Board boardForSolving = new Board(this);
+        SudokuBoard boardForSolving = new Board(this);
         solver = new Solver(boardForSolving);
 
         solver.possibleValuesInCells();
         */
 
-
-
-       Random chooseSolvable = new Random();
+        Random chooseSolvable = new Random();
         isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
 
         do
         {
             initializeBoard(boardLengthWidth * 10);
 
-            Board boardForSolving = new Board(this);
+            SudokuBoard boardForSolving = new SudokuBoard(this);
             solver = new Solver(boardForSolving);
         }
         while((boardLengthWidth == 3 && (isBoardSolvable && !solveBoard() || !isBoardSolvable && solveBoard())) || !solver.possibleValuesInCells());
@@ -56,7 +51,7 @@ public class Board
     /**
      * @author Danny & Abinav
      */
-    public Board(Board boardToCopy)
+    public SudokuBoard(SudokuBoard boardToCopy)
     {
         board = new int[boardToCopy.boardSize][boardToCopy.boardSize];
 

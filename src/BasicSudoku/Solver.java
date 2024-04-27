@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Solver
 {
-    Board board;
+    SudokuBoard board;
     final int boardSize;
     final int boardLengthWidth;
     private HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
@@ -18,7 +18,7 @@ public class Solver
     /**
      * @author Danny
      */
-    public Solver(Board board)
+    public Solver(SudokuBoard board)
     {
         this.board = board;
         boardSize = board.getBoardSize();
@@ -2863,7 +2863,7 @@ public class Solver
         {
             System.out.println("Iteration: " + iterations);
 
-            Board testBoard = new Board(3);
+            SudokuBoard testBoard = new SudokuBoard(3);
             for(int row = 0; row < boardSize; row++)
             {
                 for(int column = 0; column < boardSize; column++)
