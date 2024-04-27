@@ -8,7 +8,7 @@
 
 <AnchorPane prefHeight="1200.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="BasicSudoku.SudokuApp">
     <children>
-        <Button layoutX="609.0" layoutY="299.0" mnemonicParsing="false" onAction="#chooseBoardDimensions" text="Start solving!" />
+        <Button layoutX="609.0" layoutY="299.0" mnemonicParsing="false" onAction="#chooseBoardSize" text="Start solving!" />
         <TextField fx:id="boardSizeField" layoutX="577.0" layoutY="261.0" promptText="board size" />
       <Label layoutX="460.0" layoutY="124.0" text="Menu Scene">
          <font>

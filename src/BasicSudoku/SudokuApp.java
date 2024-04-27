@@ -5,6 +5,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -33,6 +35,8 @@ public class SudokuApp implements Initializable
     }
     private static boardViewState boardView;
 
+    /////////////////////////////////////////////////////////////////////////////////////////////
+
     /**
      * @author Danny
      */
@@ -47,17 +51,17 @@ public class SudokuApp implements Initializable
             showBoard(false);
         }
     }
-
     /**
      * @author Abinav & Danny
-     */
-    public void chooseBoardDimensions() throws IOException
-    {
-        int userInput = Integer.parseInt(boardSizeField.getText());
 
-        if(userInput > 0)
+     */
+    public void chooseBoardSize() throws IOException
+    {
+        int wantedSize = Integer.parseInt(boardSizeField.getText());
+
+        if(wantedSize > 1)
         {
-            board = new SudokuBoard(userInput);
+            board = new SudokuBoard(wantedSize);
         }
 
         goToPuzzleScene();
@@ -77,12 +81,25 @@ public class SudokuApp implements Initializable
         {
             for (int column = 0; column < boardSize; column++)
             {
+                // Style the text of the grid cell
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
-                temp.setPrefSize(32,20); // width = height * 1.6
-                temp.setStyle("-fx-font-size: 16px; " + "-fx-font-family: 'Arial'; " + "-fx-border-color: #333; " + "-fx-border-width: 1px; " + "-fx-background-color: #fff; " + "-fx-text-fill: #666; " + "-fx-padding: 5px;");
-                temp.setPromptText(String.valueOf(boardToShow[row][column])); // fill grid with values from board (unsolved or solved)
+                temp.setPrefSize(100, 100);
+                temp.setStyle("-fx-font-size: 36px; " + "-fx-font-family: 'Arial'; " + "-fx-border-color: #333; " + "-fx-border-width: 1px; " + "-fx-background-color: #fff; " + "-fx-text-fill: #666; " + "-fx-padding: 5px;");
+                temp.setAlignment(Pos.CENTER);
                 temp.setEditable(true);
+
+                // Fill the grid cell
+                if(boardToShow[row][column] == 0)
+                {
+                    temp.setPromptText(""); // empty cell
+                    temp.setEditable(true);
+                }
+                else
+                {
+                    temp.setPromptText(String.valueOf(boardToShow[row][column])); // fill grid with values from board (unsolved or solved)
+                    temp.setDisable(true);
+                }
 
                 boardGrid.add(temp, column, row);
             }
