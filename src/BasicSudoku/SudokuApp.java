@@ -5,14 +5,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import java.net.URL;
 import java.util.ResourceBundle;
-
-import javafx.geometry.Pos;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.geometry.Pos;
 import java.util.Objects;
 import java.io.IOException;
 
@@ -64,6 +63,11 @@ public class SudokuApp implements Initializable
             board = new SudokuBoard(wantedSize);
         }
 
+        playSudoku();
+    }
+
+    public void playSudoku() throws IOException
+    {
         goToPuzzleScene();
     }
 
@@ -85,14 +89,13 @@ public class SudokuApp implements Initializable
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
                 temp.setPrefSize(100, 100);
-                temp.setStyle("-fx-font-size: 36px; " + "-fx-font-family: 'Arial'; " + "-fx-border-color: #333; " + "-fx-border-width: 1px; " + "-fx-background-color: #fff; " + "-fx-text-fill: #666; " + "-fx-padding: 5px;");
+                temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 5px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: 36px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
-                temp.setEditable(true);
 
                 // Fill the grid cell
                 if(boardToShow[row][column] == 0)
                 {
-                    temp.setPromptText(""); // empty cell
+                    temp.setPromptText(""); // empty cell-fx-opacity
                     temp.setEditable(true);
                 }
                 else
