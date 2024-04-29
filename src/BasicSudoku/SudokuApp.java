@@ -8,9 +8,12 @@ import java.util.ResourceBundle;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.geometry.Pos;
 import java.util.Objects;
 import java.io.IOException;
@@ -32,6 +35,7 @@ public class SudokuApp implements Initializable
     {
         NoBoardShown, UnsolvedBoardShown, SolvedBoardShown
     }
+
     private static boardViewState boardView;
 
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +43,7 @@ public class SudokuApp implements Initializable
     /**
      * @author Danny
      */
-    public void initialize(URL url, ResourceBundle resourceBundle) // needed to inject boardGrid
+    public void initialize(URL url, ResourceBundle resourceBundle) // needed to inject all JavaFX fields
     {
         if(boardView == boardViewState.UnsolvedBoardShown)
         {
@@ -50,9 +54,9 @@ public class SudokuApp implements Initializable
             showBoard(false);
         }
     }
+
     /**
      * @author Abinav & Danny
-
      */
     public void chooseBoardSize() throws IOException
     {
@@ -66,9 +70,44 @@ public class SudokuApp implements Initializable
         playSudoku();
     }
 
+    /**
+     * @author Danny
+     */
     public void playSudoku() throws IOException
     {
         goToPuzzleScene();
+    }
+
+    /**
+     * @author Danny
+     */
+    public void userPressedKeyboard(KeyEvent event)
+    {
+        if(event.getCode() == KeyCode.ENTER) // user pressed Enter and is trying to insert a value
+        {
+            insertValue((Node) event.getTarget());
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void insertValue(Node boardGridCell)
+    {
+        int row = GridPane.getRowIndex(boardGridCell);
+        int column = GridPane.getColumnIndex(boardGridCell);;
+        int value = Integer.parseInt(boardGridCells[row][column].getText());
+
+        if(board.placeValueInCell(row, column, value))
+        {
+            boardGridCell.setDisable(true); // make cell uneditable
+
+            boardGrid.requestFocus(); // un-focus all cells
+        }
+        else
+        {
+            boardGridCells[row][column].clear(); // reset cell
+        }
     }
 
     /**
@@ -92,19 +131,19 @@ public class SudokuApp implements Initializable
                 temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 5px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: 36px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
-                // Fill the grid cell
+                // Fill cell
                 if(boardToShow[row][column] == 0)
                 {
-                    temp.setPromptText(""); // empty cell-fx-opacity
+                    temp.setPromptText("");
                     temp.setEditable(true);
                 }
                 else
                 {
-                    temp.setPromptText(String.valueOf(boardToShow[row][column])); // fill grid with values from board (unsolved or solved)
+                    temp.setPromptText(String.valueOf(boardToShow[row][column]));
                     temp.setDisable(true);
                 }
 
-                boardGrid.add(temp, column, row);
+                boardGrid.add(temp, column, row); // fill the grid with created cells
             }
         }
     }

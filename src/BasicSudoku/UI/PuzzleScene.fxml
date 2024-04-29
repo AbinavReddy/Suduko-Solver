@@ -17,7 +17,7 @@
       </Label>
       <Button layoutX="1109.0" layoutY="1102.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
       <Button layoutX="158.0" layoutY="1115.0" mnemonicParsing="false" onAction="#goToMenuScene" text="Menu" />
-      <GridPane fx:id="boardGrid" alignment="CENTER" gridLinesVisible="true" layoutX="257.0" layoutY="213.0" prefHeight="800.0" prefWidth="800.0">
+      <GridPane fx:id="boardGrid" alignment="CENTER" gridLinesVisible="true" layoutX="257.0" layoutY="213.0" onKeyPressed="#userPressedKeyboard" pickOnBounds="false" prefHeight="800.0" prefWidth="800.0">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
