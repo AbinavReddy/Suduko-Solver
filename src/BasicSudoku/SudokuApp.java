@@ -6,6 +6,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.RowConstraints;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -136,6 +140,7 @@ public class SudokuApp implements Initializable, ActionListener
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().board.getBoard();
         int boardSize = board.getBoardSize();
 
+        int cellTextSize = 36;
         boardGridCells = new TextField[boardSize][boardSize];
 
         for(int row = 0; row < boardSize; row++)
@@ -145,8 +150,8 @@ public class SudokuApp implements Initializable, ActionListener
                 // Style the text of the grid cell
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
-                temp.setPrefSize(100, 100);
-                temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 5px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: 36px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
+                temp.setPrefSize(200, 200);
+                temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 5px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
                 // Fill cell
