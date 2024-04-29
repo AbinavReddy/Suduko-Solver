@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
 
 <AnchorPane prefHeight="1200.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="BasicSudoku.SudokuApp">
     <children>
@@ -16,7 +17,7 @@
          </font>
       </Label>
       <Button layoutX="1109.0" layoutY="1102.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
-      <Button layoutX="158.0" layoutY="1115.0" mnemonicParsing="false" onAction="#goToMenuScene" text="Menu" />
+      <Button layoutX="158.0" layoutY="1102.0" mnemonicParsing="false" onAction="#goToMenuScene" text="Menu" />
       <GridPane fx:id="boardGrid" alignment="CENTER" gridLinesVisible="true" layoutX="257.0" layoutY="213.0" onKeyPressed="#userPressedKeyboard" pickOnBounds="false" prefHeight="800.0" prefWidth="800.0">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -41,5 +42,20 @@
             <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
       </GridPane>
+      <Text fx:id="filledCellsField" layoutX="921.0" layoutY="197.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Filled cells: 0/0" wrappingWidth="136.0">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Text>
+      <Text fx:id="timeSolvingField" layoutX="257.0" layoutY="197.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Time solving: 00:00:00">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Text>
+      <Text fx:id="errorMessageField" layoutX="158.0" layoutY="1072.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Error message" textAlignment="CENTER" wrappingWidth="999.29296875">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Text>
     </children>
 </AnchorPane>

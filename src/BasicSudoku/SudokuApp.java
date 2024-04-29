@@ -1,6 +1,7 @@
 package BasicSudoku;
 
 import javafx.fxml.Initializable;
+import java.awt.event.ActionListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import java.net.URL;
@@ -11,14 +12,17 @@ import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.geometry.Pos;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
 import java.util.Objects;
 import java.io.IOException;
 
-public class SudokuApp implements Initializable
+public class SudokuApp implements Initializable, ActionListener
 {
     private static SudokuBoard board;
 
@@ -30,6 +34,14 @@ public class SudokuApp implements Initializable
     private TextField[][] boardGridCells; // puzzle, solver
     @FXML
     private TextField boardSizeField; // menu
+    @FXML
+    private Text timeSolvingField; // puzzle, solver
+    private final Timer solveTimer = new Timer(1000, this); // puzzle
+    private int secondsSolving; // puzzle
+    @FXML
+    private Text filledCellsField; // puzzle, solver
+    @FXML
+    private Text errorMessageField; // puzzle
 
     private enum boardViewState
     {
@@ -38,20 +50,29 @@ public class SudokuApp implements Initializable
 
     private static boardViewState boardView;
 
-    /////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * @author Danny
      */
-    public void initialize(URL url, ResourceBundle resourceBundle) // needed to inject all JavaFX fields
+    public void initialize(URL url, ResourceBundle resourceBundle) // needed to inject JavaFX fields
     {
         if(boardView == boardViewState.UnsolvedBoardShown)
         {
             showBoard(true);
+
+            // Start timer to keep track of time elapsed solving the puzzle
+            secondsSolving = 0;
+            solveTimer.start();
+
+            filledCellsField.setText("Filled cells: " + board.getFilledCells() + "/" + board.getAvailableCells());
+            errorMessageField.setText("");
         }
         else if(boardView == boardViewState.SolvedBoardShown)
         {
             showBoard(false);
+
+            filledCellsField.setText("Filled cells: " + board.getSolver().board.getFilledCells() + "/" + board.getSolver().board.getAvailableCells());
         }
     }
 
@@ -60,21 +81,13 @@ public class SudokuApp implements Initializable
      */
     public void chooseBoardSize() throws IOException
     {
-        int wantedSize = Integer.parseInt(boardSizeField.getText());
+        int wantedSize = Integer.parseInt(boardSizeField.getText()); // number of sub-boards
 
         if(wantedSize > 1)
         {
             board = new SudokuBoard(wantedSize);
         }
 
-        playSudoku();
-    }
-
-    /**
-     * @author Danny
-     */
-    public void playSudoku() throws IOException
-    {
         goToPuzzleScene();
     }
 
@@ -100,13 +113,18 @@ public class SudokuApp implements Initializable
 
         if(board.placeValueInCell(row, column, value))
         {
-            boardGridCell.setDisable(true); // make cell uneditable
+            increaseFilledCells();
 
+            boardGridCell.setDisable(true); // make cell uneditable
             boardGrid.requestFocus(); // un-focus all cells
+
+            errorMessageField.setText("");
         }
         else
         {
             boardGridCells[row][column].clear(); // reset cell
+
+            errorMessageField.setText(board.getErrorMessage());
         }
     }
 
@@ -151,11 +169,43 @@ public class SudokuApp implements Initializable
     /**
      * @author Danny
      */
+    public void increaseFilledCells()
+    {
+        filledCellsField.setText("Filled cells: " + board.getFilledCells() + "/" + board.getAvailableCells());
+    }
+
+    /**
+     * @author Danny
+     */
+    @Override
+    public void actionPerformed(ActionEvent actionEvent) // updates solving timer
+    {
+        secondsSolving++;
+
+        // Get time as strings
+        int seconds = secondsSolving % 60;
+        int minutes = (secondsSolving / 60) % 60;
+        int hours = ((secondsSolving / 60) / 60) % 60;
+        String secondsAsText = seconds >= 10 ? String.valueOf(seconds) : "0" + seconds;
+        String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
+        String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
+
+        timeSolvingField.setText("Time solving: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
+    }
+
+    /**
+     * @author Danny
+     */
     public void goToMenuScene() throws IOException
     {
         boardView = boardViewState.NoBoardShown;
 
         setActiveScene("MenuScene");
+
+        if(solveTimer.isRunning())
+        {
+            solveTimer.stop();
+        }
     }
 
     /**
@@ -176,6 +226,11 @@ public class SudokuApp implements Initializable
         boardView = boardViewState.SolvedBoardShown;
 
         setActiveScene("SolverScene");
+
+        if(solveTimer.isRunning())
+        {
+            solveTimer.stop();
+        }
     }
 
     /**

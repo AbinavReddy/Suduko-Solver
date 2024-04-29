@@ -123,25 +123,25 @@ public class SudokuBoard
     {
         if((row < 0 || row > boardSize - 1) || (column < 0 || column > boardSize - 1))
         {
-            errorMessage = "ERROR: Only indices from 1-" + boardSize + " are valid!";
+            errorMessage = "Only indices from 1-" + boardSize + " are valid!";
 
             return false;
         }
         else if(value < 1 || value > boardSize)
         {
-            errorMessage = "ERROR: Only values from 1-" + boardSize + " are valid!";
+            errorMessage = "Only values from 1-" + boardSize + " are valid!";
 
             return false;
         }
         else if(board[row][column] != 0)
         {
-            errorMessage = "ERROR: Can't place a value in a filled cell!" + " " + row + "," + column + " (" + value + ")";
+            errorMessage = "Can't place a value in a filled cell!";
 
             return false;
         }
         else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value))
         {
-            errorMessage = "ERROR: Value already in row, column or sub-board!" + " " + row + "," + column + " (" + value + ")";
+            errorMessage = "Value already in row, column or sub-board!";
 
             return false;
         }
@@ -272,6 +272,22 @@ public class SudokuBoard
     public int getBoardSize()
     {
         return boardSize;
+    }
+
+    /**
+     * @author Danny
+     */
+    public int getAvailableCells()
+    {
+        return availableCells;
+    }
+
+    /**
+     * @author Danny
+     */
+    public int getFilledCells()
+    {
+        return filledCells;
     }
 
     /**
