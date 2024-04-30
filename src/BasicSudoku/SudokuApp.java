@@ -1,15 +1,11 @@
 package BasicSudoku;
 
 import javafx.fxml.Initializable;
-import java.awt.event.ActionListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import java.net.URL;
 import java.util.ResourceBundle;
-
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.RowConstraints;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -21,7 +17,11 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.geometry.Pos;
+import javafx.geometry.HPos;
+import javafx.geometry.VPos;
+import javafx.scene.paint.Color;
 import javax.swing.*;
+import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.Objects;
 import java.io.IOException;
@@ -141,7 +141,7 @@ public class SudokuApp implements Initializable, ActionListener
         int boardSize = board.getBoardSize();
 
         int cellTextSize = 40 - ((board.getBoardLengthWidth() - 3) * 8);
-        System.out.println(cellTextSize);
+        //System.out.println(cellTextSize);
         boardGridCells = new TextField[boardSize][boardSize];
 
         for(int row = 0; row < boardSize; row++)
@@ -151,7 +151,7 @@ public class SudokuApp implements Initializable, ActionListener
                 // Style the text of the grid cell
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
-                temp.setPrefSize(200, 200);
+                temp.setPrefSize(500, 500);
                 temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
@@ -170,6 +170,50 @@ public class SudokuApp implements Initializable, ActionListener
                 boardGrid.add(temp, column, row); // fill the grid with created cells
             }
         }
+
+        drawSubBoardLines(true);
+        drawSubBoardLines(false);
+    }
+
+    /**
+     * @author Danny & Abinav
+     */
+    public void drawSubBoardLines(boolean processingRows)
+    {
+        int boardSize = board.getBoardSize();
+        int length = processingRows ? 2 : (1000 / boardSize); // 1000 = length and width of UI board (in pixels)
+        int width = processingRows ? (1000 / boardSize) : 2;
+
+        int substituteA; // variables used to avoid repetitive code
+        int substituteB;
+
+        for(int rowOrColumnA = 0; rowOrColumnA < boardSize; rowOrColumnA++)
+        {
+            for(int rowOrColumnB = 1; rowOrColumnB < boardSize; rowOrColumnB++)
+            {
+                substituteA = processingRows ? rowOrColumnA : rowOrColumnB;
+                substituteB = processingRows ? rowOrColumnB : rowOrColumnA;
+
+                if(rowOrColumnB % board.getBoardLengthWidth() == 0)
+                {
+                    Rectangle line = new Rectangle();
+                    line.setHeight(length);
+                    line.setWidth(width);
+                    line.setFill(Color.BLACK);
+
+                    if(processingRows)
+                    {
+                        boardGrid.add(line, substituteA, substituteB);
+                        GridPane.setValignment(line, VPos.TOP); // correct alignment in grid cell
+                    }
+                    else
+                    {
+                        boardGrid.add(line, substituteA, substituteB);
+                        GridPane.setHalignment(line, HPos.LEFT);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -184,7 +228,7 @@ public class SudokuApp implements Initializable, ActionListener
      * @author Danny
      */
     @Override
-    public void actionPerformed(ActionEvent actionEvent) // updates solving timer
+    public void actionPerformed(ActionEvent actionEvent) // updates solving timer every second
     {
         secondsSolving++;
 

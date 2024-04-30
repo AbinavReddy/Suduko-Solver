@@ -6,15 +6,15 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="1200.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="BasicSudoku.SudokuApp">
+<AnchorPane prefHeight="1200.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="BasicSudoku.SudokuApp">
    <children>
-      <Label layoutX="573.0" layoutY="19.0" text="Menu">
+      <Label layoutX="523.0" layoutY="19.0" text="Menu">
          <font>
             <Font name="System Bold" size="56.0" />
          </font>
       </Label>
-      <Button layoutX="1102.0" layoutY="1119.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
-      <Button layoutX="607.0" layoutY="411.0" mnemonicParsing="false" onAction="#chooseBoardSize" text="Start solving!" />
-      <TextField fx:id="boardSizeField" alignment="CENTER" layoutX="568.0" layoutY="366.0" prefHeight="25.0" prefWidth="163.0" promptText="Board size (length/width)" />
+      <Button layoutX="1052.0" layoutY="1119.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
+      <Button layoutX="557.0" layoutY="411.0" mnemonicParsing="false" onAction="#chooseBoardSize" text="Start solving!" />
+      <TextField fx:id="boardSizeField" alignment="CENTER" layoutX="519.0" layoutY="366.0" prefHeight="25.0" prefWidth="162.0" promptText="Board size (length/width)" />
    </children>
 </AnchorPane>
