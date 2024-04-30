@@ -11,14 +11,14 @@
 
 <AnchorPane prefHeight="1200.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="BasicSudoku.SudokuApp">
     <children>
-      <Label layoutX="459.0" layoutY="14.0" text="Puzzle Scene">
+      <Label layoutX="565.0" layoutY="19.0" text="Puzzle">
          <font>
-            <Font size="70.0" />
+            <Font name="System Bold" size="56.0" />
          </font>
       </Label>
-      <Button layoutX="1108.0" layoutY="1143.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
-      <Button layoutX="158.0" layoutY="1143.0" mnemonicParsing="false" onAction="#goToMenuScene" text="Menu" />
-      <GridPane fx:id="boardGrid" alignment="CENTER" gridLinesVisible="true" layoutX="158.0" layoutY="120.0" onKeyPressed="#userPressedKeyboard" pickOnBounds="false" prefHeight="1000.0" prefWidth="1000.0">
+      <Button layoutX="1102.0" layoutY="1119.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
+      <Button layoutX="149.0" layoutY="1119.0" mnemonicParsing="false" onAction="#goToMenuScene" text="Menu" />
+      <GridPane fx:id="boardGrid" alignment="CENTER" gridLinesVisible="true" layoutX="150.0" layoutY="100.0" onKeyPressed="#userPressedKeyboard" pickOnBounds="false" prefHeight="1000.0" prefWidth="1000.0">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" />
           <ColumnConstraints hgrow="SOMETIMES" />
@@ -42,17 +42,17 @@
             <RowConstraints vgrow="SOMETIMES" />
         </rowConstraints>
       </GridPane>
-      <Text fx:id="filledCellsField" layoutX="957.0" layoutY="97.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Filled cells: 0/0" textAlignment="RIGHT" wrappingWidth="200.0">
+      <Text fx:id="filledCellsField" layoutX="951.0" layoutY="81.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Filled cells: 0/0" textAlignment="RIGHT" wrappingWidth="200.0">
          <font>
             <Font size="18.0" />
          </font>
       </Text>
-      <Text fx:id="timeSolvingField" layoutX="158.0" layoutY="97.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Time solving: 00:00:00">
+      <Text fx:id="timeSolvingField" layoutX="149.0" layoutY="81.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Time solving: 00:00:00">
          <font>
             <Font size="18.0" />
          </font>
       </Text>
-      <Text fx:id="errorMessageField" layoutX="207.0" layoutY="1165.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Error message" textAlignment="CENTER" wrappingWidth="901.29296875">
+      <Text fx:id="errorMessageField" layoutX="221.0" layoutY="1142.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Error message" textAlignment="CENTER" wrappingWidth="857.29296875">
          <font>
             <Font size="24.0" />
          </font>

@@ -140,7 +140,8 @@ public class SudokuApp implements Initializable, ActionListener
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().board.getBoard();
         int boardSize = board.getBoardSize();
 
-        int cellTextSize = 36;
+        int cellTextSize = 40 - ((board.getBoardLengthWidth() - 3) * 8);
+        System.out.println(cellTextSize);
         boardGridCells = new TextField[boardSize][boardSize];
 
         for(int row = 0; row < boardSize; row++)
@@ -151,7 +152,7 @@ public class SudokuApp implements Initializable, ActionListener
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
                 temp.setPrefSize(200, 200);
-                temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 5px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
+                temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
                 // Fill cell
@@ -262,10 +263,10 @@ public class SudokuApp implements Initializable, ActionListener
             currentScene.setRoot(root);
         }
 
-        appStage.setScene(currentScene); // Construct scene
-        appStage.setTitle("Sudoku"); // Window title
-        appStage.setResizable(true); // Disable resizable window
-        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("UI/sudoku icon.png")))); // Add app icon to stage
-        appStage.show(); // Show window
+        appStage.setScene(currentScene); // construct scene
+        appStage.setTitle("Sudoku (Group 5)"); // window title
+        appStage.setResizable(true); // disable resizable window
+        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("UI/sudoku icon.png")))); // add app icon to stage
+        appStage.show(); // show window
     }
 }

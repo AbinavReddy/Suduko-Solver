@@ -7,14 +7,14 @@
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="1200.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="BasicSudoku.SudokuApp">
-    <children>
-        <Button layoutX="609.0" layoutY="299.0" mnemonicParsing="false" onAction="#chooseBoardSize" text="Start solving!" />
-        <TextField fx:id="boardSizeField" layoutX="577.0" layoutY="261.0" promptText="board size" />
-      <Label layoutX="460.0" layoutY="124.0" text="Menu Scene">
+   <children>
+      <Label layoutX="573.0" layoutY="19.0" text="Menu">
          <font>
-            <Font size="70.0" />
+            <Font name="System Bold" size="56.0" />
          </font>
       </Label>
-      <Button layoutX="1141.0" layoutY="1104.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
-    </children>
+      <Button layoutX="1102.0" layoutY="1119.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
+      <Button layoutX="607.0" layoutY="411.0" mnemonicParsing="false" onAction="#chooseBoardSize" text="Start solving!" />
+      <TextField fx:id="boardSizeField" alignment="CENTER" layoutX="568.0" layoutY="366.0" prefHeight="25.0" prefWidth="163.0" promptText="Board size" />
+   </children>
 </AnchorPane>
