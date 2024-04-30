@@ -5,8 +5,8 @@ import java.util.Random;
 public class SudokuBoard
 {
     private int[][] board;
-    private final int boardLengthWidth;
     private final int boardSize;
+    private final int boardLengthWidth;
     private final int availableCells;
     private int filledCells;
     private boolean isBoardSolvable;
@@ -16,10 +16,10 @@ public class SudokuBoard
     /**
      * @author Danny, Abinav & Yahya
      */
-    public SudokuBoard(int boardLengthWidth)
+    public SudokuBoard(int boardSize)
     {
-        this.boardLengthWidth = boardLengthWidth;
-        boardSize = boardLengthWidth * boardLengthWidth;
+        this.boardSize = boardSize;
+        boardLengthWidth = (int) Math.sqrt(boardSize);
         availableCells = boardSize * boardSize;
 
         /*
@@ -36,16 +36,16 @@ public class SudokuBoard
         */
 
         Random chooseSolvable = new Random();
-        isBoardSolvable = boardLengthWidth == 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
+        isBoardSolvable = boardSize <= 9 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
 
         do
         {
-            initializeBoard(boardLengthWidth * 10);
+            initializeBoard((int) (availableCells * 0.38));
 
             SudokuBoard boardForSolving = new SudokuBoard(this);
             solver = new Solver(boardForSolving);
         }
-        while((boardLengthWidth == 3 && (isBoardSolvable && !solveBoard() || !isBoardSolvable && solveBoard())) || !solver.possibleValuesInCells());
+        while((boardSize <= 9 && (isBoardSolvable && !solveBoard() || !isBoardSolvable && solveBoard())) || !solver.possibleValuesInCells());
     }
 
     /**
@@ -60,8 +60,8 @@ public class SudokuBoard
             System.arraycopy(boardToCopy.board[row], 0, board[row], 0, boardToCopy.boardSize);
         }
 
-        boardLengthWidth = boardToCopy.boardLengthWidth;
         boardSize = boardToCopy.boardSize;
+        boardLengthWidth = boardToCopy.boardLengthWidth;
         availableCells = boardToCopy.availableCells;
         filledCells = boardToCopy.filledCells;
         isBoardSolvable = boardToCopy.isBoardSolvable;
@@ -261,17 +261,17 @@ public class SudokuBoard
     /**
      * @author Danny
      */
-    public int getBoardLengthWidth()
+    public int getBoardSize()
     {
-        return boardLengthWidth;
+        return boardSize;
     }
 
     /**
      * @author Danny
      */
-    public int getBoardSize()
+    public int getBoardLengthWidth()
     {
-        return boardSize;
+        return boardLengthWidth;
     }
 
     /**

@@ -2863,7 +2863,7 @@ public class Solver
         {
             System.out.println("Iteration: " + iterations);
 
-            SudokuBoard testBoard = new SudokuBoard(3);
+            SudokuBoard testBoard = new SudokuBoard(9);
             for(int row = 0; row < boardSize; row++)
             {
                 for(int column = 0; column < boardSize; column++)
