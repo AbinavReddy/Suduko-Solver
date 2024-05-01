@@ -60,8 +60,8 @@ public class SudokuBoard
             System.arraycopy(boardToCopy.board[row], 0, board[row], 0, boardToCopy.boardSize);
         }
 
-        boardSize = boardToCopy.boardSize;
         boardLengthWidth = boardToCopy.boardLengthWidth;
+        boardSize = boardToCopy.boardSize;
         availableCells = boardToCopy.availableCells;
         filledCells = boardToCopy.filledCells;
         isBoardSolvable = boardToCopy.isBoardSolvable;
