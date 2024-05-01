@@ -5,8 +5,8 @@ import java.util.Random;
 public class SudokuBoard
 {
     private int[][] board;
-    private final int boardSize;
     private final int boardLengthWidth;
+    private final int boardSize;
     private final int availableCells;
     private int filledCells;
     private boolean isBoardSolvable;
