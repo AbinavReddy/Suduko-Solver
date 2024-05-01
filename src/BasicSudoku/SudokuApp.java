@@ -24,7 +24,9 @@ import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+import java.math.*;
 import java.io.IOException;
+
 
 public class SudokuApp implements Initializable, ActionListener
 {
@@ -140,7 +142,7 @@ public class SudokuApp implements Initializable, ActionListener
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().board.getBoard();
         int boardSize = board.getBoardSize();
 
-        int cellTextSize = 40 - ((board.getBoardLengthWidth() - 3) * 8);
+        int cellTextSize = 40 - ((board.getBoardLengthWidth() - 3) * 10);
         //System.out.println(cellTextSize);
         boardGridCells = new TextField[boardSize][boardSize];
 
@@ -152,7 +154,7 @@ public class SudokuApp implements Initializable, ActionListener
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
                 temp.setPrefSize(500, 500);
-                temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
+                temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
                 // Fill cell
@@ -171,45 +173,87 @@ public class SudokuApp implements Initializable, ActionListener
             }
         }
 
-        drawSubBoardLines(true);
-        drawSubBoardLines(false);
+        drawBoardGridLines(true);
+        drawBoardGridLines(false);
     }
 
     /**
      * @author Danny & Abinav
      */
-    public void drawSubBoardLines(boolean processingRows)
+    public void drawBoardGridLines(boolean processingRows) // border made in SceneBuilder
     {
         int boardSize = board.getBoardSize();
-        int length = processingRows ? 2 : (1000 / boardSize); // 1000 = length and width of UI board (in pixels)
-        int width = processingRows ? (1000 / boardSize) : 2;
+        double length;
+        double width;
 
         int substituteA; // variables used to avoid repetitive code
         int substituteB;
 
         for(int rowOrColumnA = 0; rowOrColumnA < boardSize; rowOrColumnA++)
         {
-            for(int rowOrColumnB = 1; rowOrColumnB < boardSize; rowOrColumnB++)
+            for(int rowOrColumnB = 0; rowOrColumnB < boardSize; rowOrColumnB++)
             {
                 substituteA = processingRows ? rowOrColumnA : rowOrColumnB;
                 substituteB = processingRows ? rowOrColumnB : rowOrColumnA;
 
-                if(rowOrColumnB % board.getBoardLengthWidth() == 0)
+                if(rowOrColumnB % board.getBoardLengthWidth() != 0)
                 {
-                    Rectangle line = new Rectangle();
-                    line.setHeight(length);
-                    line.setWidth(width);
-                    line.setFill(Color.BLACK);
-
-                    if(processingRows)
+                    length = processingRows ? 1 : (Math.ceil(1000.0 / boardSize)); // 1000 = length and width of UI board (in pixels)
+                    width = processingRows ? (Math.ceil(1000.0 / boardSize)) : 1;
+                }
+                else
+                {
+                    if(rowOrColumnB == 0 || rowOrColumnB == boardSize - 1)
                     {
-                        boardGrid.add(line, substituteA, substituteB);
-                        GridPane.setValignment(line, VPos.TOP); // correct alignment in grid cell
+                        length = processingRows ? 4 : (Math.ceil(1000.0 / boardSize));
+                        width = processingRows ? (Math.ceil(1000.0 / boardSize)) : 4;
                     }
                     else
                     {
-                        boardGrid.add(line, substituteA, substituteB);
-                        GridPane.setHalignment(line, HPos.LEFT);
+                        length = processingRows ? 3 : (Math.ceil(1000.0 / boardSize));
+                        width = processingRows ? (Math.ceil(1000.0 / boardSize)) : 3;
+                    }
+                }
+
+                Rectangle line = new Rectangle();
+                line.setHeight(length);
+                line.setWidth(width);
+                line.setFill(Color.BLACK);
+
+                if(processingRows)
+                {
+                    boardGrid.add(line, substituteA, substituteB);
+                    GridPane.setValignment(line, VPos.TOP); // correct alignment in grid cell
+
+                    if(rowOrColumnB == boardSize - 1)
+                    {
+                        Rectangle line2 = new Rectangle();
+
+                        length = 4;
+                        width = (Math.ceil(1000.0 / boardSize));
+                        line2.setHeight(length);
+                        line2.setWidth(width);
+
+                        boardGrid.add(line2, substituteA, substituteB);
+                        GridPane.setValignment(line2, VPos.BOTTOM);
+                    }
+                }
+                else
+                {
+                    boardGrid.add(line, substituteA, substituteB);
+                    GridPane.setHalignment(line, HPos.LEFT);
+
+                    if(rowOrColumnB == boardSize - 1)
+                    {
+                        Rectangle line2 = new Rectangle();
+
+                        length = (Math.ceil(1000.0 / boardSize));
+                        width = 4;
+                        line2.setHeight(length);
+                        line2.setWidth(width);
+
+                        boardGrid.add(line2, substituteA, substituteB);
+                        GridPane.setHalignment(line2, HPos.RIGHT);
                     }
                 }
             }
