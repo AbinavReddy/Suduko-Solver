@@ -38,20 +38,21 @@ public class Solver
         // Add all strategies to a list to avoid repetitive code
         List<Runnable> strategies = new ArrayList<>();
         strategies.add(this::nakedSingles); // working
-        //strategies.add(this::hiddenSingles); // working
-        //strategies.add(this::nakedPairs); // working
-        //strategies.add(this::nakedTriples); // not working (with other strategies)
-        //strategies.add(this::hiddenPairs); // working
-        //strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
-        //strategies.add(this::nakedQuads); // working
-        //strategies.add(this::hiddenQuads); // working
-        //strategies.add(this::pointingPairsWithBLR); // working
-        //strategies.add(this::xWing); // working
-        //strategies.add(this::simpleColouring); // working
-        //strategies.add(this::yWingWithXYZExtension); // working
-        //strategies.add(this::swordFish); // not working (alone and with other strategies)
+        strategies.add(this::hiddenSingles); // working
+        strategies.add(this::nakedPairs); // working
+        strategies.add(this::nakedTriples); // // working
+        strategies.add(this::hiddenPairs); // working
+        strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
+        strategies.add(this::nakedQuads); // working
+        strategies.add(this::hiddenQuads); // working
+        strategies.add(this::pointingPairsWithBLR); // working
+        strategies.add(this::xWing); // working
+        strategies.add(this::simpleColouring); // working
+        strategies.add(this::yWingWithXYZExtension); // working
+        strategies.add(this::swordFish); // not working (alone and with other strategies)
         //strategies.add(this::bug); not working (alone and with other strategies)
-        //strategies.add(this::wXYZWingExtended); // working
+        strategies.add(this::wXYZWingExtended); // working
+
 
         boolean possibleValuesChanged;
         int possibleCountBefore;
@@ -1640,7 +1641,8 @@ public class Solver
                                 String key = row + "," + col;
                                 if(possibleNumbers.get(key)!= null && !triples.contains(key)) {
                                     if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
-                                        updatePossibleNumbersAndCounts(key, null, unionOfValues.stream().toList(), false);
+                                        List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
+                                        updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                     }
                                 }
                             }
@@ -1690,7 +1692,8 @@ public class Solver
                                 String key = row + "," + col;
                                 if (possibleNumbers.get(key) != null && !triples.contains(key)) {
                                     if (possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
-                                        updatePossibleNumbersAndCounts(key, null, unionOfValues.stream().toList(), false);
+                                        List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
+                                        updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                     }
                                 }
                             }
@@ -1755,7 +1758,8 @@ public class Solver
                             String key = (startingRow + k) + "," + (startingColumn + l);
                             if (possibleNumbers.get(key)!= null && !triples.contains(key) ) {
                                 if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
-                                    updatePossibleNumbersAndCounts(key, null, unionOfValues.stream().toList(), false);
+                                    List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
+                                    updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                 }
                             }
                         }
@@ -1783,7 +1787,7 @@ public class Solver
     }
 
     /**
-     * @author Yahya
+     * @author Yahya & Abinav
      */
     private void hiddenTriplesForSubBoards(){
         List<String> quads;
@@ -1819,9 +1823,12 @@ public class Solver
                             boolean quadsVerified = verifyTriples(quads, combos);
                             if ( quadsVerified) {
                                 for (String position : quads) {
-                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
-                                    valuesDuplicate.removeAll(combos);
-                                    updatePossibleNumbersAndCounts(position, null, valuesDuplicate, false);
+                                    List<Integer> valuesDuplicate = findWhichNumbersPresent(possibleNumbers.get(position), unionOfValues);
+                                    List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
+                                    valuesPresent.removeAll(valuesDuplicate);
+                                    if(!valuesPresent.equals(valuesDuplicate)) {
+                                        updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
+                                    }
                                 }
                             }
 
@@ -1833,7 +1840,7 @@ public class Solver
     }
 
     /**
-     * @author Yahya
+     * @author Yahya & Abinav
      */
     private void hiddenTriplesCRcombo(boolean processRows) {
 
@@ -1869,15 +1876,15 @@ public class Solver
                             boolean quadsVerified = verifyTriples(quads, combos);
 
                             if ( quadsVerified) {
-
-
                                 for (String position : quads) {
-                                    List<Integer> valuesDuplicate = new ArrayList<>(possibleNumbers.get(position));
-                                    valuesDuplicate.removeAll(combos);
-                                    updatePossibleNumbersAndCounts(position, null, valuesDuplicate, false);
+                                    List<Integer> valuesDuplicate = findWhichNumbersPresent(possibleNumbers.get(position), unionOfValues);
+                                    List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
+                                    valuesPresent.removeAll(valuesDuplicate);
+                                    if(!valuesPresent.equals(valuesDuplicate)) {
+                                        updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
+                                    }
                                 }
                             }
-
                         }
                     }
                 }
@@ -1886,17 +1893,39 @@ public class Solver
     }
 
     /**
-     * @author Yahya
+     * @author Yahya & Abinav
      */
-    private boolean verifyTriples(List<String> quads, Set<Integer> combos) {
+    private boolean verifyTriples(List<String> triples, Set<Integer> combos) {
+
 
         if(!combos.isEmpty()) {
-            for (String position : quads) {
+            boolean isHiddenTriple = false;
+            boolean notContainsTwoCandidates = false;
+            for (String position : triples) {
                 for (Integer number : possibleNumbers.get(position)) {
                     if (!combos.contains(number)) {
-                        return true;
+                       isHiddenTriple = true;
+                       break;
                     }
                 }
+            }
+
+            // check if the cell contains atleast two elements of combos
+            for(String keys : triples) {
+
+                int occurrence = 0;
+                for(Integer number : combos){
+                    if(possibleNumbers.get(keys) != null && !possibleNumbers.get(keys).contains(number)){
+                        occurrence++;
+                    }
+                }
+                if(occurrence < 2){
+                    notContainsTwoCandidates = true;
+                    break;
+                }
+            }
+            if(isHiddenTriple && notContainsTwoCandidates){
+                return true;
             }
         }
         return false;
