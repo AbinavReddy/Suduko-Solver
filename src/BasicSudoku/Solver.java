@@ -42,14 +42,14 @@ public class Solver
         strategies.add(this::nakedPairs); // working
         strategies.add(this::nakedTriples); // // working
         strategies.add(this::hiddenPairs); // working
-        strategies.add(this::hiddenTriples); // not working (alone and with other strategies)
+        strategies.add(this::hiddenTriples); // working
         strategies.add(this::nakedQuads); // working
         strategies.add(this::hiddenQuads); // working
         strategies.add(this::pointingPairsWithBLR); // working
         strategies.add(this::xWing); // working
         strategies.add(this::simpleColouring); // working
         strategies.add(this::yWingWithXYZExtension); // working
-        strategies.add(this::swordFish); // not working (alone and with other strategies)
+        strategies.add(this::swordFish); //working
         //strategies.add(this::bug); not working (alone and with other strategies)
         strategies.add(this::wXYZWingExtended); // working
 
@@ -2905,7 +2905,7 @@ public class Solver
                         testBoard.getSolver().printPossibleNumbers(false);
 
                         System.out.println("Failed...");
-                        System.out.println();
+
                     }
                     else if(iterations == 1000)
                     {
