@@ -5,25 +5,30 @@ import java.util.Random;
 public class SudokuBoard
 {
     private int[][] board;
-    private final int boardLengthWidth;
-    private final int boardSize;
+    private final int boardBoxes; // boxes on each side of the board
+    private final int boardRowsColumns; // row and columns on each side of the board
+    private final int boxRowsColumns; // rows and columns on each side of boxes
+    private final int maxPuzzleValue; // the maximum value at play in the puzzle
     private final int availableCells;
     private int filledCells;
-    private boolean isBoardSolvable;
+    private final boolean isBoardSolvable;
     private Solver solver;
     private String errorMessage;
 
     /**
      * @author Danny, Abinav & Yahya
      */
-    public SudokuBoard(int boardSize)
+    public SudokuBoard(int boardBoxes, int boxRowsColumns)
     {
-        this.boardSize = boardSize;
-        boardLengthWidth = (int) Math.sqrt(boardSize);
-        availableCells = boardSize * boardSize;
+        this.boardBoxes = boardBoxes;
+        boardRowsColumns = boardBoxes * boxRowsColumns;
+        this.boxRowsColumns = boxRowsColumns;
+        maxPuzzleValue = boxRowsColumns * boxRowsColumns;
+
+        availableCells = boardRowsColumns * boardRowsColumns;
 
         /*
-        board = new int[boardSize][boardSize];
+        board = new int[boardRowsColumns][boardRowsColumns];
 
         filledCells = 0;
 
@@ -36,7 +41,7 @@ public class SudokuBoard
         */
 
         Random chooseSolvable = new Random();
-        isBoardSolvable = boardSize <= 9 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
+        isBoardSolvable = boardBoxes <= 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
 
         do
         {
@@ -45,7 +50,7 @@ public class SudokuBoard
             SudokuBoard boardForSolving = new SudokuBoard(this);
             solver = new Solver(boardForSolving);
         }
-        while((boardSize <= 9 && (isBoardSolvable && !solveBoard() || !isBoardSolvable && solveBoard())) || !solver.possibleValuesInCells());
+        while((boardBoxes <= 3 && (isBoardSolvable && !solveBoard() || !isBoardSolvable && solveBoard())) || !solver.possibleValuesInCells());
     }
 
     /**
@@ -53,15 +58,17 @@ public class SudokuBoard
      */
     public SudokuBoard(SudokuBoard boardToCopy)
     {
-        board = new int[boardToCopy.boardSize][boardToCopy.boardSize];
+        board = new int[boardToCopy.boardRowsColumns][boardToCopy.boardRowsColumns];
 
-        for(int row = 0; row < boardToCopy.boardSize; row++)
+        for(int row = 0; row < boardToCopy.boardRowsColumns; row++)
         {
-            System.arraycopy(boardToCopy.board[row], 0, board[row], 0, boardToCopy.boardSize);
+            System.arraycopy(boardToCopy.board[row], 0, board[row], 0, boardToCopy.boardRowsColumns);
         }
 
-        boardLengthWidth = boardToCopy.boardLengthWidth;
-        boardSize = boardToCopy.boardSize;
+        boardBoxes = boardToCopy.boardBoxes;
+        boardRowsColumns = boardToCopy.boardRowsColumns;
+        boxRowsColumns = boardToCopy.boxRowsColumns;
+        maxPuzzleValue = boardToCopy.maxPuzzleValue;
         availableCells = boardToCopy.availableCells;
         filledCells = boardToCopy.filledCells;
         isBoardSolvable = boardToCopy.isBoardSolvable;
@@ -74,7 +81,7 @@ public class SudokuBoard
      */
     private void initializeBoard(int filledFromStart)
     {
-        board = new int[boardSize][boardSize];
+        board = new int[boardRowsColumns][boardRowsColumns];
         filledCells = 0;
 
         Random randomNumber = new Random();
@@ -84,9 +91,9 @@ public class SudokuBoard
 
         while(filledCells != filledFromStart) // fill cells randomly until reaching the specified amount of filled cells
         {
-            value = randomNumber.nextInt(1, boardSize + 1);
-            row = randomNumber.nextInt(0, boardSize);
-            column = randomNumber.nextInt(0, boardSize);
+            value = randomNumber.nextInt(1, maxPuzzleValue + 1);
+            row = randomNumber.nextInt(0, boardRowsColumns);
+            column = randomNumber.nextInt(0, boardRowsColumns);
 
             placeValueInCell(row, column, value);
         }
@@ -97,9 +104,9 @@ public class SudokuBoard
      */
     private void initializeBoardTemp(int[][] predefinedBoard)
     {
-        for(int row = 0; row < boardSize; row++)
+        for(int row = 0; row < boardRowsColumns; row++)
         {
-            for(int column = 0; column < boardSize; column++)
+            for(int column = 0; column < boardRowsColumns; column++)
             {
                 if(predefinedBoard[row][column] != 0)
                 {
@@ -121,15 +128,15 @@ public class SudokuBoard
      */
     public boolean placeValueInCell(int row, int column, int value)
     {
-        if((row < 0 || row > boardSize - 1) || (column < 0 || column > boardSize - 1))
+        if((row < 0 || row > boardRowsColumns - 1) || (column < 0 || column > boardRowsColumns - 1))
         {
-            errorMessage = "Only indices from 1-" + boardSize + " are valid!";
+            errorMessage = "Only indices from 1-" + boardRowsColumns + " are valid!";
 
             return false;
         }
-        else if(value < 1 || value > boardSize)
+        else if(value < 1 || value > maxPuzzleValue)
         {
-            errorMessage = "Only values from 1-" + boardSize + " are valid!";
+            errorMessage = "Only values from 1-" + maxPuzzleValue + " are valid!";
 
             return false;
         }
@@ -156,13 +163,15 @@ public class SudokuBoard
      */
     public boolean checkPlacementRow(int row, int value)
     {
-        for (int column = 0;  column < boardSize; column++ )
+        for (int column = 0; column < boardRowsColumns; column++ )
         {
             if(board[row][column] == value)
             {
+
                 return false;
             }
         }
+
         return true;
     }
 
@@ -171,13 +180,14 @@ public class SudokuBoard
      */
     public boolean checkPlacementColumn(int column, int value)
     {
-        for (int row = 0;  row < boardSize; row++ )
+        for (int row = 0; row < boardRowsColumns; row++ )
         {
             if(board[row][column] == value)
             {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -191,12 +201,12 @@ public class SudokuBoard
     public boolean checkPlacementSubBoard(int row, int column, int value)
     {
         int subBoard = findSubBoardNumber(row, column);
-        int startingRow = (subBoard / boardLengthWidth) * boardLengthWidth;
-        int startingColumn = (subBoard - startingRow) * boardLengthWidth;
+        int startingRow = (subBoard / boardBoxes) * boxRowsColumns;
+        int startingColumn = boardRowsColumns - (boxRowsColumns * (boardBoxes - (subBoard - (boardBoxes * (subBoard / boardBoxes)))));
 
-        for(int addedRows = 0; addedRows < boardLengthWidth; addedRows++)
+        for(int addedRows = 0; addedRows < boxRowsColumns; addedRows++)
         {
-            for(int addedColumns = 0; addedColumns < boardLengthWidth; addedColumns++)
+            for(int addedColumns = 0; addedColumns < boxRowsColumns; addedColumns++)
             {
                 if(board[startingRow + addedRows][startingColumn + addedColumns] == value)
                 {
@@ -206,6 +216,14 @@ public class SudokuBoard
         }
 
         return true;
+    }
+
+    /**
+     * @author Abinav
+     */
+    public int findSubBoardNumber(int row,int column)
+    {
+        return (row / boxRowsColumns) * boardBoxes + (column / boxRowsColumns);
     }
 
     /**
@@ -223,15 +241,6 @@ public class SudokuBoard
         }
 
         board[row][column] = value;
-    }
-
-    /**
-     * @author Abinav
-     */
-    public int findSubBoardNumber(int row,int column)
-    {
-        int totalNoOfSubBoards = (int) Math.sqrt(boardSize);
-        return (row/totalNoOfSubBoards)*totalNoOfSubBoards + (column/totalNoOfSubBoards);
     }
 
     /**
@@ -261,17 +270,25 @@ public class SudokuBoard
     /**
      * @author Danny
      */
-    public int getBoardSize()
+    public int getBoardBoxes()
     {
-        return boardSize;
+        return boardBoxes;
     }
 
     /**
      * @author Danny
      */
-    public int getBoardLengthWidth()
+    public int getBoardRowsColumns()
     {
-        return boardLengthWidth;
+        return boardRowsColumns;
+    }
+
+    /**
+     * @author Danny
+     */
+    public int getMaxPuzzleValue()
+    {
+        return maxPuzzleValue;
     }
 
     /**

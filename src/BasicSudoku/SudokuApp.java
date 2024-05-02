@@ -24,7 +24,6 @@ import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.util.Objects;
-import java.math.*;
 import java.io.IOException;
 
 
@@ -91,7 +90,7 @@ public class SudokuApp implements Initializable, ActionListener
 
         if(wantedSize > 1)
         {
-            board = new SudokuBoard(wantedSize);
+            board = new SudokuBoard(2, 3);
         }
 
         goToPuzzleScene();
@@ -140,9 +139,9 @@ public class SudokuApp implements Initializable, ActionListener
     public void showBoard(boolean unsolved)
     {
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().board.getBoard();
-        int boardSize = board.getBoardSize();
+        int boardSize = board.getBoardRowsColumns();
 
-        int cellTextSize = 40 - ((board.getBoardLengthWidth() - 3) * 10);
+        int cellTextSize = 40 - ((board.getBoardBoxes() - 3) * 10);
         //System.out.println(cellTextSize);
         boardGridCells = new TextField[boardSize][boardSize];
 
@@ -178,11 +177,11 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
-     * @author Danny & Abinav
+     * @author Danny, Abinav & Yahya
      */
     public void drawBoardGridLines(boolean processingRows) // border made in SceneBuilder
     {
-        int boardSize = board.getBoardSize();
+        int boardSize = board.getBoardRowsColumns();
         double length;
         double width;
 
@@ -196,7 +195,7 @@ public class SudokuApp implements Initializable, ActionListener
                 substituteA = processingRows ? rowOrColumnA : rowOrColumnB;
                 substituteB = processingRows ? rowOrColumnB : rowOrColumnA;
 
-                if(rowOrColumnB % board.getBoardLengthWidth() != 0)
+                if(rowOrColumnB % board.getBoardBoxes() != 0)
                 {
                     length = processingRows ? 1 : (Math.ceil(1000.0 / boardSize)); // 1000 = length and width of UI board (in pixels)
                     width = processingRows ? (Math.ceil(1000.0 / boardSize)) : 1;
@@ -292,9 +291,9 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToMenuScene() throws IOException
     {
-        boardView = boardViewState.NoBoardShown;
-
         setActiveScene("MenuScene");
+
+        boardView = boardViewState.NoBoardShown;
 
         if(solveTimer.isRunning())
         {
@@ -307,9 +306,9 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToPuzzleScene() throws IOException
     {
-        boardView = boardViewState.UnsolvedBoardShown;
-
         setActiveScene("PuzzleScene");
+
+        boardView = boardViewState.UnsolvedBoardShown;
     }
 
     /**
@@ -317,9 +316,9 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToSolverScene() throws IOException
     {
-        boardView = boardViewState.SolvedBoardShown;
-
         setActiveScene("SolverScene");
+
+        boardView = boardViewState.SolvedBoardShown;
 
         if(solveTimer.isRunning())
         {
