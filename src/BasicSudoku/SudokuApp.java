@@ -42,6 +42,8 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private TextField boxSizeField; // menu
     @FXML
+    private Text boardSizeValidationField; // menu
+    @FXML
     private Text timeSolvingField; // puzzle, solver
     private final Timer solveTimer = new Timer(1000, this); // puzzle
     private int secondsSolving; // puzzle
@@ -64,7 +66,11 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void initialize(URL url, ResourceBundle resourceBundle) // needed to inject JavaFX fields
     {
-        if(boardView == boardViewState.UnsolvedBoardShown)
+        if(boardView == boardViewState.NoBoardShown)
+        {
+            boardSizeValidationField.setText("");
+        }
+        else if(boardView == boardViewState.UnsolvedBoardShown)
         {
             showBoard(true);
 
@@ -91,12 +97,16 @@ public class SudokuApp implements Initializable, ActionListener
         int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
         int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
 
-        if(boardSizeBoxes > 1 && boxSizeRowsColumns > 1)
+        if((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns)) // k*n <= n^2, requirement for being valid
         {
             board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns);
-        }
 
-        goToPuzzleScene();
+            goToPuzzleScene();
+        }
+        else
+        {
+            boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+        }
 
         //board.getSolver().emptyCellsDebug(); // for testing (temp)
     }
@@ -144,20 +154,21 @@ public class SudokuApp implements Initializable, ActionListener
     public void showBoard(boolean unsolved)
     {
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
-        int boardSize = board.getBoardSizeRowsColumns();
+        int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
+        double cellWidthLength = Math.ceil(1000.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
 
-        int cellTextSize = 40 - ((board.getBoardSizeBoxes() - 3) * 10);
         //System.out.println(cellTextSize);
-        boardGridCells = new TextField[boardSize][boardSize];
+        boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
+        int cellTextSize = 40 - ((board.getBoardSizeBoxes() - 3) * 10);
 
-        for(int row = 0; row < boardSize; row++)
+        for(int row = 0; row < boardSizeRowsColumns; row++)
         {
-            for (int column = 0; column < boardSize; column++)
+            for (int column = 0; column < boardSizeRowsColumns; column++)
             {
                 // Style the text of the grid cell
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
-                temp.setPrefSize(500, 500);
+                temp.setPrefSize(cellWidthLength, cellWidthLength);
                 temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 

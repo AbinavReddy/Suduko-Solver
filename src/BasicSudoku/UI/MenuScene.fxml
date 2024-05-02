@@ -14,14 +14,19 @@
             <Font name="System Bold" size="56.0" />
          </font>
       </Label>
-      <TextField fx:id="boardSizeField" alignment="CENTER" layoutX="432.0" layoutY="365.0" prefHeight="25.0" prefWidth="150.0" promptText="board size (boxes)" />
-      <TextField fx:id="boxSizeField" alignment="CENTER" layoutX="618.0" layoutY="365.0" prefHeight="25.0" prefWidth="150.0" promptText="box size (rows/columns)" />
-      <Text layoutX="596.0" layoutY="381.0" strokeType="OUTSIDE" strokeWidth="0.0" text="x">
+      <TextField fx:id="boardSizeField" alignment="CENTER" focusTraversable="false" layoutX="432.0" layoutY="365.0" prefHeight="25.0" prefWidth="150.0" promptText="board size (boxes)" />
+      <TextField fx:id="boxSizeField" alignment="CENTER" focusTraversable="false" layoutX="618.0" layoutY="365.0" prefHeight="25.0" prefWidth="150.0" promptText="box size (rows/columns)" />
+      <Text layoutX="596.0" layoutY="382.0" strokeType="OUTSIDE" strokeWidth="0.0" text="x">
          <font>
             <Font size="18.0" />
          </font>
       </Text>
       <Button layoutX="557.0" layoutY="411.0" mnemonicParsing="false" onAction="#chooseBoardSize" text="Start solving!" />
       <Button layoutX="1052.0" layoutY="1119.0" mnemonicParsing="false" onAction="#goToSolverScene" text="Solver" />
+      <Text fx:id="boardSizeValidationField" layoutX="350.0" layoutY="317.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Board size validation" textAlignment="CENTER" wrappingWidth="500.0">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+      </Text>
    </children>
 </AnchorPane>
