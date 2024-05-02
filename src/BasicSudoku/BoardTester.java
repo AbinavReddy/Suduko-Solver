@@ -5,7 +5,7 @@ public class BoardTester
     public static void main(String[] args)
     {
         SudokuBoard board = new SudokuBoard(3, 3);
-        SudokuBoard solverBoard = board.getSolver().board;
+        SudokuBoard solverBoard = board.getSolver().getSolvedBoard();
         Solver solver = board.getSolver();
 
         solver.emptyCellsDebug();
@@ -22,8 +22,8 @@ public class BoardTester
     public static void printBoard(SudokuBoard boardToPrint)
     {
         int[][] board = boardToPrint.getBoard();
-        int boardBoxes = boardToPrint.getBoardBoxes();
-        int boardRowsColumns = boardToPrint.getBoardRowsColumns();
+        int boardBoxes = boardToPrint.getBoardSizeBoxes();
+        int boardRowsColumns = boardToPrint.getBoardSizeRowsColumns();
 
         for(int row = 0; row < boardRowsColumns; row++)
         {

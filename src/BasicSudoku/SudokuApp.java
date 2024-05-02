@@ -40,6 +40,8 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private TextField boardSizeField; // menu
     @FXML
+    private TextField boxSizeField; // menu
+    @FXML
     private Text timeSolvingField; // puzzle, solver
     private final Timer solveTimer = new Timer(1000, this); // puzzle
     private int secondsSolving; // puzzle
@@ -77,23 +79,26 @@ public class SudokuApp implements Initializable, ActionListener
         {
             showBoard(false);
 
-            filledCellsField.setText("Filled cells: " + board.getSolver().board.getFilledCells() + "/" + board.getSolver().board.getAvailableCells());
+            filledCellsField.setText("Filled cells: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
         }
     }
 
     /**
-     * @author Abinav & Danny
+     * @author Danny & Abinav
      */
     public void chooseBoardSize() throws IOException
     {
-        int wantedSize = Integer.parseInt(boardSizeField.getText()); // number of sub-boards
+        int boardSize = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
+        int boxSize = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
 
-        if(wantedSize > 1)
+        if(boardSize > 1 && boxSize > 1)
         {
-            board = new SudokuBoard(2, 3);
+            board = new SudokuBoard(boardSize, boxSize);
         }
 
         goToPuzzleScene();
+
+        //board.getSolver().emptyCellsDebug(); // for testing (temp)
     }
 
     /**
@@ -138,10 +143,10 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void showBoard(boolean unsolved)
     {
-        int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().board.getBoard();
-        int boardSize = board.getBoardRowsColumns();
+        int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
+        int boardSize = board.getBoardSizeRowsColumns();
 
-        int cellTextSize = 40 - ((board.getBoardBoxes() - 3) * 10);
+        int cellTextSize = 40 - ((board.getBoardSizeBoxes() - 3) * 10);
         //System.out.println(cellTextSize);
         boardGridCells = new TextField[boardSize][boardSize];
 
@@ -181,7 +186,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void drawBoardGridLines(boolean processingRows) // border made in SceneBuilder
     {
-        int boardSize = board.getBoardRowsColumns();
+        int boardSize = board.getBoardSizeRowsColumns();
         double length;
         double width;
 
@@ -195,7 +200,7 @@ public class SudokuApp implements Initializable, ActionListener
                 substituteA = processingRows ? rowOrColumnA : rowOrColumnB;
                 substituteB = processingRows ? rowOrColumnB : rowOrColumnA;
 
-                if(rowOrColumnB % board.getBoardBoxes() != 0)
+                if(rowOrColumnB % board.getBoardSizeBoxes() != 0)
                 {
                     length = processingRows ? 1 : (Math.ceil(1000.0 / boardSize)); // 1000 = length and width of UI board (in pixels)
                     width = processingRows ? (Math.ceil(1000.0 / boardSize)) : 1;
@@ -291,9 +296,9 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToMenuScene() throws IOException
     {
-        setActiveScene("MenuScene");
-
         boardView = boardViewState.NoBoardShown;
+
+        setActiveScene("MenuScene");
 
         if(solveTimer.isRunning())
         {
@@ -306,9 +311,9 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToPuzzleScene() throws IOException
     {
-        setActiveScene("PuzzleScene");
-
         boardView = boardViewState.UnsolvedBoardShown;
+
+        setActiveScene("PuzzleScene");
     }
 
     /**
@@ -316,9 +321,9 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToSolverScene() throws IOException
     {
-        setActiveScene("SolverScene");
-
         boardView = boardViewState.SolvedBoardShown;
+
+        setActiveScene("SolverScene");
 
         if(solveTimer.isRunning())
         {
