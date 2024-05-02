@@ -1,28 +1,28 @@
 package BasicSudoku;
 
 import javafx.fxml.Initializable;
+import java.awt.event.ActionListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.Node;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
-import javafx.scene.image.Image;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.geometry.Pos;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.paint.Color;
-import javax.swing.*;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.*;
 import java.util.Objects;
 import java.io.IOException;
 
@@ -52,7 +52,7 @@ public class SudokuApp implements Initializable, ActionListener
 
     private enum boardViewState
     {
-        NoBoardShown, UnsolvedBoardShown, SolvedBoardShown
+        NoBoardShown, EmptyBoardShown, UnsolvedBoardShown, SolvedBoardShown
     }
 
     private static boardViewState boardView;
@@ -88,12 +88,12 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void chooseBoardSize() throws IOException
     {
-        int boardSize = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
-        int boxSize = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
+        int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
+        int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
 
-        if(boardSize > 1 && boxSize > 1)
+        if(boardSizeBoxes > 1 && boxSizeRowsColumns > 1)
         {
-            board = new SudokuBoard(boardSize, boxSize);
+            board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns);
         }
 
         goToPuzzleScene();
@@ -177,86 +177,84 @@ public class SudokuApp implements Initializable, ActionListener
             }
         }
 
-        drawBoardGridLines(true);
-        drawBoardGridLines(false);
+        drawBoardLines(true);
+        drawBoardLines(false);
     }
 
     /**
      * @author Danny, Abinav & Yahya
      */
-    public void drawBoardGridLines(boolean processingRows) // border made in SceneBuilder
+    public void drawBoardLines(boolean processingRows)
     {
-        int boardSize = board.getBoardSizeRowsColumns();
-        double length;
-        double width;
+        int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
+        int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
+        double cellWidthLength = Math.ceil(1000.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
+        double lengthOfLine;
+        double widthOfLine;
 
         int substituteA; // variables used to avoid repetitive code
         int substituteB;
 
-        for(int rowOrColumnA = 0; rowOrColumnA < boardSize; rowOrColumnA++)
+        for(int rowOrColumnA = 0; rowOrColumnA < boardSizeRowsColumns; rowOrColumnA++)
         {
-            for(int rowOrColumnB = 0; rowOrColumnB < boardSize; rowOrColumnB++)
+            for(int rowOrColumnB = 0; rowOrColumnB < boardSizeRowsColumns; rowOrColumnB++)
             {
                 substituteA = processingRows ? rowOrColumnA : rowOrColumnB;
                 substituteB = processingRows ? rowOrColumnB : rowOrColumnA;
 
-                if(rowOrColumnB % board.getBoardSizeBoxes() != 0)
+                if(rowOrColumnB % boxSizeRowsColumns != 0) // borders of the cells
                 {
-                    length = processingRows ? 1 : (Math.ceil(1000.0 / boardSize)); // 1000 = length and width of UI board (in pixels)
-                    width = processingRows ? (Math.ceil(1000.0 / boardSize)) : 1;
+                    lengthOfLine = processingRows ? 1 : cellWidthLength;
+                    widthOfLine = processingRows ? cellWidthLength : 1;
                 }
                 else
                 {
-                    if(rowOrColumnB == 0 || rowOrColumnB == boardSize - 1)
+                    if(rowOrColumnB != 0 && rowOrColumnB != boardSizeRowsColumns - 1) // borders of the boxes
                     {
-                        length = processingRows ? 4 : (Math.ceil(1000.0 / boardSize));
-                        width = processingRows ? (Math.ceil(1000.0 / boardSize)) : 4;
+                        lengthOfLine = processingRows ? 3 : cellWidthLength;
+                        widthOfLine = processingRows ? cellWidthLength : 3;
                     }
-                    else
+                    else // borders of the board
                     {
-                        length = processingRows ? 3 : (Math.ceil(1000.0 / boardSize));
-                        width = processingRows ? (Math.ceil(1000.0 / boardSize)) : 3;
+                        lengthOfLine = processingRows ? 4 : cellWidthLength;
+                        widthOfLine = processingRows ? cellWidthLength : 4;
                     }
                 }
 
-                Rectangle line = new Rectangle();
-                line.setHeight(length);
-                line.setWidth(width);
-                line.setFill(Color.BLACK);
+                Rectangle line1 = new Rectangle();
+                line1.setHeight(lengthOfLine);
+                line1.setWidth(widthOfLine);
+                line1.setFill(Color.BLACK);
+
+                boardGrid.add(line1, substituteA, substituteB);
 
                 if(processingRows)
                 {
-                    boardGrid.add(line, substituteA, substituteB);
-                    GridPane.setValignment(line, VPos.TOP); // correct alignment in grid cell
-
-                    if(rowOrColumnB == boardSize - 1)
-                    {
-                        Rectangle line2 = new Rectangle();
-
-                        length = 4;
-                        width = (Math.ceil(1000.0 / boardSize));
-                        line2.setHeight(length);
-                        line2.setWidth(width);
-
-                        boardGrid.add(line2, substituteA, substituteB);
-                        GridPane.setValignment(line2, VPos.BOTTOM);
-                    }
+                    GridPane.setValignment(line1, VPos.TOP); // correct alignment in grid cell
                 }
                 else
                 {
-                    boardGrid.add(line, substituteA, substituteB);
-                    GridPane.setHalignment(line, HPos.LEFT);
+                    GridPane.setHalignment(line1, HPos.LEFT);
+                }
 
-                    if(rowOrColumnB == boardSize - 1)
+                if(rowOrColumnB == boardSizeRowsColumns - 1) // last cell needs to have border inserted as well to avoid overreach
+                {
+                    lengthOfLine = processingRows ? 4 : cellWidthLength;
+                    widthOfLine = processingRows ? cellWidthLength : 4;
+
+                    Rectangle line2 = new Rectangle();
+                    line2.setHeight(lengthOfLine);
+                    line2.setWidth(widthOfLine);
+                    line2.setFill(Color.BLACK);
+
+                    boardGrid.add(line2, substituteA, substituteB);
+
+                    if(processingRows)
                     {
-                        Rectangle line2 = new Rectangle();
-
-                        length = (Math.ceil(1000.0 / boardSize));
-                        width = 4;
-                        line2.setHeight(length);
-                        line2.setWidth(width);
-
-                        boardGrid.add(line2, substituteA, substituteB);
+                        GridPane.setValignment(line2, VPos.BOTTOM);
+                    }
+                    else
+                    {
                         GridPane.setHalignment(line2, HPos.RIGHT);
                     }
                 }
