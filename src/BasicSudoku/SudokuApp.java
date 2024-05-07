@@ -78,14 +78,18 @@ public class SudokuApp implements Initializable, ActionListener
             secondsSolving = 0;
             solveTimer.start();
 
-            filledCellsField.setText("Filled cells: " + board.getFilledCells() + "/" + board.getAvailableCells());
+            filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
             errorMessageField.setText("");
         }
         else if(boardView == boardViewState.SolvedBoardShown)
         {
             showBoard(false);
 
-            filledCellsField.setText("Filled cells: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
+            filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
+        }
+        else if(boardView == boardViewState.EmptyBoardShown)
+        {
+            showEmptyBoard();
         }
     }
 
@@ -101,7 +105,14 @@ public class SudokuApp implements Initializable, ActionListener
         {
             board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns);
 
-            goToPuzzleScene();
+            if(boardView == boardViewState.UnsolvedBoardShown)
+            {
+                goToPuzzleScene();
+            }
+            else
+            {
+                goToCustomScene();
+            }
         }
         else
         {
@@ -155,7 +166,7 @@ public class SudokuApp implements Initializable, ActionListener
     {
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
-        double cellWidthLength = Math.ceil(1000.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
+        double cellWidthLength = Math.ceil(850.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
 
         //System.out.println(cellTextSize);
         boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
@@ -169,7 +180,7 @@ public class SudokuApp implements Initializable, ActionListener
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
                 temp.setPrefSize(cellWidthLength, cellWidthLength);
-                temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#bc8f8f;" + "-fx-text-fill: #f4a460;" + "-fx-opacity: 1;");
+                temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#738573;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
                 // Fill cell
@@ -192,14 +203,46 @@ public class SudokuApp implements Initializable, ActionListener
         drawBoardLines(false);
     }
 
+    public void showEmptyBoard()
+    {
+        int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
+        double cellWidthLength = Math.ceil(850.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
+
+        //System.out.println(cellTextSize);
+        boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
+        int cellTextSize = 40 - ((board.getBoardSizeBoxes() - 3) * 10);
+
+        for(int row = 0; row < boardSizeRowsColumns; row++)
+        {
+            for (int column = 0; column < boardSizeRowsColumns; column++)
+            {
+                // Style the text of the grid cell
+                boardGridCells[row][column] = new TextField();
+                TextField temp = boardGridCells[row][column];
+                temp.setPrefSize(cellWidthLength, cellWidthLength);
+                temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#738573;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
+                temp.setAlignment(Pos.CENTER);
+
+                // Fill cell
+                temp.setPromptText("");
+                temp.setEditable(true);
+
+                boardGrid.add(temp, column, row); // fill the grid with created cells
+            }
+        }
+
+        drawBoardLines(true);
+        drawBoardLines(false);
+    }
+
     /**
      * @author Danny, Abinav & Yahya
      */
-    public void drawBoardLines(boolean processingRows)
+    public void drawBoardLines(boolean processingRows) // borders are done in SceneBuilder
     {
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
-        double cellWidthLength = Math.ceil(1000.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
+        double cellWidthLength = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
         double lengthOfLine;
         double widthOfLine;
 
@@ -218,56 +261,30 @@ public class SudokuApp implements Initializable, ActionListener
                     lengthOfLine = processingRows ? 1 : cellWidthLength;
                     widthOfLine = processingRows ? cellWidthLength : 1;
                 }
+                else if(rowOrColumnB != 0 && rowOrColumnB != boardSizeRowsColumns - 1) // borders of the boxes
+                {
+                    lengthOfLine = processingRows ? 3 : cellWidthLength;
+                    widthOfLine = processingRows ? cellWidthLength : 3;
+                }
                 else
                 {
-                    if(rowOrColumnB != 0 && rowOrColumnB != boardSizeRowsColumns - 1) // borders of the boxes
-                    {
-                        lengthOfLine = processingRows ? 3 : cellWidthLength;
-                        widthOfLine = processingRows ? cellWidthLength : 3;
-                    }
-                    else // borders of the board
-                    {
-                        lengthOfLine = processingRows ? 4 : cellWidthLength;
-                        widthOfLine = processingRows ? cellWidthLength : 4;
-                    }
+                    continue;
                 }
 
-                Rectangle line1 = new Rectangle();
-                line1.setHeight(lengthOfLine);
-                line1.setWidth(widthOfLine);
-                line1.setFill(Color.BLACK);
+                Rectangle line = new Rectangle();
+                line.setHeight(lengthOfLine);
+                line.setWidth(widthOfLine);
+                line.setFill(Color.BLACK);
 
-                boardGrid.add(line1, substituteA, substituteB);
+                boardGrid.add(line, substituteA, substituteB);
 
                 if(processingRows)
                 {
-                    GridPane.setValignment(line1, VPos.TOP); // correct alignment in grid cell
+                    GridPane.setValignment(line, VPos.TOP); // correct alignment in grid cell
                 }
                 else
                 {
-                    GridPane.setHalignment(line1, HPos.LEFT);
-                }
-
-                if(rowOrColumnB == boardSizeRowsColumns - 1) // last cell needs to have border inserted as well to avoid overreach
-                {
-                    lengthOfLine = processingRows ? 4 : cellWidthLength;
-                    widthOfLine = processingRows ? cellWidthLength : 4;
-
-                    Rectangle line2 = new Rectangle();
-                    line2.setHeight(lengthOfLine);
-                    line2.setWidth(widthOfLine);
-                    line2.setFill(Color.BLACK);
-
-                    boardGrid.add(line2, substituteA, substituteB);
-
-                    if(processingRows)
-                    {
-                        GridPane.setValignment(line2, VPos.BOTTOM);
-                    }
-                    else
-                    {
-                        GridPane.setHalignment(line2, HPos.RIGHT);
-                    }
+                    GridPane.setHalignment(line, HPos.LEFT);
                 }
             }
         }
@@ -278,7 +295,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void increaseFilledCells()
     {
-        filledCellsField.setText("Filled cells: " + board.getFilledCells() + "/" + board.getAvailableCells());
+        filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
     }
 
     /**
@@ -297,7 +314,7 @@ public class SudokuApp implements Initializable, ActionListener
         String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
         String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
 
-        timeSolvingField.setText("Time solving: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
+        timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
     }
 
     /**
@@ -341,6 +358,16 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * @author Danny
+     */
+    public void goToCustomScene() throws IOException
+    {
+        boardView = boardViewState.EmptyBoardShown;
+
+        setActiveScene("CustomScene");
+    }
+
+    /**
      * @author Abinav
      */
     public void setAppStage(Stage stage)
@@ -366,8 +393,8 @@ public class SudokuApp implements Initializable, ActionListener
 
         appStage.setScene(currentScene); // construct scene
         appStage.setTitle("Sudoku (Group 5)"); // window title
-        appStage.setResizable(true); // disable resizable window
-        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("UI/sudoku icon.png")))); // add app icon to stage
+        appStage.setResizable(false); // disable resizable window
+        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("UI/Media/sudoku icon.png")))); // add app icon to stage
         appStage.show(); // show window
     }
 }

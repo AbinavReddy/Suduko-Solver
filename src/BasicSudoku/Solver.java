@@ -139,8 +139,9 @@ public class Solver
             // recursive case
             for(String key : possibleKeysSorted)
             {
-                int row = Integer.parseInt(String.valueOf(key.charAt(0)));
-                int column = Integer.parseInt(String.valueOf(key.charAt(2)));
+                String[] parts = key.split(",");
+                int row = Integer.parseInt(parts[0]);
+                int column = Integer.parseInt(parts[1]);
 
                 for(Integer value : possibleNumbers.get(key))
                 {
