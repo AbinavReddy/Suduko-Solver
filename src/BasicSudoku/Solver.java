@@ -5,6 +5,8 @@ import java.util.*;
 public class Solver
 {
     private final SudokuBoard solvedBoard;
+    private boolean solvedWithStrategies;
+    private boolean solvedWithBacktracking;
     private final int boardSizeBoxes;
     private final int boardSizeRowsColumns;
     private final int boxSizeRowsColumns;
@@ -23,6 +25,8 @@ public class Solver
     public Solver(SudokuBoard boardToSolve)
     {
         this.solvedBoard = boardToSolve;
+        solvedWithStrategies = false;
+        solvedWithBacktracking = false;
         boardSizeBoxes = boardToSolve.getBoardSizeBoxes();
         boardSizeRowsColumns = boardToSolve.getBoardSizeRowsColumns();
         boxSizeRowsColumns = boardToSolve.getBoxSizeRowsColumns();
@@ -75,6 +79,8 @@ public class Solver
 
                 if(possibleCountBefore != possibleValuesCount)
                 {
+                    solvedWithStrategies = true;
+
                     possibleValuesChanged = true;
                 }
             }
@@ -88,6 +94,8 @@ public class Solver
             {
                 if(currentStrategy == strategies.size() - 1 && !solvedBoard.isGameFinished())  // board is unsolvable with strategies, try backtracking (last resort)
                 {
+                    solvedWithBacktracking = true;
+
                     return solveWithBacktracking(sortKeysForBacktracking());
                 }
 
@@ -2900,6 +2908,27 @@ public class Solver
         return solvedBoard;
     }
 
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public boolean getSolvedWithStrategies()
+    {
+        return solvedWithStrategies;
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public boolean getSolvedWithBacktracking()
+    {
+        return solvedWithBacktracking;
+    }
+
+    public HashMap<String, List<Integer>> getPossibleNumbers()
+    {
+        return possibleNumbers;
+    }
+
     // god tier debugging - it is! >:(
     public void emptyCellsDebug()
     {
@@ -2907,7 +2936,7 @@ public class Solver
         {
             System.out.println("Iteration: " + iterations);
 
-            SudokuBoard testBoard = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns);
+            SudokuBoard testBoard = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, false);
             for(int row = 0; row < boardSizeRowsColumns; row++)
             {
                 for(int column = 0; column < boardSizeRowsColumns; column++)

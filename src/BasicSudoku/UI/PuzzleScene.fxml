@@ -39,14 +39,14 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Button layoutX="349.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToMenuScene" prefHeight="28.0" prefWidth="65.0" text="Menu">
+      <Button layoutX="360.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToMenuScene" prefHeight="28.0" prefWidth="65.0" text="Menu">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button focusTraversable="false" layoutX="744.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToSolverScene" prefHeight="28.0" prefWidth="65.0" text="Solver">
+      <Button focusTraversable="false" layoutX="775.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToSolverScene" prefHeight="28.0" prefWidth="65.0" text="Solver">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
@@ -77,28 +77,28 @@
             <RowConstraints vgrow="SOMETIMES" />
         </rowConstraints>
       </GridPane>
-      <Button focusTraversable="false" layoutX="507.0" layoutY="1076.0" mnemonicParsing="false" prefHeight="28.0" prefWidth="65.0" text="Reset">
+      <Button focusTraversable="false" layoutX="526.0" layoutY="1076.0" mnemonicParsing="false" onAction="#resetBoard" prefHeight="28.0" prefWidth="65.0" text="Reset">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button focusTraversable="false" layoutX="428.0" layoutY="1076.0" mnemonicParsing="false" prefHeight="28.0" prefWidth="65.0" text="Undo">
+      <Button focusTraversable="false" layoutX="443.0" layoutY="1076.0" mnemonicParsing="false" onAction="#undoValueInsertion" prefHeight="28.0" prefWidth="65.0" text="Undo">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button focusTraversable="false" layoutX="665.0" layoutY="1076.0" mnemonicParsing="false" prefHeight="28.0" prefWidth="65.0" text="Hint">
+      <Button fx:id="hintButton" focusTraversable="false" layoutX="692.0" layoutY="1076.0" mnemonicParsing="false" onAction="#showHint" prefHeight="28.0" prefWidth="65.0" text="Hint">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button focusTraversable="false" layoutX="586.0" layoutY="1076.0" mnemonicParsing="false" prefHeight="28.0" prefWidth="65.0" text="Pause">
+      <Button focusTraversable="false" layoutX="609.0" layoutY="1076.0" mnemonicParsing="false" prefHeight="28.0" prefWidth="65.0" text="Pause">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
@@ -110,12 +110,12 @@
             <Image url="@Media/board%20frame.png" />
          </image>
       </ImageView>
-      <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="820.0" layoutY="1075.0" pickOnBounds="true" preserveRatio="true">
+      <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="1115.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@Media/sound%20on.png" />
          </image>
       </ImageView>
-      <Button focusTraversable="false" layoutX="820.0" layoutY="1075.0" mnemonicParsing="false" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Sound">
+      <Button focusTraversable="false" layoutX="1115.0" layoutY="46.0" mnemonicParsing="false" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Sound">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>

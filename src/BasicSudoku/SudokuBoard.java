@@ -1,5 +1,7 @@
 package BasicSudoku;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class SudokuBoard
@@ -11,21 +13,22 @@ public class SudokuBoard
     private final int maxPuzzleValue; // the maximum value at play in the puzzle
     private final int availableCells;
     private int filledCells;
-    private final boolean isBoardSolvable;
+    private final boolean isCustomBoard;
+    private boolean boardSolvable;
     private Solver solver;
     private String errorMessage;
 
     /**
      * @author Danny, Abinav & Yahya
      */
-    public SudokuBoard(int boardSizeBoxes, int boxSizeRowsColumns)
+    public SudokuBoard(int boardSizeBoxes, int boxSizeRowsColumns, boolean isCustomBoard)
     {
         this.boardSizeBoxes = boardSizeBoxes;
         this.boardSizeRowsColumns = boardSizeBoxes * boxSizeRowsColumns;
         this.boxSizeRowsColumns = boxSizeRowsColumns;
         maxPuzzleValue = boxSizeRowsColumns * boxSizeRowsColumns;
-
         availableCells = boardSizeRowsColumns * boardSizeRowsColumns;
+        this.isCustomBoard = isCustomBoard;
 
         /*
         board = new int[boardRowsColumns][boardRowsColumns];
@@ -41,16 +44,16 @@ public class SudokuBoard
         */
 
         Random chooseSolvable = new Random();
-        isBoardSolvable = boardSizeBoxes <= 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
+        boardSolvable = boardSizeBoxes <= 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
 
         do
         {
-            initializeBoard((int) (availableCells * 0.38));
+            initializeBoard(!isCustomBoard ? (int) (availableCells * 0.38) : 0);
 
             SudokuBoard boardForSolving = new SudokuBoard(this);
             solver = new Solver(boardForSolving);
         }
-        while((boardSizeBoxes <= 3 && (isBoardSolvable && !solveBoard() || !isBoardSolvable && solveBoard())) || !solver.possibleValuesInCells());
+        while(!isCustomBoard && ((boardSizeBoxes <= 3 && (boardSolvable && !solveBoard() || !boardSolvable && solveBoard())) || !solver.possibleValuesInCells()));
     }
 
     /**
@@ -71,7 +74,8 @@ public class SudokuBoard
         maxPuzzleValue = boardToCopy.maxPuzzleValue;
         availableCells = boardToCopy.availableCells;
         filledCells = boardToCopy.filledCells;
-        isBoardSolvable = boardToCopy.isBoardSolvable;
+        isCustomBoard = boardToCopy.isCustomBoard;
+        boardSolvable = boardToCopy.boardSolvable;
         solver = null; // the solving board doesn't need a solver field
         errorMessage = boardToCopy.errorMessage;
     }
@@ -313,6 +317,14 @@ public class SudokuBoard
     public int getFilledCells()
     {
         return filledCells;
+    }
+
+    /**
+     * @author Danny
+     */
+    public boolean getIsCustomBoard()
+    {
+        return isCustomBoard;
     }
 
     /**

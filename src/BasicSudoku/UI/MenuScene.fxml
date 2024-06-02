@@ -17,19 +17,19 @@
             <Image url="@Media/menu%20background.png" />
          </image>
       </ImageView>
-      <TextField fx:id="boardSizeField" alignment="CENTER" focusTraversable="false" layoutX="437.0" layoutY="390.0" prefHeight="25.0" prefWidth="150.0" promptText="board size (boxes)" />
-      <TextField fx:id="boxSizeField" alignment="CENTER" focusTraversable="false" layoutX="623.0" layoutY="390.0" prefHeight="25.0" prefWidth="150.0" promptText="box size (rows/columns)" />
-      <Text fill="WHITE" layoutX="601.0" layoutY="407.0" strokeType="OUTSIDE" strokeWidth="0.0" text="x">
+      <TextField fx:id="boardSizeField" alignment="CENTER" focusTraversable="false" layoutX="437.0" layoutY="372.0" prefHeight="25.0" prefWidth="150.0" promptText="board size (boxes)" />
+      <TextField fx:id="boxSizeField" alignment="CENTER" focusTraversable="false" layoutX="623.0" layoutY="372.0" prefHeight="25.0" prefWidth="150.0" promptText="box size (rows/columns)" />
+      <Text fill="WHITE" layoutX="601.0" layoutY="389.0" strokeType="OUTSIDE" strokeWidth="0.0" text="x">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Button layoutX="535.0" layoutY="438.0" mnemonicParsing="false" onAction="#chooseBoardSize" prefHeight="28.0" prefWidth="65.0" text="Random">
+      <Button layoutX="535.0" layoutY="420.0" mnemonicParsing="false" onAction="#initializeRandomBoard" prefHeight="28.0" prefWidth="65.0" text="Random">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Text fx:id="boardSizeValidationField" fill="WHITE" layoutX="355.0" layoutY="342.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Board size validation" textAlignment="CENTER" wrappingWidth="500.0">
+      <Text fx:id="boardSizeValidationField" fill="WHITE" layoutX="355.0" layoutY="342.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Select board size and puzzle type below" textAlignment="CENTER" wrappingWidth="500.0">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
@@ -39,6 +39,6 @@
             <Font name="System Bold" size="72.0" />
          </font>
       </Label>
-      <Button layoutX="611.0" layoutY="438.0" mnemonicParsing="false" onAction="#chooseBoardSize" prefHeight="28.0" prefWidth="65.0" text="Custom" />
+      <Button layoutX="612.0" layoutY="420.0" mnemonicParsing="false" onAction="#initializeCustomBoard" prefHeight="28.0" prefWidth="65.0" text="Custom" />
    </children>
 </AnchorPane>

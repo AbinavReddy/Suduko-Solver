@@ -5,7 +5,12 @@ import java.awt.event.ActionListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import javafx.scene.control.Button;
+import javafx.scene.input.*;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -15,8 +20,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.geometry.Pos;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
@@ -30,6 +33,7 @@ import java.io.IOException;
 public class SudokuApp implements Initializable, ActionListener
 {
     private static SudokuBoard board;
+    private static List<int[]> valueInsertHistory;
 
     // JavaFX related
     private static Stage appStage;
@@ -37,6 +41,7 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private GridPane boardGrid; // puzzle, solver
     private TextField[][] boardGridCells; // puzzle, solver
+    private TextField activeTextField; // puzzle
     @FXML
     private TextField boardSizeField; // menu
     @FXML
@@ -44,131 +49,114 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private Text boardSizeValidationField; // menu
     @FXML
-    private Text timeSolvingField; // puzzle, solver
+    private Text timeSolvingField; // puzzle
     private final Timer solveTimer = new Timer(1000, this); // puzzle
     private int secondsSolving; // puzzle
     @FXML
-    private Text filledCellsField; // puzzle, solver
+    private Text filledCellsField; // puzzle, solver, custom
     @FXML
-    private Text errorMessageField; // puzzle
+    private Text errorMessageField; // puzzle, custom
+    @FXML
+    private Text solverFeedbackField; // solver
+    @FXML
+    private Button hintButton;
 
     private enum boardViewState
     {
-        NoBoardShown, EmptyBoardShown, UnsolvedBoardShown, SolvedBoardShown
+        NoBoardShown, UnsolvedBoardShown, SolvedBoardShown, CustomBoardShown
     }
 
     private static boardViewState boardView;
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////
-
     /**
      * @author Danny
      */
-    public void initialize(URL url, ResourceBundle resourceBundle) // needed to inject JavaFX fields
+    public void initialize(URL url, ResourceBundle resourceBundle) // needed to inject some JavaFX fields
     {
-        if(boardView == boardViewState.NoBoardShown)
+        if(boardView == boardViewState.UnsolvedBoardShown || boardView == boardViewState.CustomBoardShown)
         {
-            boardSizeValidationField.setText("");
-        }
-        else if(boardView == boardViewState.UnsolvedBoardShown)
-        {
-            showBoard(true);
-
-            // Start timer to keep track of time elapsed solving the puzzle
-            secondsSolving = 0;
-            solveTimer.start();
+            showBoardValues(true);
 
             filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
             errorMessageField.setText("");
+
+            // Start timer to keep track of time elapsed solving (PuzzleScene only)
+            if(timeSolvingField != null)
+            {
+                secondsSolving = 0;
+                solveTimer.start();
+            }
         }
         else if(boardView == boardViewState.SolvedBoardShown)
         {
-            showBoard(false);
+            showBoardValues(false);
 
             filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
-        }
-        else if(boardView == boardViewState.EmptyBoardShown)
-        {
-            showEmptyBoard();
+
+            if(board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
+            {
+                solverFeedbackField.setText("The puzzle was solved with strategies!");
+            }
+            else if(board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
+            {
+                solverFeedbackField.setText("The puzzle was solved with strategies and backtracking!");
+            }
+            else
+            {
+                solverFeedbackField.setText("The puzzle was solved with backtracking!");
+            }
         }
     }
 
     /**
      * @author Danny & Abinav
      */
-    public void chooseBoardSize() throws IOException
+    public void initializeRandomBoard() throws IOException
     {
         int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
         int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
 
         if((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns)) // k*n <= n^2, requirement for being valid
         {
-            board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns);
+            board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, false);
 
-            if(boardView == boardViewState.UnsolvedBoardShown)
-            {
-                goToPuzzleScene();
-            }
-            else
-            {
-                goToCustomScene();
-            }
+            goToPuzzleScene();
         }
         else
         {
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
         }
-
-        //board.getSolver().emptyCellsDebug(); // for testing (temp)
     }
 
     /**
      * @author Danny
      */
-    public void userPressedKeyboard(KeyEvent event)
+    public void initializeCustomBoard() throws IOException
     {
-        if(event.getCode() == KeyCode.ENTER) // user pressed Enter and is trying to insert a value
+        int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
+        int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
+
+        if((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns)) // k*n <= n^2, requirement for being valid
         {
-            insertValue((Node) event.getTarget());
-        }
-    }
+            board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, true);
 
-    /**
-     * @author Danny
-     */
-    public void insertValue(Node boardGridCell)
-    {
-        int row = GridPane.getRowIndex(boardGridCell);
-        int column = GridPane.getColumnIndex(boardGridCell);;
-        int value = Integer.parseInt(boardGridCells[row][column].getText());
-
-        if(board.placeValueInCell(row, column, value))
-        {
-            increaseFilledCells();
-
-            boardGridCell.setDisable(true); // make cell uneditable
-            boardGrid.requestFocus(); // un-focus all cells
-
-            errorMessageField.setText("");
+            goToCustomScene();
         }
         else
         {
-            boardGridCells[row][column].clear(); // reset cell
-
-            errorMessageField.setText(board.getErrorMessage());
+            boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
         }
     }
 
     /**
      * @author Danny & Abinav
      */
-    public void showBoard(boolean unsolved)
+    public void showBoardValues(boolean unsolved)
     {
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         double cellWidthLength = Math.ceil(850.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
 
-        //System.out.println(cellTextSize);
         boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
         int cellTextSize = 40 - ((board.getBoardSizeBoxes() - 3) * 10);
 
@@ -179,8 +167,9 @@ public class SudokuApp implements Initializable, ActionListener
                 // Style the text of the grid cell
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
+                temp.setOnMouseClicked(event -> updateActiveTextField(temp));
                 temp.setPrefSize(cellWidthLength, cellWidthLength);
-                temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#738573;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
+                temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#c0c0c0;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
                 // Fill cell
@@ -194,38 +183,6 @@ public class SudokuApp implements Initializable, ActionListener
                     temp.setPromptText(String.valueOf(boardToShow[row][column]));
                     temp.setDisable(true);
                 }
-
-                boardGrid.add(temp, column, row); // fill the grid with created cells
-            }
-        }
-
-        drawBoardLines(true);
-        drawBoardLines(false);
-    }
-
-    public void showEmptyBoard()
-    {
-        int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
-        double cellWidthLength = Math.ceil(850.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
-
-        //System.out.println(cellTextSize);
-        boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
-        int cellTextSize = 40 - ((board.getBoardSizeBoxes() - 3) * 10);
-
-        for(int row = 0; row < boardSizeRowsColumns; row++)
-        {
-            for (int column = 0; column < boardSizeRowsColumns; column++)
-            {
-                // Style the text of the grid cell
-                boardGridCells[row][column] = new TextField();
-                TextField temp = boardGridCells[row][column];
-                temp.setPrefSize(cellWidthLength, cellWidthLength);
-                temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#738573;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
-                temp.setAlignment(Pos.CENTER);
-
-                // Fill cell
-                temp.setPromptText("");
-                temp.setEditable(true);
 
                 boardGrid.add(temp, column, row); // fill the grid with created cells
             }
@@ -293,9 +250,130 @@ public class SudokuApp implements Initializable, ActionListener
     /**
      * @author Danny
      */
-    public void increaseFilledCells()
+    public void userPressedKeyboard(KeyEvent event)
+    {
+        if(event.getCode() == KeyCode.ENTER) // user pressed Enter and is trying to insert a value
+        {
+            insertBoardValue((Node) event.getTarget());
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void insertBoardValue(Node boardGridCell)
+    {
+        int row = GridPane.getRowIndex(boardGridCell);
+        int column = GridPane.getColumnIndex(boardGridCell);
+        int value = Integer.parseInt(boardGridCells[row][column].getText());
+
+        if(board.placeValueInCell(row, column, value))
+        {
+            boardGridCell.setDisable(true); // make cell uneditable
+            boardGrid.requestFocus(); // un-focus all cells
+
+            valueInsertHistory.add(new int[] {row, column});
+
+            updateFilledCells();
+
+            errorMessageField.setText("");
+        }
+        else
+        {
+            boardGridCells[row][column].clear(); // reset cell
+
+            errorMessageField.setText(board.getErrorMessage());
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void updateFilledCells()
     {
         filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
+
+        if(board.getFilledCells() == board.getAvailableCells())
+        {
+            errorMessageField.setText("You have solved the Sudoku!");
+        }
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public void undoValueInsertion()
+    {
+        if(!valueInsertHistory.isEmpty())
+        {
+            int row = valueInsertHistory.get(valueInsertHistory.size() - 1)[0];
+            int column = valueInsertHistory.get(valueInsertHistory.size() - 1)[1];
+
+            board.setBoardValue(row, column, 0);
+            updateFilledCells();
+
+            boardGridCells[row][column].clear();
+            boardGridCells[row][column].setDisable(false);
+
+            valueInsertHistory.remove(valueInsertHistory.size() - 1);
+
+            errorMessageField.setText("Value insertion undone in cell (" + row + ", " + column + ")");
+        }
+        else
+        {
+            errorMessageField.setText("There are no insertions to undo!");
+        }
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public void resetBoard()
+    {
+        while(!valueInsertHistory.isEmpty())
+        {
+            undoValueInsertion();
+        }
+
+        errorMessageField.setText("The puzzle has been reset!");
+    }
+
+    public void updateActiveTextField(TextField boardGridCell)
+    {
+        if(activeTextField == null)
+        {
+            activeTextField = boardGridCell;
+        }
+
+        if(activeTextField.getLength() != 0)
+        {
+            insertBoardValue(activeTextField);
+        }
+
+        activeTextField = boardGridCell;
+    }
+
+    public void showHint()
+    {
+        int row = GridPane.getRowIndex(activeTextField);
+        int column = GridPane.getColumnIndex(activeTextField);
+
+        if(!boardGridCells[row][column].isDisable())
+        {
+            board.setBoardValue(row, column, board.getSolver().getSolvedBoard().getBoard()[row][column]);
+            updateFilledCells();
+
+            activeTextField.clear();
+            activeTextField.setPromptText(String.valueOf(board.getSolver().getSolvedBoard().getBoard()[row][column]));
+
+            boardGridCells[row][column].setDisable(true);
+
+            boardGrid.requestFocus(); // un-focus all cells
+        }
+        else
+        {
+            errorMessageField.setText("No cell selected for a hint!");
+        }
     }
 
     /**
@@ -323,7 +401,6 @@ public class SudokuApp implements Initializable, ActionListener
     public void goToMenuScene() throws IOException
     {
         boardView = boardViewState.NoBoardShown;
-
         setActiveScene("MenuScene");
 
         if(solveTimer.isRunning())
@@ -338,8 +415,9 @@ public class SudokuApp implements Initializable, ActionListener
     public void goToPuzzleScene() throws IOException
     {
         boardView = boardViewState.UnsolvedBoardShown;
-
         setActiveScene("PuzzleScene");
+
+        valueInsertHistory = new ArrayList<>();
     }
 
     /**
@@ -347,8 +425,12 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToSolverScene() throws IOException
     {
-        boardView = boardViewState.SolvedBoardShown;
+        if(board.getIsCustomBoard())
+        {
+            board.solveBoard();
+        }
 
+        boardView = boardViewState.SolvedBoardShown;
         setActiveScene("SolverScene");
 
         if(solveTimer.isRunning())
@@ -362,8 +444,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToCustomScene() throws IOException
     {
-        boardView = boardViewState.EmptyBoardShown;
-
+        boardView = boardViewState.CustomBoardShown;
         setActiveScene("CustomScene");
     }
 

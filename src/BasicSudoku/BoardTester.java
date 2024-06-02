@@ -4,19 +4,17 @@ public class BoardTester
 {
     public static void main(String[] args)
     {
-        SudokuBoard board = new SudokuBoard(3, 3);
+        SudokuBoard board = new SudokuBoard(1, 1, false);
         SudokuBoard solverBoard = board.getSolver().getSolvedBoard();
         Solver solver = board.getSolver();
 
-        solver.emptyCellsDebug();
+        //solver.emptyCellsDebug();
 
-        /*
         printBoard(board);
         solver.printPossibleNumbers(true);
         solver.solveWithStrategies();
         printBoard(solverBoard);
         solver.printPossibleNumbers(false);
-        */
     }
 
     public static void printBoard(SudokuBoard boardToPrint)
