@@ -40,5 +40,25 @@
          </font>
       </Label>
       <Button layoutX="612.0" layoutY="420.0" mnemonicParsing="false" onAction="#initializeCustomBoard" prefHeight="28.0" prefWidth="65.0" text="Custom" />
+      <Text fill="WHITE" layoutX="142.0" layoutY="981.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Credits:" wrappingWidth="52.0">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Text>
+      <Text fill="WHITE" layoutX="142.0" layoutY="999.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Abinav Aleti" wrappingWidth="83.13671875">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Text>
+      <Text fill="WHITE" layoutX="142.0" layoutY="1015.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Danny Borke" wrappingWidth="83.13671875">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Text>
+      <Text fill="WHITE" layoutX="142.0" layoutY="1031.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Yahya Alwan" wrappingWidth="83.13671875">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+      </Text>
    </children>
 </AnchorPane>

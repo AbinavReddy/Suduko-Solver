@@ -5,15 +5,13 @@ import java.awt.event.ActionListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
-import javafx.scene.control.Button;
-import javafx.scene.input.*;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.input.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.TextField;
@@ -27,7 +25,9 @@ import java.awt.event.ActionEvent;
 import javax.swing.*;
 import java.util.Objects;
 import java.io.IOException;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class SudokuApp implements Initializable, ActionListener
 {
@@ -67,44 +67,74 @@ public class SudokuApp implements Initializable, ActionListener
         NoBoardShown, UnsolvedBoardShown, SolvedBoardShown, CustomBoardShown
     }
 
-    private static boardViewState boardView;
+    private static boardViewState boardView = boardViewState.NoBoardShown;
 
     /**
      * @author Danny, Abinav & Yahya
      */
-    public void initialize(URL url, ResourceBundle resourceBundle) // needed to inject some JavaFX fields
+    public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and is also needed to inject some JavaFX fields
     {
-        if(boardView == boardViewState.UnsolvedBoardShown || boardView == boardViewState.CustomBoardShown)
+        if(boardView == boardViewState.UnsolvedBoardShown || boardView == boardViewState.CustomBoardShown) // PuzzleScene and CustomScene
         {
             showBoardValues(true);
+
+            // Start timer to keep track of time used to solve the puzzle (PuzzleScene only)
+            if(timeSolvingField != null)
+            {
+                solveTimer.restart();
+            }
 
             filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
             feedbackField.setText("");
 
-            // Start timer to keep track of time elapsed solving (PuzzleScene only)
-            if(timeSolvingField != null)
-            {
-                secondsSolving = 0;
-                solveTimer.start();
-            }
+            valueInsertHistory = new ArrayList<>();
         }
-        else if(boardView == boardViewState.SolvedBoardShown)
+        else if(boardView == boardViewState.SolvedBoardShown) // SolverScene
         {
             showBoardValues(false);
 
+            // Display the time used by the Solver to solve the puzzle
+            long solvingTime = board.getSolver().getSolvingTime();
+            long seconds = TimeUnit.MILLISECONDS.toSeconds(solvingTime);
+            long minutes = TimeUnit.MILLISECONDS.toMinutes(solvingTime);
+            long hours = TimeUnit.MILLISECONDS.toHours(solvingTime);
+            String secondsAsText = seconds >= 10 ? String.valueOf(seconds) : "0" + seconds;
+            String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
+            String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
+            timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
+
             filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
 
-            if(board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
+            if(board.getSolver().getSolvedBoard().isGameFinished())
             {
-                feedbackField.setText("The puzzle was solved with strategies!");
-            }
-            else if(board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
-            {
-                feedbackField.setText("The puzzle was solved with strategies and backtracking!");
+                if(board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
+                {
+                    feedbackField.setText("The puzzle was solved with strategies!");
+                }
+                else if(board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
+                {
+                    feedbackField.setText("The puzzle was solved with strategies and backtracking!");
+                }
+                else
+                {
+                    feedbackField.setText("The puzzle was solved with backtracking!");
+                }
             }
             else
             {
-                feedbackField.setText("The puzzle was solved with backtracking!");
+                feedbackField.setText("The puzzle is unsolvable!");
+            }
+
+            if(solveTimer.isRunning())
+            {
+                solveTimer.stop();
+            }
+        }
+        else // MenuScene
+        {
+            if(solveTimer.isRunning())
+            {
+                solveTimer.stop();
             }
         }
     }
@@ -251,6 +281,35 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * @author Danny & Abinav
+     */
+    public void pauseResumeGame()
+    {
+        if(solveTimer.isRunning())
+        {
+            solveTimer.stop();
+
+            boardGrid.requestFocus(); // un-focus all cells
+
+            gamePausedOverlay.setDisable(false);
+            gamePausedOverlay.setOpacity(0.8);
+            gamePausedField.setOpacity(1.0);
+
+            pauseResumeButton.setText("Resume");
+        }
+        else
+        {
+            solveTimer.start();
+
+            gamePausedOverlay.setDisable(true);
+            gamePausedOverlay.setOpacity(0);
+            gamePausedField.setOpacity(0);
+
+            pauseResumeButton.setText("Pause");
+        }
+    }
+
+    /**
      * @author Danny
      */
     public void userPressedKeyboard(KeyEvent event)
@@ -310,59 +369,6 @@ public class SudokuApp implements Initializable, ActionListener
         if(board.getFilledCells() == board.getAvailableCells())
         {
             feedbackField.setText("You have solved the Sudoku!");
-        }
-    }
-
-    public void pauseResumeGame()
-    {
-        if(solveTimer.isRunning())
-        {
-            solveTimer.stop();
-
-            boardGrid.requestFocus(); // un-focus all cells
-
-            gamePausedOverlay.setDisable(false);
-            gamePausedOverlay.setOpacity(0.8);
-            gamePausedField.setOpacity(1.0);
-
-            pauseResumeButton.setText("Resume");
-        }
-        else
-        {
-            solveTimer.start();
-
-            gamePausedOverlay.setDisable(true);
-            gamePausedOverlay.setOpacity(0);
-            gamePausedField.setOpacity(0);
-
-            pauseResumeButton.setText("Pause");
-        }
-    }
-
-    /**
-     * @author Danny, Abinav & Yahya
-     */
-    public void undoValueInsertion()
-    {
-        if(!valueInsertHistory.isEmpty())
-        {
-            int row = GridPane.getRowIndex(valueInsertHistory.get(valueInsertHistory.size() - 1));
-            int column = GridPane.getColumnIndex(valueInsertHistory.get(valueInsertHistory.size() - 1));
-
-            board.setBoardValue(row, column, 0);
-            updateFilledCellsUI();
-
-            boardGridCells[row][column].setDisable(false);
-            boardGridCells[row][column].clear();
-            boardGridCells[row][column].setPromptText("");
-
-            valueInsertHistory.remove(valueInsertHistory.size() - 1);
-
-            feedbackField.setText("Value insertion undone in cell (" + (row + 1) + ", " + (column + 1) + ")");
-        }
-        else
-        {
-            feedbackField.setText("There are no insertions to undo!");
         }
     }
 
@@ -432,6 +438,33 @@ public class SudokuApp implements Initializable, ActionListener
     /**
      * @author Danny, Abinav & Yahya
      */
+    public void undoValueInsertion()
+    {
+        if(!valueInsertHistory.isEmpty())
+        {
+            int row = GridPane.getRowIndex(valueInsertHistory.get(valueInsertHistory.size() - 1));
+            int column = GridPane.getColumnIndex(valueInsertHistory.get(valueInsertHistory.size() - 1));
+
+            board.setBoardValue(row, column, 0);
+            updateFilledCellsUI();
+
+            boardGridCells[row][column].setDisable(false);
+            boardGridCells[row][column].clear();
+            boardGridCells[row][column].setPromptText("");
+
+            valueInsertHistory.remove(valueInsertHistory.size() - 1);
+
+            feedbackField.setText("Value insertion undone in cell (" + (row + 1) + ", " + (column + 1) + ")");
+        }
+        else
+        {
+            feedbackField.setText("There are no insertions to undo!");
+        }
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
     public void resetBoard()
     {
         if(!valueInsertHistory.isEmpty())
@@ -475,11 +508,6 @@ public class SudokuApp implements Initializable, ActionListener
     {
         boardView = boardViewState.NoBoardShown;
         setActiveScene("MenuScene");
-
-        if(solveTimer.isRunning())
-        {
-            solveTimer.stop();
-        }
     }
 
     /**
@@ -489,8 +517,6 @@ public class SudokuApp implements Initializable, ActionListener
     {
         boardView = boardViewState.UnsolvedBoardShown;
         setActiveScene("PuzzleScene");
-
-        valueInsertHistory = new ArrayList<>();
     }
 
     /**
@@ -498,18 +524,10 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToSolverScene() throws IOException
     {
-        if(board.getIsCustomBoard())
-        {
-            board.solveBoard();
-        }
+        board.solveBoard();
 
         boardView = boardViewState.SolvedBoardShown;
         setActiveScene("SolverScene");
-
-        if(solveTimer.isRunning())
-        {
-            solveTimer.stop();
-        }
     }
 
     /**
@@ -519,14 +537,12 @@ public class SudokuApp implements Initializable, ActionListener
     {
         boardView = boardViewState.CustomBoardShown;
         setActiveScene("CustomScene");
-
-        valueInsertHistory = new ArrayList<>();
     }
 
     /**
      * @author Abinav
      */
-    public void setAppStage(Stage stage)
+    public void setAppStage(Stage stage) throws IOException
     {
         appStage = stage;
     }
@@ -538,13 +554,13 @@ public class SudokuApp implements Initializable, ActionListener
     {
         Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("UI/" + sceneName + ".fxml")));
 
-        if(currentScene == null)
+        if(currentScene != null)
         {
-            currentScene = new Scene(root);
+            currentScene.setRoot(root);
         }
         else
         {
-            currentScene.setRoot(root);
+            currentScene = new Scene(root);
         }
 
         appStage.setScene(currentScene); // construct scene

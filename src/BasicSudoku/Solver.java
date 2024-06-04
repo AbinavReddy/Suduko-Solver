@@ -7,6 +7,7 @@ public class Solver
     private final SudokuBoard solvedBoard;
     private boolean solvedWithStrategies;
     private boolean solvedWithBacktracking;
+    private long solvingTime; // in milliseconds
     private final int boardSizeBoxes;
     private final int boardSizeRowsColumns;
     private final int boxSizeRowsColumns;
@@ -65,6 +66,8 @@ public class Solver
         int possibleCountBefore;
         int currentStrategy = 0;
 
+        long startSolvingTime = System.currentTimeMillis();
+
         possibleValuesInCells(); // find all possibilities of empty cells
 
         while(!solvedBoard.isGameFinished())
@@ -79,7 +82,7 @@ public class Solver
 
                 if(possibleCountBefore != possibleValuesCount)
                 {
-                    solvedWithStrategies = true;
+                    solvedWithStrategies = true; // strategies solved a cell
 
                     possibleValuesChanged = true;
                 }
@@ -94,15 +97,19 @@ public class Solver
             {
                 if(currentStrategy == strategies.size() - 1 && !solvedBoard.isGameFinished())  // board is unsolvable with strategies, try backtracking (last resort)
                 {
-                    solvedWithBacktracking = true;
+                    boolean solved = solveWithBacktracking(sortKeysForBacktracking());
 
-                    return solveWithBacktracking(sortKeysForBacktracking());
+                    solvingTime = System.currentTimeMillis() - startSolvingTime;
+
+                    return solved;
                 }
 
                 currentStrategy++; // ineffective, go to the next strategy
             }
 
         }
+
+        solvingTime = System.currentTimeMillis() - startSolvingTime; // current system time = end solving time
 
         return true;
     }
@@ -160,6 +167,8 @@ public class Solver
 
                         if(solveWithBacktracking(possibleKeysSorted))
                         {
+                            solvedWithBacktracking = true; // backtracking solved a cell
+
                             return true;
                         }
                         else
@@ -174,7 +183,7 @@ public class Solver
             }
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -274,6 +283,7 @@ public class Solver
      */
     private void nakedSingles()
     {
+        /*
         HashMap<String, Integer> keysValuesToRemove = new HashMap<>();
 
         for(String key : possibleNumbers.keySet())
@@ -299,6 +309,8 @@ public class Solver
         }
 
         eliminateEmptyLists();
+
+         */
     }
 
     /**
@@ -2924,9 +2936,12 @@ public class Solver
         return solvedWithBacktracking;
     }
 
-    public HashMap<String, List<Integer>> getPossibleNumbers()
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public long getSolvingTime()
     {
-        return possibleNumbers;
+        return solvingTime;
     }
 
     // god tier debugging - it is! >:(

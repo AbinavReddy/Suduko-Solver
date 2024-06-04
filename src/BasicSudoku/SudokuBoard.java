@@ -1,7 +1,5 @@
 package BasicSudoku;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class SudokuBoard
@@ -13,7 +11,7 @@ public class SudokuBoard
     private final int maxPuzzleValue; // the maximum value at play in the puzzle
     private final int availableCells;
     private int filledCells;
-    private final boolean isCustomBoard;
+    private final boolean customBoard;
     private boolean boardSolvable;
     private Solver solver;
     private String errorMessage;
@@ -21,14 +19,14 @@ public class SudokuBoard
     /**
      * @author Danny, Abinav & Yahya
      */
-    public SudokuBoard(int boardSizeBoxes, int boxSizeRowsColumns, boolean isCustomBoard)
+    public SudokuBoard(int boardSizeBoxes, int boxSizeRowsColumns, boolean customBoard)
     {
         this.boardSizeBoxes = boardSizeBoxes;
         this.boardSizeRowsColumns = boardSizeBoxes * boxSizeRowsColumns;
         this.boxSizeRowsColumns = boxSizeRowsColumns;
         maxPuzzleValue = boxSizeRowsColumns * boxSizeRowsColumns;
         availableCells = boardSizeRowsColumns * boardSizeRowsColumns;
-        this.isCustomBoard = isCustomBoard;
+        this.customBoard = customBoard;
 
         /*
         board = new int[boardRowsColumns][boardRowsColumns];
@@ -43,17 +41,20 @@ public class SudokuBoard
         solver.possibleValuesInCells();
         */
 
-        Random chooseSolvable = new Random();
-        boardSolvable = boardSizeBoxes <= 3 && (0 < chooseSolvable.nextInt(1, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
+        if(!customBoard)
+        {
+            Random chooseSolvable = new Random();
+            boardSolvable = boardSizeBoxes <= 3 && (0 < chooseSolvable.nextInt(0, 5)); // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
+        }
 
         do
         {
-            initializeBoard(!isCustomBoard ? (int) (availableCells * 0.38) : 0);
+            initializeBoard(!customBoard ? (int) (availableCells * 0.38) : 0);
 
             SudokuBoard boardForSolving = new SudokuBoard(this);
             solver = new Solver(boardForSolving);
         }
-        while(!isCustomBoard && ((boardSizeBoxes <= 3 && (boardSolvable && !solveBoard() || !boardSolvable && solveBoard())) || !solver.possibleValuesInCells()));
+        while(!customBoard && ((boardSizeBoxes <= 3 && (boardSolvable && !solveBoard() || !boardSolvable && solveBoard())) || !solver.possibleValuesInCells()));
     }
 
     /**
@@ -74,7 +75,7 @@ public class SudokuBoard
         maxPuzzleValue = boardToCopy.maxPuzzleValue;
         availableCells = boardToCopy.availableCells;
         filledCells = boardToCopy.filledCells;
-        isCustomBoard = boardToCopy.isCustomBoard;
+        customBoard = boardToCopy.customBoard;
         boardSolvable = boardToCopy.boardSolvable;
         solver = null; // the solving board doesn't need a solver field
         errorMessage = boardToCopy.errorMessage;
@@ -231,6 +232,28 @@ public class SudokuBoard
     }
 
     /**
+     * @author Yahya
+     */
+    public boolean isGameFinished()
+    {
+        return filledCells == availableCells;
+    }
+
+    /**
+     * @author Danny
+     */
+    public boolean solveBoard()
+    {
+        if(customBoard)
+        {
+            SudokuBoard boardForSolving = new SudokuBoard(this);
+            solver = new Solver(boardForSolving);
+        }
+
+        return solver.solveWithStrategies();
+    }
+
+    /**
      * @author Danny
      */
     public void setBoardValue(int row, int column, int value)
@@ -245,22 +268,6 @@ public class SudokuBoard
         }
 
         board[row][column] = value;
-    }
-
-    /**
-     * @author Yahya
-     */
-    public boolean isGameFinished()
-    {
-        return filledCells == availableCells;
-    }
-
-    /**
-     * @author Danny
-     */
-    public boolean solveBoard()
-    {
-        return solver.solveWithStrategies();
     }
 
     /**
@@ -320,11 +327,11 @@ public class SudokuBoard
     }
 
     /**
-     * @author Danny
+     * @author Danny, Abinav & Yahya
      */
-    public boolean getIsCustomBoard()
+    public boolean getBoardSolvable()
     {
-        return isCustomBoard;
+        return boardSolvable;
     }
 
     /**
