@@ -27,7 +27,6 @@ import java.util.Objects;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class SudokuApp implements Initializable, ActionListener
 {
@@ -50,18 +49,23 @@ public class SudokuApp implements Initializable, ActionListener
     private Text boardSizeValidationField; // menu
     @FXML
     private Text timeSolvingField; // puzzle
-    private final Timer solveTimer = new Timer(1000, this); // puzzle
-    private int secondsSolving; // puzzle
+    private final Timer userSolveTimer = new Timer(100, this); // puzzle
+    private long userSolvingTime; // puzzle
+    @FXML
+    private Text filledCellsField; // puzzle, solver, custom
+    @FXML
+    private Text feedbackField; // puzzle, custom, solver
     @FXML
     private Button pauseResumeButton; // puzzle
     @FXML
     private Rectangle gamePausedOverlay; // puzzle
     @FXML
     private Text gamePausedField; // puzzle
+    private boolean gamePaused;
     @FXML
-    private Text filledCellsField; // puzzle, solver, custom
+    private Button undoButton; // puzzle
     @FXML
-    private Text feedbackField; // puzzle, custom, solver
+    private Button hintButton; // puzzle
 
     private enum boardViewState
     {
@@ -84,7 +88,8 @@ public class SudokuApp implements Initializable, ActionListener
 
             showBoardValues(true);
 
-            solveTimer.restart();
+            userSolvingTime = 0;
+            userSolveTimer.start();
 
             filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
             feedbackField.setText("");
@@ -112,15 +117,14 @@ public class SudokuApp implements Initializable, ActionListener
 
             // Display the time used by the Solver to solve the puzzle
             long solvingTime = board.getSolver().getSolvingTime();
-            long milliseconds = (long) (((solvingTime / 1000.0) - Math.floor(solvingTime / 1000.0)) * 1000); // decimals of a second
-            long seconds = TimeUnit.MILLISECONDS.toSeconds(solvingTime);
-            long minutes = TimeUnit.MILLISECONDS.toMinutes(solvingTime);
-            long hours = TimeUnit.MILLISECONDS.toHours(solvingTime);
-            String millisecondsAsText = String.valueOf(milliseconds).substring(0, 1);
-            String secondsAsText = seconds >= 10 ? String.valueOf(seconds) : "0" + seconds;
+            int totalSeconds = (int) solvingTime / 1000;
+            int seconds = totalSeconds % 60;
+            int minutes = (totalSeconds / 60) % 60;
+            int hours = ((totalSeconds / 60) / 60) % 60;
+            String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + String.valueOf((long) (((solvingTime / 1000.0) - Math.floor(solvingTime / 1000.0)) * 1000)).charAt(0);
             String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
             String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
-            timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText + "." + millisecondsAsText);
+            timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
 
             filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
 
@@ -144,16 +148,16 @@ public class SudokuApp implements Initializable, ActionListener
                 feedbackField.setText("The puzzle is unsolvable!");
             }
 
-            if(solveTimer.isRunning())
+            if(userSolveTimer.isRunning())
             {
-                solveTimer.stop();
+                userSolveTimer.stop();
             }
         }
         else // MenuScene
         {
-            if(solveTimer.isRunning())
+            if(userSolveTimer.isRunning())
             {
-                solveTimer.stop();
+                userSolveTimer.stop();
             }
         }
     }
@@ -304,27 +308,37 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void pauseResumeGame()
     {
-        if(solveTimer.isRunning())
+        if(!gamePaused)
         {
-            solveTimer.stop();
+            userSolveTimer.stop();
 
             boardGrid.requestFocus(); // un-focus all cells
 
-            gamePausedOverlay.setDisable(false);
             gamePausedOverlay.setOpacity(0.8);
             gamePausedField.setOpacity(1.0);
 
+            gamePaused = true;
+
             pauseResumeButton.setText("Resume");
+
+            // Disable buttons
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
         }
         else
         {
-            solveTimer.start();
+            userSolveTimer.start();
 
-            gamePausedOverlay.setDisable(true);
             gamePausedOverlay.setOpacity(0);
             gamePausedField.setOpacity(0);
 
+            gamePaused = false;
+
             pauseResumeButton.setText("Pause");
+
+            // Enable buttons
+            undoButton.setDisable(false);
+            hintButton.setDisable(false);
         }
     }
 
@@ -507,23 +521,24 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void resetBoard()
     {
-        if(!valueInsertHistory.isEmpty() || !hintInsertHistory.isEmpty())
+        while(!valueInsertHistory.isEmpty())
         {
-            while(!valueInsertHistory.isEmpty())
-            {
-                undoValueInsertion();
-            }
-
-            while(!hintInsertHistory.isEmpty() )
-            {
-                undoHintInsertion();
-            }
-
-            feedbackField.setText("The puzzle has been reset!");
+            undoValueInsertion();
         }
-        else
+
+        while(!hintInsertHistory.isEmpty() )
         {
-            feedbackField.setText("The puzzle has already been reset!");
+            undoHintInsertion();
+        }
+
+        userSolvingTime = 0;
+        userSolveTimer.start();
+
+        feedbackField.setText("The puzzle has been reset!");
+
+        if(gamePaused)
+        {
+            pauseResumeGame();
         }
     }
 
@@ -533,16 +548,16 @@ public class SudokuApp implements Initializable, ActionListener
     @Override
     public void actionPerformed(ActionEvent actionEvent) // updates solving timer every second
     {
-        secondsSolving++;
+        userSolvingTime += 100;
 
-        // Get time as strings
-        int seconds = secondsSolving % 60;
-        int minutes = (secondsSolving / 60) % 60;
-        int hours = ((secondsSolving / 60) / 60) % 60;
-        String secondsAsText = seconds >= 10 ? String.valueOf(seconds) : "0" + seconds;
+        // Display the time used by the Solver to solve the puzzle
+        int totalSeconds = (int) (userSolvingTime / 1000);
+        int seconds = totalSeconds % 60;
+        int minutes = (totalSeconds / 60) % 60;
+        int hours = ((totalSeconds / 60) / 60) % 60;
+        String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + (String.valueOf((long) (((userSolvingTime / 1000.0) - Math.floor(userSolvingTime / 1000.0)) * 1000)).charAt(0));
         String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
         String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
-
         timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
     }
 
