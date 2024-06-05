@@ -2964,7 +2964,7 @@ public class Solver
                         testBoard.getSolver().printPossibleNumbers(false);
 
                         System.out.println("Failed...");
-                        System.out.println();
+
                     }
                     else if(iterations == 1000)
                     {
