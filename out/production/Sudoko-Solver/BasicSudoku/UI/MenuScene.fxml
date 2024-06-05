@@ -7,6 +7,7 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
@@ -17,21 +18,27 @@
             <Image url="@Media/menu%20background.png" />
          </image>
       </ImageView>
-      <TextField fx:id="boardSizeField" alignment="CENTER" focusTraversable="false" layoutX="437.0" layoutY="372.0" prefHeight="25.0" prefWidth="150.0" promptText="board size (boxes)" />
-      <TextField fx:id="boxSizeField" alignment="CENTER" focusTraversable="false" layoutX="623.0" layoutY="372.0" prefHeight="25.0" prefWidth="150.0" promptText="box size (rows/columns)" />
-      <Text fill="WHITE" layoutX="601.0" layoutY="389.0" strokeType="OUTSIDE" strokeWidth="0.0" text="x">
+      <TextField fx:id="boardSizeField" alignment="CENTER" focusTraversable="false" layoutX="410.0" layoutY="402.0" prefHeight="30.0" prefWidth="170.0" promptText="board size (boxes)">
+         <font>
+            <Font size="14.0" />
+         </font></TextField>
+      <TextField fx:id="boxSizeField" alignment="CENTER" focusTraversable="false" layoutX="620.0" layoutY="402.0" prefHeight="30.0" prefWidth="170.0" promptText="box size (rows/columns)">
+         <font>
+            <Font size="14.0" />
+         </font></TextField>
+      <Text fill="WHITE" layoutX="595.0" layoutY="421.0" strokeType="OUTSIDE" strokeWidth="0.0" text="x">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Button layoutX="535.0" layoutY="420.0" mnemonicParsing="false" onAction="#initializeRandomBoard" prefHeight="28.0" prefWidth="65.0" text="Random">
+      <Button layoutX="515.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeRandomBoard" prefHeight="30.0" prefWidth="75.0" text="Random">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Text fx:id="boardSizeValidationField" fill="WHITE" layoutX="355.0" layoutY="342.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Select board size and puzzle type below" textAlignment="CENTER" wrappingWidth="500.0">
+      <Text fx:id="boardSizeValidationField" fill="WHITE" layoutX="299.0" layoutY="371.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Select board size and puzzle type below" textAlignment="CENTER" wrappingWidth="600.0">
          <font>
-            <Font name="System Bold" size="24.0" />
+            <Font name="System Bold" size="30.0" />
          </font>
       </Text>
       <Label focusTraversable="false" layoutX="498.0" layoutY="150.0" pickOnBounds="false" text="Menu" textAlignment="CENTER" textFill="WHITE">
@@ -39,25 +46,39 @@
             <Font name="System Bold" size="72.0" />
          </font>
       </Label>
-      <Button layoutX="612.0" layoutY="420.0" mnemonicParsing="false" onAction="#initializeCustomBoard" prefHeight="28.0" prefWidth="65.0" text="Custom" />
-      <Text fill="WHITE" layoutX="142.0" layoutY="981.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Credits:" wrappingWidth="52.0">
+      <Button layoutX="610.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeCustomBoard" prefHeight="30.0" prefWidth="75.0" text="Custom" />
+      <Rectangle arcHeight="5.0" arcWidth="5.0" disable="true" fill="#2b2b2b" height="32.0" layoutX="421.0" layoutY="1067.0" stroke="BLACK" strokeType="INSIDE" width="358.0" />
+      <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="1115.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@Media/sound%20on.png" />
+         </image>
+      </ImageView>
+      <Button focusTraversable="false" layoutX="1115.0" layoutY="46.0" mnemonicParsing="false" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Sound">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <Text fill="WHITE" layoutX="438.0" layoutY="1088.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Abinav Aleti" wrappingWidth="83.13671875">
          <font>
             <Font name="System Bold" size="14.0" />
          </font>
       </Text>
-      <Text fill="WHITE" layoutX="142.0" layoutY="999.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Abinav Aleti" wrappingWidth="83.13671875">
+      <Text fill="WHITE" layoutX="555.0" layoutY="1088.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Danny Borke" wrappingWidth="97.13671875">
          <font>
-            <Font name="System Bold" size="12.0" />
+            <Font name="System Bold" size="14.0" />
          </font>
       </Text>
-      <Text fill="WHITE" layoutX="142.0" layoutY="1015.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Danny Borke" wrappingWidth="83.13671875">
+      <Text fill="WHITE" layoutX="678.0" layoutY="1088.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Yahya Alwan" wrappingWidth="97.13671875">
          <font>
-            <Font name="System Bold" size="12.0" />
+            <Font name="System Bold" size="14.0" />
          </font>
       </Text>
-      <Text fill="WHITE" layoutX="142.0" layoutY="1031.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Yahya Alwan" wrappingWidth="83.13671875">
+      <Text fill="WHITE" layoutX="558.0" layoutY="1054.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Credits" textAlignment="CENTER" wrappingWidth="83.13671875">
          <font>
-            <Font name="System Bold" size="12.0" />
+            <Font name="Georgia Bold Italic" size="18.0" />
          </font>
       </Text>
    </children>

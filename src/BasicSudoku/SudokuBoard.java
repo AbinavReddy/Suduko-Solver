@@ -327,6 +327,14 @@ public class SudokuBoard
     }
 
     /**
+     * @author Danny & Abinav
+     */
+    public boolean getCustomBoard()
+    {
+        return customBoard;
+    }
+
+    /**
      * @author Danny, Abinav & Yahya
      */
     public boolean getBoardSolvable()
