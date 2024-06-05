@@ -4,41 +4,40 @@ public class BoardTester
 {
     public static void main(String[] args)
     {
-        Board board = new Board(3);
-        Board solverBoard = board.getSolver().board;
+        SudokuBoard board = new SudokuBoard(1, 1, false);
+        SudokuBoard solverBoard = board.getSolver().getSolvedBoard();
         Solver solver = board.getSolver();
 
-        solver.emptyCellsDebug();
+        //solver.emptyCellsDebug();
 
-       /* printBoard(board);
+        printBoard(board);
         solver.printPossibleNumbers(true);
         solver.solveWithStrategies();
         printBoard(solverBoard);
         solver.printPossibleNumbers(false);
-        */
     }
 
-    public static void printBoard(Board boardToPrint)
+    public static void printBoard(SudokuBoard boardToPrint)
     {
         int[][] board = boardToPrint.getBoard();
-        int boardLengthWidth = boardToPrint.getBoardLengthWidth();
-        int boardSize = boardToPrint.getBoardSize();
+        int boardBoxes = boardToPrint.getBoardSizeBoxes();
+        int boardRowsColumns = boardToPrint.getBoardSizeRowsColumns();
 
-        for(int row = 0; row < boardSize; row++)
+        for(int row = 0; row < boardRowsColumns; row++)
         {
-            if(row % boardLengthWidth == 0)
+            if(row % boardBoxes == 0)
             {
                 System.out.print("\n");
             }
 
-            for(int column = 0; column < boardSize; column++)
+            for(int column = 0; column < boardRowsColumns; column++)
             {
-                if(column % boardLengthWidth == 0)
+                if(column % boardBoxes == 0)
                 {
                     System.out.print(" ");
                 }
 
-                if(column != boardSize - 1)
+                if(column != boardRowsColumns - 1)
                 {
                     System.out.print(board[row][column] + " ");
                 }

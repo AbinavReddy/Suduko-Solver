@@ -27,8 +27,8 @@ public class Main extends Application
 
             // Controller setup
             SudokuApp controller = sceneLoader.getController();
-            controller.setStage(appStage);
-            controller.setScene("MenuScene");
+            controller.setAppStage(appStage);
+            controller.goToMenuScene();
         }
         catch(Exception e)
         {
