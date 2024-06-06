@@ -117,6 +117,8 @@ public class SudokuApp implements Initializable, ActionListener
 
             showBoardValues(false);
 
+            boardGrid.setDisable(true); // if there are empty cells, the user should not be able to edit them
+
             // Display the time used by the Solver to solve the puzzle
             long solvingTime = board.getSolver().getSolvingTime();
             int totalSeconds = (int) solvingTime / 1000;
@@ -211,7 +213,7 @@ public class SudokuApp implements Initializable, ActionListener
     {
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
-        double cellWidthLength = Math.ceil(850.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
+        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
 
         boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
         int cellTextSize = 40 - ((board.getBoardSizeBoxes() - 3) * 10);
@@ -223,7 +225,7 @@ public class SudokuApp implements Initializable, ActionListener
                 // Style the text of the grid cell
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
-                temp.setPrefSize(cellWidthLength, cellWidthLength);
+                temp.setPrefSize(cellSize, cellSize);
                 temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#c0c0c0;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
@@ -257,7 +259,7 @@ public class SudokuApp implements Initializable, ActionListener
     {
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
-        double cellWidthLength = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
+        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
         double lengthOfLine;
         double widthOfLine;
 
@@ -273,13 +275,13 @@ public class SudokuApp implements Initializable, ActionListener
 
                 if(rowOrColumnB % boxSizeRowsColumns != 0) // borders of the cells
                 {
-                    lengthOfLine = processingRows ? 1 : cellWidthLength;
-                    widthOfLine = processingRows ? cellWidthLength : 1;
+                    lengthOfLine = processingRows ? 1 : cellSize;
+                    widthOfLine = processingRows ? cellSize: 1;
                 }
                 else if(rowOrColumnB != 0 && rowOrColumnB != boardSizeRowsColumns - 1) // borders of the boxes
                 {
-                    lengthOfLine = processingRows ? 3 : cellWidthLength;
-                    widthOfLine = processingRows ? cellWidthLength : 3;
+                    lengthOfLine = processingRows ? 3 : cellSize;
+                    widthOfLine = processingRows ? cellSize : 3;
                 }
                 else
                 {
