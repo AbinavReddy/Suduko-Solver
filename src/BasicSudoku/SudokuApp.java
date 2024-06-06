@@ -1,11 +1,13 @@
 package BasicSudoku;
 
 import javafx.fxml.Initializable;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -27,7 +29,6 @@ import java.util.Objects;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class SudokuApp implements Initializable, ActionListener
 {
@@ -50,18 +51,23 @@ public class SudokuApp implements Initializable, ActionListener
     private Text boardSizeValidationField; // menu
     @FXML
     private Text timeSolvingField; // puzzle
-    private final Timer solveTimer = new Timer(1000, this); // puzzle
-    private int secondsSolving; // puzzle
+    private final Timer userSolveTimer = new Timer(100, this); // puzzle
+    private long userSolvingTime; // puzzle
+    @FXML
+    private Text filledCellsField; // puzzle, solver, custom
+    @FXML
+    private Text feedbackField; // puzzle, custom, solver
     @FXML
     private Button pauseResumeButton; // puzzle
     @FXML
     private Rectangle gamePausedOverlay; // puzzle
     @FXML
     private Text gamePausedField; // puzzle
+    private boolean gamePaused;
     @FXML
-    private Text filledCellsField; // puzzle, solver, custom
+    private Button undoButton; // puzzle
     @FXML
-    private Text feedbackField; // puzzle, custom, solver
+    private Button hintButton; // puzzle
 
     private enum boardViewState
     {
@@ -84,7 +90,8 @@ public class SudokuApp implements Initializable, ActionListener
 
             showBoardValues(true);
 
-            solveTimer.restart();
+            userSolvingTime = 0;
+            userSolveTimer.start();
 
             filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
             feedbackField.setText("");
@@ -110,17 +117,18 @@ public class SudokuApp implements Initializable, ActionListener
 
             showBoardValues(false);
 
+            boardGrid.setDisable(true); // if there are empty cells, the user should not be able to edit them
+
             // Display the time used by the Solver to solve the puzzle
             long solvingTime = board.getSolver().getSolvingTime();
-            long milliseconds = (long) (((solvingTime / 1000.0) - Math.floor(solvingTime / 1000.0)) * 1000); // decimals of a second
-            long seconds = TimeUnit.MILLISECONDS.toSeconds(solvingTime);
-            long minutes = TimeUnit.MILLISECONDS.toMinutes(solvingTime);
-            long hours = TimeUnit.MILLISECONDS.toHours(solvingTime);
-            String millisecondsAsText = String.valueOf(milliseconds).substring(0, 1);
-            String secondsAsText = seconds >= 10 ? String.valueOf(seconds) : "0" + seconds;
+            int totalSeconds = (int) solvingTime / 1000;
+            int seconds = totalSeconds % 60;
+            int minutes = (totalSeconds / 60) % 60;
+            int hours = ((totalSeconds / 60) / 60) % 60;
+            String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + String.valueOf((long) (((solvingTime / 1000.0) - Math.floor(solvingTime / 1000.0)) * 1000)).charAt(0);
             String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
             String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
-            timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText + "." + millisecondsAsText);
+            timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
 
             filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
 
@@ -144,16 +152,16 @@ public class SudokuApp implements Initializable, ActionListener
                 feedbackField.setText("The puzzle is unsolvable!");
             }
 
-            if(solveTimer.isRunning())
+            if(userSolveTimer.isRunning())
             {
-                solveTimer.stop();
+                userSolveTimer.stop();
             }
         }
         else // MenuScene
         {
-            if(solveTimer.isRunning())
+            if(userSolveTimer.isRunning())
             {
-                solveTimer.stop();
+                userSolveTimer.stop();
             }
         }
     }
@@ -205,7 +213,7 @@ public class SudokuApp implements Initializable, ActionListener
     {
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
-        double cellWidthLength = Math.ceil(850.0 / boardSizeRowsColumns); // 1000 = length and width the UI board (in pixels)
+        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
 
         boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
         int cellTextSize = 40 - ((board.getBoardSizeBoxes() - 3) * 10);
@@ -217,7 +225,7 @@ public class SudokuApp implements Initializable, ActionListener
                 // Style the text of the grid cell
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
-                temp.setPrefSize(cellWidthLength, cellWidthLength);
+                temp.setPrefSize(cellSize, cellSize);
                 temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#c0c0c0;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
@@ -251,7 +259,7 @@ public class SudokuApp implements Initializable, ActionListener
     {
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
-        double cellWidthLength = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
+        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
         double lengthOfLine;
         double widthOfLine;
 
@@ -267,13 +275,13 @@ public class SudokuApp implements Initializable, ActionListener
 
                 if(rowOrColumnB % boxSizeRowsColumns != 0) // borders of the cells
                 {
-                    lengthOfLine = processingRows ? 1 : cellWidthLength;
-                    widthOfLine = processingRows ? cellWidthLength : 1;
+                    lengthOfLine = processingRows ? 1 : cellSize;
+                    widthOfLine = processingRows ? cellSize: 1;
                 }
                 else if(rowOrColumnB != 0 && rowOrColumnB != boardSizeRowsColumns - 1) // borders of the boxes
                 {
-                    lengthOfLine = processingRows ? 3 : cellWidthLength;
-                    widthOfLine = processingRows ? cellWidthLength : 3;
+                    lengthOfLine = processingRows ? 3 : cellSize;
+                    widthOfLine = processingRows ? cellSize : 3;
                 }
                 else
                 {
@@ -300,31 +308,41 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
-     * @author Danny & Abinav
+     * @author Danny, Abinav & Yahya
      */
     public void pauseResumeGame()
     {
-        if(solveTimer.isRunning())
+        if(!gamePaused)
         {
-            solveTimer.stop();
+            userSolveTimer.stop();
 
             boardGrid.requestFocus(); // un-focus all cells
 
-            gamePausedOverlay.setDisable(false);
             gamePausedOverlay.setOpacity(0.8);
             gamePausedField.setOpacity(1.0);
 
+            gamePaused = true;
+
             pauseResumeButton.setText("Resume");
+
+            // Disable buttons
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
         }
         else
         {
-            solveTimer.start();
+            userSolveTimer.start();
 
-            gamePausedOverlay.setDisable(true);
             gamePausedOverlay.setOpacity(0);
             gamePausedField.setOpacity(0);
 
+            gamePaused = false;
+
             pauseResumeButton.setText("Pause");
+
+            // Enable buttons
+            undoButton.setDisable(false);
+            hintButton.setDisable(false);
         }
     }
 
@@ -507,42 +525,43 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void resetBoard()
     {
-        if(!valueInsertHistory.isEmpty() || !hintInsertHistory.isEmpty())
+        while(!valueInsertHistory.isEmpty())
         {
-            while(!valueInsertHistory.isEmpty())
-            {
-                undoValueInsertion();
-            }
-
-            while(!hintInsertHistory.isEmpty() )
-            {
-                undoHintInsertion();
-            }
-
-            feedbackField.setText("The puzzle has been reset!");
+            undoValueInsertion();
         }
-        else
+
+        while(!hintInsertHistory.isEmpty() )
         {
-            feedbackField.setText("The puzzle has already been reset!");
+            undoHintInsertion();
+        }
+
+        userSolvingTime = 0;
+        userSolveTimer.start();
+
+        feedbackField.setText("The puzzle has been reset!");
+
+        if(gamePaused)
+        {
+            pauseResumeGame();
         }
     }
 
     /**
-     * @author Danny
+     * @author Danny, Abinav & Yahya
      */
     @Override
     public void actionPerformed(ActionEvent actionEvent) // updates solving timer every second
     {
-        secondsSolving++;
+        userSolvingTime += 100;
 
-        // Get time as strings
-        int seconds = secondsSolving % 60;
-        int minutes = (secondsSolving / 60) % 60;
-        int hours = ((secondsSolving / 60) / 60) % 60;
-        String secondsAsText = seconds >= 10 ? String.valueOf(seconds) : "0" + seconds;
+        // Display the time used by the Solver to solve the puzzle
+        int totalSeconds = (int) (userSolvingTime / 1000);
+        int seconds = totalSeconds % 60;
+        int minutes = (totalSeconds / 60) % 60;
+        int hours = ((totalSeconds / 60) / 60) % 60;
+        String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + (String.valueOf((long) (((userSolvingTime / 1000.0) - Math.floor(userSolvingTime / 1000.0)) * 1000)).charAt(0));
         String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
         String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
-
         timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
     }
 
@@ -583,15 +602,27 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
-     * @author Abinav
+     * @author Danny & Abinav
      */
-    public void setAppStage(Stage stage) throws IOException
+    public void setAppStage(Stage stage)
     {
         appStage = stage;
+
+        GraphicsDevice screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int screenResolutionY = screen.getDisplayMode().getHeight(); // smallest, therefore the one used
+
+        if(screenResolutionY != 1440) // default size
+        {
+            double adaptedAppSize = 1200 * (screenResolutionY / (double) (1200 + 240));
+
+            appStage = stage;
+            appStage.setWidth(adaptedAppSize - 23); // for some reason, stage width has to be -23 to render correctly
+            appStage.setHeight(adaptedAppSize);
+        }
     }
 
     /**
-     * @author Danny & Abinav
+     * @author Danny, Abinav & Yahya
      */
     public void setActiveScene(String sceneName) throws IOException
     {
@@ -606,10 +637,42 @@ public class SudokuApp implements Initializable, ActionListener
             currentScene = new Scene(root);
         }
 
+        currentScene.widthProperty().addListener((observable) -> scaleScreen()); // used for resizing UI
+        currentScene.heightProperty().addListener((observable) -> scaleScreen());
+
+        scaleScreen();
+
         appStage.setScene(currentScene); // construct scene
         appStage.setTitle("Sudoku (Group 5)"); // window title
-        appStage.setResizable(false); // disable resizable window
+        appStage.setResizable(true); // disable resizable window
         appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("UI/Media/sudoku icon.png")))); // add app icon to stage
         appStage.show(); // show window
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    private static void scaleScreen()
+    {
+        double width = currentScene.getWidth();
+        double height = currentScene.getHeight();
+
+        if(!(Double.isNaN(width) || Double.isNaN(height)))
+        {
+            double scaleFactor = Math.min(width / 1200.0, height / 1200.0); // standard app resolution is 1200x1200
+
+            if(!Double.isNaN(scaleFactor))
+            {
+                Scale scale = new Scale(scaleFactor, scaleFactor);
+                scale.setPivotX(0);
+                scale.setPivotY(0);
+
+                currentScene.getRoot().getTransforms().setAll(scale);
+                currentScene.getRoot().setTranslateX(Math.max(0, (width - scaleFactor*(1200)) / 2.0));
+                currentScene.getRoot().setTranslateY(Math.max(0, (height - scaleFactor*(1200)) / 2.0));
+                currentScene.setFill(Color.BLACK);
+                currentScene.getRoot().setStyle("-fx-background-color: #000000;");
+            }
+        }
     }
 }
