@@ -12,7 +12,7 @@ public class BoardTester
 
         printBoard(board);
         solver.printPossibleNumbers(true);
-        solver.solveWithStrategies();
+        solver.solveBoard(board.getIsStandardBoard());
         printBoard(solverBoard);
         solver.printPossibleNumbers(false);
     }

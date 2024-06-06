@@ -40,16 +40,40 @@ public class Solver
     }
 
     /**
+     * @author Danny
+     */
+    public boolean solveBoard(boolean isStandardBoard)
+    {
+        boolean solvingResult;
+
+        long startSolvingTime = System.currentTimeMillis();
+
+        possibleValuesInCells();
+
+        if(isStandardBoard) // strategies can be used
+        {
+            solvingResult = solveWithStrategies() || solveWithBacktracking(sortKeysForBacktracking());
+        }
+        else // strategies cannot be used
+        {
+            solvingResult = solveWithBacktracking(sortKeysForBacktracking());
+        }
+
+        solvingTime = System.currentTimeMillis() - startSolvingTime; // current system time = end solving time
+
+        return solvingResult;
+    }
+
+    /**
      * @author Danny, Abinav & Yahya
      */
-    public boolean solveWithStrategies()
+    private boolean solveWithStrategies()
     {
-        // Add all strategies to a list to avoid repetitive code
         List<Runnable> strategies = new ArrayList<>();
         strategies.add(this::nakedSingles); // working
-        //strategies.add(this::hiddenSingles); // working
-        //strategies.add(this::nakedPairs); // working
-        //strategies.add(this::nakedTriples); // // working
+        strategies.add(this::hiddenSingles); // working
+        strategies.add(this::nakedPairs); // working
+        strategies.add(this::nakedTriples); // // working
         //strategies.add(this::hiddenPairs); // working
         //strategies.add(this::hiddenTriples); // working
         //strategies.add(this::nakedQuads); // working
@@ -65,10 +89,6 @@ public class Solver
         boolean possibleValuesChanged;
         int possibleCountBefore;
         int currentStrategy = 0;
-
-        long startSolvingTime = System.currentTimeMillis();
-
-        possibleValuesInCells(); // find all possibilities of empty cells
 
         while(!solvedBoard.isGameFinished())
         {
@@ -97,19 +117,13 @@ public class Solver
             {
                 if(currentStrategy == strategies.size() - 1 && !solvedBoard.isGameFinished())  // board is unsolvable with strategies, try backtracking (last resort)
                 {
-                    boolean solved = solveWithBacktracking(sortKeysForBacktracking());
-
-                    solvingTime = System.currentTimeMillis() - startSolvingTime;
-
-                    return solved;
+                    return false;
                 }
 
                 currentStrategy++; // ineffective, go to the next strategy
             }
 
         }
-
-        solvingTime = System.currentTimeMillis() - startSolvingTime; // current system time = end solving time
 
         return true;
     }
