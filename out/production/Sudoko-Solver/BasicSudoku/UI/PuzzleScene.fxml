@@ -130,5 +130,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
+      <Button layoutX="1038.0" layoutY="986.0" mnemonicParsing="false" onAction="#saveGame" text="save" />
+      <Button layoutX="228.0" layoutY="1042.0" mnemonicParsing="false" onAction="#deserializeData" text="load" />
     </children>
 </AnchorPane>

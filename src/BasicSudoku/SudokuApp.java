@@ -1,14 +1,20 @@
 package BasicSudoku;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import javafx.fxml.Initializable;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 
-import java.lang.reflect.InvocationTargetException;
+import java.io.File;
 import java.net.URL;
-import java.util.ResourceBundle;
+import java.time.LocalDateTime;
+import java.util.*;
+
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
@@ -26,17 +32,19 @@ import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.paint.Color;
 import java.awt.event.ActionEvent;
-import javax.swing.*;
-import java.util.Objects;
+import javax.swing.Timer;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class SudokuApp implements Initializable, ActionListener
 {
     private static SudokuBoard board;
     private static List<Node> valueInsertHistory;
     private static List<Node> hintInsertHistory;
+
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     // JavaFX related
     private static Stage appStage;
@@ -576,6 +584,92 @@ public class SudokuApp implements Initializable, ActionListener
         timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
     }
 
+
+    public ObjectNode convertDataIntoJson( ObjectMapper objectMapper, String position) {
+
+            ObjectNode jsonNode = objectMapper.createObjectNode();
+
+            int[][] boardArray = board.getBoard();
+            ArrayNode boardNode = objectMapper.createArrayNode(); // Create an ArrayNode to represent the board in JSON format
+
+            for (int[] row : boardArray) { // formats into json array
+                ArrayNode rowNode = objectMapper.createArrayNode();
+                for (int value : row) {
+                    rowNode.add(value);
+                }
+                boardNode.add(rowNode);
+            }
+
+            // saves following data as json object
+            jsonNode.set(position+"board", boardNode);
+            jsonNode.put(position+"filledcells", board.getFilledCells());
+            jsonNode.put(position+"userTime", userSolvingTime);
+            jsonNode.set(position+"boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
+            jsonNode.set(position+"slot1 boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
+            jsonNode.set(position+"slot1 board", boardNode);
+
+        return jsonNode;
+    }
+
+    public void saveGame(int slotNo) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        File jsonFile = new File("saveLoad.json");
+
+        ArrayNode arrayNode;
+        if(jsonFile.exists()) {
+            JsonNode file = objectMapper.readTree(jsonFile);
+            if (file.isArray()) {
+                arrayNode = (ArrayNode) file;
+            } else {
+                arrayNode = objectMapper.createArrayNode();
+            }
+        } else {
+                arrayNode = objectMapper.createArrayNode();
+            }
+
+        ObjectNode gameStateAsJson = convertDataIntoJson(objectMapper,Integer.toString(slotNo));
+            if (slotNo >=0 && slotNo < 5) arrayNode.insert(slotNo,gameStateAsJson);
+
+        // saving the json obj in specified slot
+        objectMapper.writeValue(jsonFile, arrayNode);
+        System.out.println("Data saved to saveLoad.json");
+
+    }
+
+    public void loadGame(int slotNo){
+        ObjectMapper objectMapper = new ObjectMapper();
+        File jsonFile = new File("saveLoad.json");
+        try {
+
+
+            ArrayNode nodes;
+            if(jsonFile.exists()) {
+                nodes = (ArrayNode) objectMapper.readTree(jsonFile);
+
+                if (slotNo >=0 && slotNo < 5) {
+                    JsonNode jsonNode = nodes.get(slotNo);
+                    int filledCells = jsonNode.get("slot1 filledcells").asInt();
+                    int boardSizeBoxesNode = jsonNode.get("slot1 boardsizeBoxes").asInt();
+                    int boxSizeRowsColumnNode = jsonNode.get("slot1 boxsizeRowsColumn").asInt();
+                    long userSolvingTime = jsonNode.get("slot1 userTime").asLong();
+                    int[][] boardArray = objectMapper.convertValue(jsonNode.get("slot1 board"), int[][].class);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+    //  shut down the executor service when your application exits
+    public void shutdownExecutorService() {
+        System.out.println("reached here");
+        executorService.shutdown();
+    }
+
+
+
     /**
      * @author Danny
      */
@@ -686,4 +780,8 @@ public class SudokuApp implements Initializable, ActionListener
             }
         }
     }
+
+
+
+
 }
