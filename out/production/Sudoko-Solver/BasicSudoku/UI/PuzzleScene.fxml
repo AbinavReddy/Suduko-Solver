@@ -131,7 +131,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button layoutX="1038.0" layoutY="986.0" mnemonicParsing="false" onAction="#saveGameSlotView" text="save" />
+      <Button fx:id="save" layoutX="1038.0" layoutY="986.0" mnemonicParsing="false" onAction="#saveGameSlotView" text="save" />
       <Button layoutX="228.0" layoutY="1042.0" mnemonicParsing="false" text="load" />
       <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
       <ListView fx:id="selectList" layoutX="359.0" layoutY="413.0" opacity="0.0" prefHeight="229.0" prefWidth="465.0" />

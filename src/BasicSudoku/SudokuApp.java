@@ -88,6 +88,9 @@ public class SudokuApp implements Initializable, ActionListener
     private Button confirm;
 
     @FXML
+    private Button save;
+
+    @FXML
     private ListView selectList;
 
     private boolean gamePaused;
@@ -682,6 +685,7 @@ public class SudokuApp implements Initializable, ActionListener
 
     public void saveGameSlotView() throws IOException {
             userSolveTimer.stop();
+            save.setDisable(true);
             boardGrid.requestFocus(); // un-focus all cells
             gamePausedOverlay.setOpacity(0.8);
             confirmationText.setOpacity(0.9);
@@ -709,7 +713,7 @@ public class SudokuApp implements Initializable, ActionListener
                         for (JsonNode jsonNode : node) {
                             String boxSizeRC = Integer.toString(jsonNode.get("boxsizeRowsColumn").asInt());
                             String boardSizeB = Integer.toString(jsonNode.get("boardSizeBoxes").asInt());
-                            list.add(boxSizeRC + "x" + boardSizeB);
+                            list.set(1,boxSizeRC + "x" + boardSizeB);
                         }
                     }
                 }
@@ -726,6 +730,7 @@ public class SudokuApp implements Initializable, ActionListener
 
     public void onPressedConfirm(){
         userSolveTimer.start();
+        save.setDisable(false);
         gamePausedOverlay.setOpacity(0);
         confirmationText.setOpacity(0);
         confirmationText.setText("");
