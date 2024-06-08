@@ -3,7 +3,9 @@ package BasicSudoku;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.Initializable;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -15,6 +17,8 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import javafx.scene.control.ListView;
+import javafx.scene.image.ImageView;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
@@ -73,11 +77,27 @@ public class SudokuApp implements Initializable, ActionListener
     private Rectangle gamePausedOverlay; // puzzle
     @FXML
     private Text gamePausedField; // puzzle
+
+    @FXML
+    private Text confirmationText;
+
+    @FXML
+    private Text viewTitle;
+
+    @FXML
+    private Button confirm;
+
+    @FXML
+    private ListView selectList;
+
     private boolean gamePaused;
+
     @FXML
     private Button undoButton; // puzzle
     @FXML
     private Button hintButton; // puzzle
+
+    private List<String> list = new ArrayList<>(Arrays.asList("slot 1", "slot 2", "slot 3", "slot 4", "slot 5"));
 
     private enum boardViewState
     {
@@ -648,16 +668,71 @@ public class SudokuApp implements Initializable, ActionListener
 
                 if (slotNo >=0 && slotNo < 5) {
                     JsonNode jsonNode = nodes.get(slotNo);
-                    int filledCells = jsonNode.get("slot1 filledcells").asInt();
-                    int boardSizeBoxesNode = jsonNode.get("slot1 boardsizeBoxes").asInt();
-                    int boxSizeRowsColumnNode = jsonNode.get("slot1 boxsizeRowsColumn").asInt();
-                    long userSolvingTime = jsonNode.get("slot1 userTime").asLong();
-                    int[][] boardArray = objectMapper.convertValue(jsonNode.get("slot1 board"), int[][].class);
+                    int filledCells = jsonNode.get("filledcells").asInt();
+                    int boardSizeBoxesNode = jsonNode.get("boardsizeBoxes").asInt();
+                    int boxSizeRowsColumnNode = jsonNode.get("boxsizeRowsColumn").asInt();
+                    long userSolvingTime = jsonNode.get("userTime").asLong();
+                    int[][] boardArray = objectMapper.convertValue(jsonNode.get("board"), int[][].class);
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void saveGameSlotView() throws IOException {
+            userSolveTimer.stop();
+            boardGrid.requestFocus(); // un-focus all cells
+            gamePausedOverlay.setOpacity(0.8);
+            confirmationText.setOpacity(0.9);
+            confirmationText.setText("Press Confirm to save in the selected slot");
+            confirm.setOpacity(0.85);
+            viewTitle.setOpacity(0.9);
+            viewTitle.setText("Select a slot to save in");
+
+
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        File jsonFile = new File("saveLoad.json");
+
+        if (jsonFile.exists()) {
+            try {
+                // Read the JSON file
+                JsonNode jNode = objectMapper.readTree(jsonFile);
+
+                // checks if nodes exist in jsonfile
+                if (!(jNode instanceof MissingNode) && jNode.isArray()) {
+                    ArrayNode node = (ArrayNode) jNode;
+
+                    if (!node.isEmpty()) {
+                        // Iterate through the JSON nodes and populate the list
+                        for (JsonNode jsonNode : node) {
+                            String boxSizeRC = Integer.toString(jsonNode.get("boxsizeRowsColumn").asInt());
+                            String boardSizeB = Integer.toString(jsonNode.get("boardSizeBoxes").asInt());
+                            list.add(boxSizeRC + "x" + boardSizeB);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        selectList.getItems().addAll(list);
+        selectList.setFixedCellSize(50.0);
+        selectList.prefHeightProperty().bind(Bindings.size(selectList.getItems()).multiply(50));
+
+        selectList.setOpacity(0.95);
+    }
+
+    public void onPressedConfirm(){
+        userSolveTimer.start();
+        gamePausedOverlay.setOpacity(0);
+        confirmationText.setOpacity(0);
+        confirmationText.setText("");
+        confirm.setOpacity(0);
+        viewTitle.setOpacity(0);
+        viewTitle.setText("");
+        selectList.setOpacity(0);
     }
 
 
