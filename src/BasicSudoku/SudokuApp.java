@@ -3,22 +3,21 @@ package BasicSudoku;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.MissingNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-
 import java.io.File;
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.*;
-
 import javafx.scene.control.ListView;
-import javafx.scene.image.ImageView;
+import javafx.scene.control.SelectionModel;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
@@ -47,8 +46,6 @@ public class SudokuApp implements Initializable, ActionListener
     private static SudokuBoard board;
     private static List<Node> valueInsertHistory;
     private static List<Node> hintInsertHistory;
-
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     // JavaFX related
     private static Stage appStage;
@@ -99,8 +96,11 @@ public class SudokuApp implements Initializable, ActionListener
     private Button undoButton; // puzzle
     @FXML
     private Button hintButton; // puzzle
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    private List<String> list = new ArrayList<>(Arrays.asList("slot 1", "slot 2", "slot 3", "slot 4", "slot 5"));
+    List<String> list = new ArrayList<>(List.of("slot 1", "slot 3", "slot 3", "slot 4", "slot 5"));
+
+
 
     private enum boardViewState
     {
@@ -114,8 +114,10 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and is also needed to inject some JavaFX fields
     {
+
         if(boardView == boardViewState.UnsolvedBoardShown) // PuzzleScene
         {
+            selectList.getItems().addAll(list);
             if(board.getIsCustomBoard() && board.getIsSolverCandidate())
             {
                 board.solve();
@@ -608,7 +610,7 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
 
-    public ObjectNode convertDataIntoJson( ObjectMapper objectMapper, String position) {
+    public ObjectNode convertDataIntoJson( ObjectMapper objectMapper) {
 
             ObjectNode jsonNode = objectMapper.createObjectNode();
 
@@ -624,12 +626,12 @@ public class SudokuApp implements Initializable, ActionListener
             }
 
             // saves following data as json object
-            jsonNode.set(position+"board", boardNode);
-            jsonNode.put(position+"filledcells", board.getFilledCells());
-            jsonNode.put(position+"userTime", userSolvingTime);
-            jsonNode.set(position+"boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
-            jsonNode.set(position+"slot1 boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
-            jsonNode.set(position+"slot1 board", boardNode);
+            jsonNode.set("board", boardNode);
+            jsonNode.put("filledcells", board.getFilledCells());
+            jsonNode.put("userTime", userSolvingTime);
+            jsonNode.set("boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
+            jsonNode.set("boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
+            jsonNode.set("board", boardNode);
 
         return jsonNode;
     }
@@ -637,25 +639,108 @@ public class SudokuApp implements Initializable, ActionListener
     public void saveGame(int slotNo) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         File jsonFile = new File("saveLoad.json");
-
+        JsonNodeFactory factory = JsonNodeFactory.instance;
         ArrayNode arrayNode;
-        if(jsonFile.exists()) {
-            JsonNode file = objectMapper.readTree(jsonFile);
-            if (file.isArray()) {
-                arrayNode = (ArrayNode) file;
+
+        if (jsonFile.exists()) {
+            JsonNode node = objectMapper.readTree(jsonFile);
+            if (node.isArray()) {
+                arrayNode = (ArrayNode) node;
             } else {
-                arrayNode = objectMapper.createArrayNode();
+                arrayNode = factory.arrayNode();
             }
         } else {
-                arrayNode = objectMapper.createArrayNode();
-            }
+            arrayNode = factory.arrayNode();
+        }
 
-        ObjectNode gameStateAsJson = convertDataIntoJson(objectMapper,Integer.toString(slotNo));
-            if (slotNo >=0 && slotNo < 5) arrayNode.insert(slotNo,gameStateAsJson);
+        // Ensure the ArrayNode has at least 5 elements
+        while (arrayNode.size() < 5) {
+            arrayNode.add(factory.nullNode());
+        }
+
+        ObjectNode gameStateAsJson = convertDataIntoJson(objectMapper);
+        if (slotNo >=0 && slotNo < 5)  arrayNode.set(slotNo,gameStateAsJson);
 
         // saving the json obj in specified slot
         objectMapper.writeValue(jsonFile, arrayNode);
         System.out.println("Data saved to saveLoad.json");
+
+    }
+
+    public void saveGameSlotView() throws IOException {
+
+        pauseResumeButton.setDisable(true);
+        undoButton.setDisable(true);
+        hintButton.setDisable(true);
+        userSolveTimer.stop();
+        save.setDisable(true);
+        boardGrid.requestFocus(); // un-focus all cells
+        gamePausedOverlay.setOpacity(0.8);
+        confirmationText.setOpacity(0.9);
+        confirmationText.setText("Press Confirm to save in the selected slot");
+        confirm.setOpacity(0.85);
+        viewTitle.setOpacity(0.9);
+        viewTitle.setText("Select a slot to save in");
+        ObservableList items = selectList.getItems();
+
+
+
+        executorService.submit(() -> {
+            ObjectMapper objectMapper = new ObjectMapper();
+            File jsonFile = new File("saveLoad.json");
+            try {
+                ArrayNode nodes;
+                if (jsonFile.exists()) {
+                    nodes = (ArrayNode) objectMapper.readTree(jsonFile);
+                    for (int i = 0; i < 5; i++) {
+                        JsonNode jsonNode = nodes.get(i);
+                        int boardSizeBoxesNode = jsonNode.get("boardsizeBoxes").asInt();
+                        int boxSizeRowsColumnNode = jsonNode.get("boxsizeRowsColumn").asInt();
+                        final int index = i; // Need to make it effectively final
+                        Platform.runLater(() -> items.set(index, boardSizeBoxesNode + "x" + boxSizeRowsColumnNode + "board"));
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+
+        selectList.setFixedCellSize(50.0);
+        selectList.prefHeightProperty().bind(Bindings.size(selectList.getItems()).multiply(50));
+
+        selectList.setOpacity(0.95);
+
+    }
+
+    public void onPressedConfirm() throws IOException {
+
+        SelectionModel<String> selectionModel = selectList.getSelectionModel();
+        int selectedSlot = selectionModel.getSelectedIndex();
+        if(selectedSlot != -1) {
+            saveGame(selectedSlot);
+
+            userSolveTimer.start();
+            save.setDisable(false);
+            gamePausedOverlay.setOpacity(0);
+            confirmationText.setOpacity(0);
+            confirmationText.setText("");
+            confirm.setOpacity(0);
+            viewTitle.setOpacity(0);
+            viewTitle.setText("");
+            selectList.setOpacity(0);
+            loadGame(selectedSlot);
+
+            if(gamePaused)
+            {
+                gamePaused = false;
+                gamePausedField.setOpacity(0);
+                pauseResumeButton.setText("Pause");
+            }
+            undoButton.setDisable(false);
+            hintButton.setDisable(false);
+            pauseResumeButton.setDisable(false);
+        }
 
     }
 
@@ -676,70 +761,13 @@ public class SudokuApp implements Initializable, ActionListener
                     int boxSizeRowsColumnNode = jsonNode.get("boxsizeRowsColumn").asInt();
                     long userSolvingTime = jsonNode.get("userTime").asLong();
                     int[][] boardArray = objectMapper.convertValue(jsonNode.get("board"), int[][].class);
+                    System.out.println(filledCells);
                 }
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-    public void saveGameSlotView() throws IOException {
-            userSolveTimer.stop();
-            save.setDisable(true);
-            boardGrid.requestFocus(); // un-focus all cells
-            gamePausedOverlay.setOpacity(0.8);
-            confirmationText.setOpacity(0.9);
-            confirmationText.setText("Press Confirm to save in the selected slot");
-            confirm.setOpacity(0.85);
-            viewTitle.setOpacity(0.9);
-            viewTitle.setText("Select a slot to save in");
-
-
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        File jsonFile = new File("saveLoad.json");
-
-        if (jsonFile.exists()) {
-            try {
-                // Read the JSON file
-                JsonNode jNode = objectMapper.readTree(jsonFile);
-
-                // checks if nodes exist in jsonfile
-                if (!(jNode instanceof MissingNode) && jNode.isArray()) {
-                    ArrayNode node = (ArrayNode) jNode;
-
-                    if (!node.isEmpty()) {
-                        // Iterate through the JSON nodes and populate the list
-                        for (JsonNode jsonNode : node) {
-                            String boxSizeRC = Integer.toString(jsonNode.get("boxsizeRowsColumn").asInt());
-                            String boardSizeB = Integer.toString(jsonNode.get("boardSizeBoxes").asInt());
-                            list.set(1,boxSizeRC + "x" + boardSizeB);
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        selectList.getItems().addAll(list);
-        selectList.setFixedCellSize(50.0);
-        selectList.prefHeightProperty().bind(Bindings.size(selectList.getItems()).multiply(50));
-
-        selectList.setOpacity(0.95);
-    }
-
-    public void onPressedConfirm(){
-        userSolveTimer.start();
-        save.setDisable(false);
-        gamePausedOverlay.setOpacity(0);
-        confirmationText.setOpacity(0);
-        confirmationText.setText("");
-        confirm.setOpacity(0);
-        viewTitle.setOpacity(0);
-        viewTitle.setText("");
-        selectList.setOpacity(0);
-    }
-
 
 
     //  shut down the executor service when your application exits
