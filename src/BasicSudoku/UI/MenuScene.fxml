@@ -3,6 +3,7 @@
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -26,12 +27,7 @@
          <font>
             <Font size="14.0" />
          </font></TextField>
-      <Text fill="WHITE" layoutX="595.0" layoutY="421.0" strokeType="OUTSIDE" strokeWidth="0.0" text="x">
-         <font>
-            <Font name="System Bold" size="18.0" />
-         </font>
-      </Text>
-      <Button layoutX="515.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeRandomBoard" prefHeight="30.0" prefWidth="75.0" text="Random">
+      <Button fx:id="randomButton" layoutX="515.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeRandomBoard" prefHeight="30.0" prefWidth="75.0" text="Random">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
@@ -46,7 +42,7 @@
             <Font name="System Bold" size="72.0" />
          </font>
       </Label>
-      <Button layoutX="610.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeCustomBoard" prefHeight="30.0" prefWidth="75.0" text="Custom" />
+      <Button fx:id="customButton" layoutX="610.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeCustomBoard" prefHeight="30.0" prefWidth="75.0" text="Custom" />
       <Rectangle arcHeight="5.0" arcWidth="5.0" disable="true" fill="#2b2b2b" height="32.0" layoutX="421.0" layoutY="1067.0" stroke="BLACK" strokeType="INSIDE" width="358.0" />
       <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="1115.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
          <image>
@@ -81,5 +77,14 @@
             <Font name="Georgia Bold Italic" size="18.0" />
          </font>
       </Text>
+      <Button fx:id="load" layoutX="558.0" layoutY="508.0" mnemonicParsing="false" onAction="#saveLoadGameSlotView" prefHeight="32.0" prefWidth="83.0" text="Load Game" />
+      <Text layoutX="467.0" layoutY="247.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="225.13671875" />
+      <Button fx:id="loadConfirmationButton" layoutX="727.0" layoutY="612.0" mnemonicParsing="false" opacity="0.0" prefHeight="25.0" prefWidth="83.0" text="Confirm" />
+      <Text fx:id="loadconfirmationText" fill="WHITE" layoutX="350.0" layoutY="605.0" opacity="0.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Press confirm to load the game" wrappingWidth="176.13671875">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Text>
+      <ListView fx:id="saveLoadSlotList" disable="true" layoutX="357.0" layoutY="323.0" opacity="0.0" prefHeight="289.0" prefWidth="484.0" />
    </children>
 </AnchorPane>

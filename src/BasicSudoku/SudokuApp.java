@@ -88,9 +88,24 @@ public class SudokuApp implements Initializable, ActionListener
     private Button save;
 
     @FXML
-    private ListView selectList;
+    private ListView saveLoadSlotList;
+
+    @FXML
+    private Text loadconfirmationText;
+
+    @FXML
+    private Button loadConfirmationButton;
+
+    @FXML
+    private Button load;
 
     private boolean gamePaused;
+
+    @FXML
+    private Button randomButton; // menu
+
+    @FXML
+    private Button customButton; // menu
 
     @FXML
     private Button undoButton; // puzzle
@@ -114,10 +129,10 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and is also needed to inject some JavaFX fields
     {
-
+        saveLoadSlotList.getItems().addAll(list);
         if(boardView == boardViewState.UnsolvedBoardShown) // PuzzleScene
         {
-            selectList.getItems().addAll(list);
+
             if(board.getIsCustomBoard() && board.getIsSolverCandidate())
             {
                 board.solve();
@@ -201,6 +216,7 @@ public class SudokuApp implements Initializable, ActionListener
         }
         else // MenuScene
         {
+
             if(userSolveTimer.isRunning())
             {
                 userSolveTimer.stop();
@@ -667,21 +683,42 @@ public class SudokuApp implements Initializable, ActionListener
 
     }
 
-    public void saveGameSlotView() throws IOException {
+    public void saveLoadGameSlotView() throws IOException {
 
-        pauseResumeButton.setDisable(true);
-        undoButton.setDisable(true);
-        hintButton.setDisable(true);
-        userSolveTimer.stop();
-        save.setDisable(true);
-        boardGrid.requestFocus(); // un-focus all cells
-        gamePausedOverlay.setOpacity(0.8);
-        confirmationText.setOpacity(0.9);
-        confirmationText.setText("Press Confirm to save in the selected slot");
-        confirm.setOpacity(0.85);
-        viewTitle.setOpacity(0.9);
-        viewTitle.setText("Select a slot to save in");
-        ObservableList items = selectList.getItems();
+        if(boardView == boardViewState.UnsolvedBoardShown) {
+
+            pauseResumeButton.setDisable(true);
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
+            userSolveTimer.stop();
+            save.setDisable(true);
+            boardGrid.requestFocus(); // un-focus all cells
+            gamePausedOverlay.setOpacity(0.8);
+            confirmationText.setOpacity(0.9);
+            confirmationText.setText("Press Confirm to save in the selected slot");
+            confirm.setOpacity(0.85);
+            viewTitle.setOpacity(0.9);
+            viewTitle.setText("Select a slot to save in");
+        }
+        else if(boardView == boardViewState.NoBoardShown) {
+            randomButton.setDisable(true);
+            customButton.setDisable(true);
+            boardSizeField.setDisable(true);
+            boxSizeField.setDisable(true);
+            load.setDisable(true);
+            boardSizeValidationField.setText("Select a board to load!");
+            boardSizeValidationField.setY(-60);
+            randomButton.setOpacity(0);
+            customButton.setOpacity(0);
+            boardSizeField.setOpacity(0);
+            boxSizeField.setOpacity(0);
+            load.setOpacity(0);
+            loadconfirmationText.setOpacity(0.85);
+            loadConfirmationButton.setOpacity(1.0);
+        }
+
+
+        ObservableList items = saveLoadSlotList.getItems();
 
 
 
@@ -706,16 +743,16 @@ public class SudokuApp implements Initializable, ActionListener
         });
 
 
-        selectList.setFixedCellSize(50.0);
-        selectList.prefHeightProperty().bind(Bindings.size(selectList.getItems()).multiply(50));
-
-        selectList.setOpacity(0.95);
+        saveLoadSlotList.setFixedCellSize(50.0);
+        saveLoadSlotList.prefHeightProperty().bind(Bindings.size(saveLoadSlotList.getItems()).multiply(50));
+        saveLoadSlotList.setOpacity(0.95);
 
     }
 
+
     public void onPressedConfirm() throws IOException {
 
-        SelectionModel<String> selectionModel = selectList.getSelectionModel();
+        SelectionModel<String> selectionModel = saveLoadSlotList.getSelectionModel();
         int selectedSlot = selectionModel.getSelectedIndex();
         if(selectedSlot != -1) {
             saveGame(selectedSlot);
@@ -728,7 +765,7 @@ public class SudokuApp implements Initializable, ActionListener
             confirm.setOpacity(0);
             viewTitle.setOpacity(0);
             viewTitle.setText("");
-            selectList.setOpacity(0);
+            saveLoadSlotList.setOpacity(0);
             loadGame(selectedSlot);
 
             if(gamePaused)

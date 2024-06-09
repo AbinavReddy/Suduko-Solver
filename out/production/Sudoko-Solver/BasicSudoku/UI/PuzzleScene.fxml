@@ -131,10 +131,10 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button fx:id="save" layoutX="1038.0" layoutY="986.0" mnemonicParsing="false" onAction="#saveGameSlotView" text="save" />
+      <Button fx:id="save" layoutX="1038.0" layoutY="986.0" mnemonicParsing="false" onAction="#saveLoadGameSlotView" text="save" />
       <Button layoutX="228.0" layoutY="1042.0" mnemonicParsing="false" text="load" />
       <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" />
-      <ListView fx:id="selectList" layoutX="359.0" layoutY="413.0" opacity="0.0" prefHeight="229.0" prefWidth="465.0" />
+      <ListView fx:id="saveLoadSlotList" layoutX="359.0" layoutY="413.0" opacity="0.0" prefHeight="229.0" prefWidth="465.0" />
       <Text fx:id="viewTitle" disable="true" fill="WHITE" layoutX="452.0" layoutY="390.0" opacity="0.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="JUSTIFY" wrappingWidth="279.13671875">
          <font>
             <Font name="System Italic" size="24.0" />
