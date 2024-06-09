@@ -3,7 +3,6 @@
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -11,42 +10,23 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1200.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="BasicSudoku.SudokuApp">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1200.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Sudoku.SudokuApp">
    <children>
       <ImageView fitHeight="1200.0" fitWidth="1200.0">
          <image>
             <Image url="@Media/menu%20background.png" />
          </image>
       </ImageView>
-      <TextField fx:id="boardSizeField" alignment="CENTER" focusTraversable="false" layoutX="410.0" layoutY="402.0" prefHeight="30.0" prefWidth="170.0" promptText="board size (boxes)">
-         <font>
-            <Font size="14.0" />
-         </font></TextField>
-      <TextField fx:id="boxSizeField" alignment="CENTER" focusTraversable="false" layoutX="620.0" layoutY="402.0" prefHeight="30.0" prefWidth="170.0" promptText="box size (rows/columns)">
-         <font>
-            <Font size="14.0" />
-         </font></TextField>
-      <Text fill="WHITE" layoutX="595.0" layoutY="421.0" strokeType="OUTSIDE" strokeWidth="0.0" text="x">
-         <font>
-            <Font name="System Bold" size="18.0" />
-         </font>
-      </Text>
-      <Button layoutX="515.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeRandomBoard" prefHeight="30.0" prefWidth="75.0" text="Random">
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
-      <Text fx:id="boardSizeValidationField" fill="WHITE" layoutX="299.0" layoutY="371.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Select board size and puzzle type below" textAlignment="CENTER" wrappingWidth="600.0">
+      <Text fx:id="boardSizeValidationField" fill="WHITE" layoutX="299.0" layoutY="371.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Choose a saved game below" textAlignment="CENTER" wrappingWidth="600.0">
          <font>
             <Font name="System Bold" size="30.0" />
          </font>
       </Text>
-      <Label focusTraversable="false" layoutX="498.0" layoutY="150.0" pickOnBounds="false" text="Menu" textAlignment="CENTER" textFill="WHITE">
+      <Label focusTraversable="false" layoutX="498.0" layoutY="150.0" pickOnBounds="false" text="Load" textAlignment="CENTER" textFill="WHITE">
          <font>
             <Font name="System Bold" size="72.0" />
          </font>
       </Label>
-      <Button layoutX="610.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeCustomBoard" prefHeight="30.0" prefWidth="75.0" text="Custom" />
       <Rectangle arcHeight="5.0" arcWidth="5.0" disable="true" fill="#2b2b2b" height="32.0" layoutX="421.0" layoutY="1067.0" stroke="BLACK" strokeType="INSIDE" width="358.0" />
       <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="1115.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
          <image>

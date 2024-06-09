@@ -1,4 +1,4 @@
-package BasicSudoku;
+package Sudoku;
 
 import javafx.fxml.Initializable;
 import java.awt.*;
@@ -6,7 +6,6 @@ import java.awt.event.ActionListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.scene.transform.Scale;
@@ -583,6 +582,15 @@ public class SudokuApp implements Initializable, ActionListener
     {
         boardView = boardViewState.NoBoardShown;
         setActiveScene("MenuScene");
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public void goToLoadSaveScene() throws IOException
+    {
+        boardView = boardViewState.NoBoardShown;
+        setActiveScene("LoadSaveScene");
     }
 
     /**
