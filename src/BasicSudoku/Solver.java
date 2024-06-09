@@ -40,11 +40,43 @@ public class Solver
     }
 
     /**
+     * @author Danny
+     */
+    public boolean solveBoard(boolean isStandardBoard)
+    {
+        boolean solvingResult;
+
+        long startSolvingTime = System.currentTimeMillis();
+
+        if(solvedBoard.getFilledCells() == 0) // an initial filled row increases solving speed on empty boards
+        {
+            for(int column = 0; column < solvedBoard.getBoardSizeRowsColumns(); column++)
+            {
+                solvedBoard.setBoardValue(0, column, column + 1);
+            }
+        }
+
+        possibleValuesInCells();
+
+        if(isStandardBoard) // strategies can be used
+        {
+            solvingResult = solveWithStrategies() || solveWithBacktracking(sortKeysForBacktracking(), 0);
+        }
+        else // strategies cannot be used
+        {
+            solvingResult = solveWithBacktracking(sortKeysForBacktracking(), 0);
+        }
+
+        solvingTime = System.currentTimeMillis() - startSolvingTime; // current system time = end solving time
+
+        return solvingResult;
+    }
+
+    /**
      * @author Danny, Abinav & Yahya
      */
-    public boolean solveWithStrategies()
+    private boolean solveWithStrategies()
     {
-        // Add all strategies to a list to avoid repetitive code
         List<Runnable> strategies = new ArrayList<>();
         strategies.add(this::nakedSingles); // working
         //strategies.add(this::hiddenSingles); // working
@@ -66,10 +98,6 @@ public class Solver
         int possibleCountBefore;
         int currentStrategy = 0;
 
-        long startSolvingTime = System.currentTimeMillis();
-
-        possibleValuesInCells(); // find all possibilities of empty cells
-
         while(!solvedBoard.isGameFinished())
         {
             possibleValuesChanged = false;
@@ -82,7 +110,7 @@ public class Solver
 
                 if(possibleCountBefore != possibleValuesCount)
                 {
-                    solvedWithStrategies = true; // strategies solved a cell
+                    solvedWithStrategies = true; // strategies part of solution
 
                     possibleValuesChanged = true;
                 }
@@ -97,11 +125,7 @@ public class Solver
             {
                 if(currentStrategy == strategies.size() - 1 && !solvedBoard.isGameFinished())  // board is unsolvable with strategies, try backtracking (last resort)
                 {
-                    boolean solved = solveWithBacktracking(sortKeysForBacktracking());
-
-                    solvingTime = System.currentTimeMillis() - startSolvingTime;
-
-                    return solved;
+                    return false;
                 }
 
                 currentStrategy++; // ineffective, go to the next strategy
@@ -109,42 +133,15 @@ public class Solver
 
         }
 
-        solvingTime = System.currentTimeMillis() - startSolvingTime; // current system time = end solving time
-
         return true;
-    }
-
-    /**
-     * @author Danny
-     */
-    private List<String> sortKeysForBacktracking()
-    {
-        // Create a list of keys sorted incrementally by the size of their value-lists (faster backtracking)
-        List<List<Integer>> possibleValuesSorted = new ArrayList<>(possibleNumbers.values()); // needed because we can't sort keys by themselves
-        possibleValuesSorted = possibleValuesSorted.stream().sorted(Comparator.comparingInt(List::size)).toList();
-
-        List<String> possibleKeysSorted = new ArrayList<>();
-
-        for(List<Integer> possibleValues : possibleValuesSorted)
-        {
-            for(String possibleKey : this.possibleNumbers.keySet())
-            {
-                if(this.possibleNumbers.get(possibleKey) == possibleValues) // has to be == because we are looking for the same objects, not contents
-                {
-                    possibleKeysSorted.add(possibleKey);
-                }
-            }
-        }
-
-        return possibleKeysSorted;
     }
 
     /**
      * @author Danny, Abinav & Yahya
      */
-    private boolean solveWithBacktracking(List<String> possibleKeysSorted)
+    private boolean solveWithBacktracking(List<String> possibleKeysSorted, int keyIndex)
     {
-        if(possibleKeysSorted.isEmpty())
+        if(keyIndex == possibleKeysSorted.size()) // all elements processed, board solved
         {
             // base case
             return true;
@@ -152,38 +149,59 @@ public class Solver
         else
         {
             // recursive case
-            for(String key : possibleKeysSorted)
+            String key = possibleKeysSorted.get(keyIndex);
+            String[] parts = key.split(",");
+            int row = Integer.parseInt(parts[0]);
+            int column = Integer.parseInt(parts[1]);
+
+            keyIndex++;
+
+            for(Integer value : possibleNumbers.get(key))
             {
-                String[] parts = key.split(",");
-                int row = Integer.parseInt(parts[0]);
-                int column = Integer.parseInt(parts[1]);
-
-                for(Integer value : possibleNumbers.get(key))
+                if(solvedBoard.checkPlacementRow(row, value) && solvedBoard.checkPlacementColumn(column, value) && solvedBoard.checkPlacementSubBoard(row, column, value))
                 {
-                    if(solvedBoard.checkPlacementRow(row, value) && solvedBoard.checkPlacementColumn(column, value) && solvedBoard.checkPlacementSubBoard(row, column, value))
+                    solvedBoard.setBoardValue(row, column, value);
+
+                    if(solveWithBacktracking(possibleKeysSorted, keyIndex))
                     {
-                        solvedBoard.setBoardValue(row, column, value);
-                        possibleKeysSorted.remove(key);
+                        solvedWithBacktracking = true; // backtracking part of solution
 
-                        if(solveWithBacktracking(possibleKeysSorted))
-                        {
-                            solvedWithBacktracking = true; // backtracking solved a cell
-
-                            return true;
-                        }
-                        else
-                        {
-                            solvedBoard.setBoardValue(row, column, 0);
-                            possibleKeysSorted.add(key);
-                        }
+                        return true;
+                    }
+                    else
+                    {
+                        solvedBoard.setBoardValue(row, column, 0);
                     }
                 }
+            }
 
-                return false;
+            return false;
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    private List<String> sortKeysForBacktracking()
+    {
+        // Create a list of keys sorted incrementally by the size of their value-lists (used for faster backtracking)
+        List<List<Integer>> possibleValuesSorted = new ArrayList<>(possibleNumbers.values()); // needed because we can't sort keys by themselves
+        possibleValuesSorted = possibleValuesSorted.stream().sorted(Comparator.comparingInt(List::size)).toList();
+
+        List<String> possibleKeysSorted = new ArrayList<>();
+
+        for(List<Integer> possibleValues : possibleValuesSorted)
+        {
+            for(String possibleKey : possibleNumbers.keySet())
+            {
+                if(possibleNumbers.get(possibleKey) == possibleValues) // has to be == because we are looking for the same objects, not contents
+                {
+                    possibleKeysSorted.add(possibleKey);
+                }
             }
         }
 
-        return false;
+        return possibleKeysSorted;
     }
 
     /**
