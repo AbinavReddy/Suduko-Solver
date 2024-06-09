@@ -105,6 +105,7 @@ public class SudokuApp implements Initializable, ActionListener
             showBoardValues(true);
 
             filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
+
             feedbackField.setText("");
 
             valueInsertHistory = new ArrayList<>();
@@ -224,7 +225,7 @@ public class SudokuApp implements Initializable, ActionListener
         double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
 
         boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
-        int cellTextSize = 40 - ((board.getBoardSizeBoxes() - 3) * 10);
+        int cellTextSize = (int) (cellSize / 2);
 
         for(int row = 0; row < boardSizeRowsColumns; row++)
         {
@@ -234,7 +235,7 @@ public class SudokuApp implements Initializable, ActionListener
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
                 temp.setPrefSize(cellSize, cellSize);
-                temp.setStyle("-fx-border-width: 0px; " + "-fx-padding: 1px;" + "-fx-border-color: #000000; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#c0c0c0;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
+                temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 1px;" + "-fx-border-color: #ffffff; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#c0c0c0;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
 
                 temp.setOnMouseClicked(event -> updateActiveTextField(temp)); // needed to know the currently active text field
