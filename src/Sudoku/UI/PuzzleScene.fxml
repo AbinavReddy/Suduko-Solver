@@ -70,49 +70,49 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Button layoutX="360.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToMenuScene" prefHeight="28.0" prefWidth="65.0" text="Menu">
+      <Button layoutX="360.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Menu">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button focusTraversable="false" layoutX="775.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToSolverScene" prefHeight="28.0" prefWidth="65.0" text="Solver">
+      <Button focusTraversable="false" layoutX="775.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToSolverScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Solver">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button focusTraversable="false" layoutX="526.0" layoutY="1076.0" mnemonicParsing="false" onAction="#resetBoard" prefHeight="28.0" prefWidth="65.0" text="Reset">
+      <Button focusTraversable="false" layoutX="526.0" layoutY="1076.0" mnemonicParsing="false" onAction="#resetBoard" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Reset">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button fx:id="undoButton" focusTraversable="false" layoutX="443.0" layoutY="1076.0" mnemonicParsing="false" onAction="#undoValueInsertion" prefHeight="28.0" prefWidth="65.0" text="Undo">
+      <Button fx:id="undoButton" focusTraversable="false" layoutX="443.0" layoutY="1076.0" mnemonicParsing="false" onAction="#undoValueInsertion" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Undo">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button fx:id="hintButton" focusTraversable="false" layoutX="692.0" layoutY="1076.0" mnemonicParsing="false" onAction="#showHint" prefHeight="28.0" prefWidth="65.0" text="Hint">
+      <Button fx:id="hintButton" focusTraversable="false" layoutX="692.0" layoutY="1076.0" mnemonicParsing="false" onAction="#showHint" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Hint">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button fx:id="pauseResumeButton" focusTraversable="false" layoutX="609.0" layoutY="1076.0" mnemonicParsing="false" onAction="#pauseResumeGame" prefHeight="28.0" prefWidth="65.0" text="Pause">
+      <Button fx:id="pauseResumeButton" focusTraversable="false" layoutX="609.0" layoutY="1076.0" mnemonicParsing="false" onAction="#pauseResumeGame" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Pause">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="1115.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
+      <ImageView fx:id="soundButtonImage" fitHeight="31.0" fitWidth="31.0" layoutX="1115.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@Media/sound%20on.png" />
          </image>
@@ -122,7 +122,7 @@
             <Font name="System Bold" size="64.0" />
          </font>
       </Text>
-      <Button focusTraversable="false" layoutX="1115.0" layoutY="46.0" mnemonicParsing="false" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Sound">
+      <Button focusTraversable="false" layoutX="1115.0" layoutY="46.0" mnemonicParsing="false" onAction="#muteUnmuteSound" onMouseClicked="#playButtonClickSound" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Sound">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>

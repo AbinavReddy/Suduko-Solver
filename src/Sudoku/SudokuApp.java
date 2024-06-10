@@ -8,6 +8,10 @@ import javafx.fxml.FXMLLoader;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import javafx.scene.image.ImageView;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
@@ -69,6 +73,13 @@ public class SudokuApp implements Initializable, ActionListener
     private Button undoButton; // puzzle
     @FXML
     private Button hintButton; // puzzle
+    private static boolean soundMuted = false;
+    @FXML
+    private ImageView soundButtonImage;
+    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/click sound.wav")).toExternalForm());
+    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/insert sound.wav")).toExternalForm());
+    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/win sound.wav")).toExternalForm());
+    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/lose sound.wav")).toExternalForm());
 
     private enum boardViewState
     {
@@ -94,8 +105,10 @@ public class SudokuApp implements Initializable, ActionListener
             userSolvingTime = 0;
             userSolveTimer.start();
 
-            filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
             feedbackField.setText("");
+
+            updateFilledCells();
+            updateSoundIcon();
 
             valueInsertHistory = new ArrayList<>();
             hintInsertHistory = new ArrayList<>();
@@ -104,9 +117,10 @@ public class SudokuApp implements Initializable, ActionListener
         {
             showBoardValues(true);
 
-            filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
-
             feedbackField.setText("");
+
+            updateFilledCells();
+            updateSoundIcon();
 
             valueInsertHistory = new ArrayList<>();
         }
@@ -144,9 +158,13 @@ public class SudokuApp implements Initializable, ActionListener
                 {
                     feedbackField.setText("The puzzle was solved with strategies and backtracking!");
                 }
-                else
+                else if(!board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
                 {
                     feedbackField.setText("The puzzle was solved with backtracking!");
+                }
+                else
+                {
+                    feedbackField.setText("The puzzle was already solved!");
                 }
             }
             else
@@ -168,6 +186,8 @@ public class SudokuApp implements Initializable, ActionListener
         }
         else // MenuScene
         {
+            updateSoundIcon();
+
             if(userSolveTimer.isRunning())
             {
                 userSolveTimer.stop();
@@ -180,16 +200,19 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void initializeRandomBoard() throws IOException
     {
-        int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
-        int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
-
-        if((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns)) // k*n <= n^2, requirement for being valid
+        try
         {
-            board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, false);
+            int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
+            int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
 
-            goToPuzzleScene();
+            if((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns)) // k*n <= n^2, requirement for being valid
+            {
+                board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, false);
+
+                goToPuzzleScene();
+            }
         }
-        else
+        catch(NumberFormatException exception)
         {
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
         }
@@ -200,16 +223,19 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void initializeCustomBoard() throws IOException
     {
-        int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
-        int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
-
-        if((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns)) // k*n <= n^2, requirement for being valid
+        try
         {
-            board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, true);
+            int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
+            int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
 
-            goToCustomScene();
+            if((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns)) // k*n <= n^2, requirement for being valid
+            {
+                board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, true);
+
+                goToCustomScene();
+            }
         }
-        else
+        catch(NumberFormatException exception)
         {
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
         }
@@ -371,52 +397,62 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void insertBoardValue(Node boardGridCell)
     {
-        int row = GridPane.getRowIndex(boardGridCell);
-        int column = GridPane.getColumnIndex(boardGridCell);
-        int value = Integer.parseInt(boardGridCells[row][column].getText());
-
-        if(board.getBoard()[row][column] != 0)
+        try
         {
-            board.setBoardValue(row, column, 0);
-        }
+            int row = GridPane.getRowIndex(boardGridCell);
+            int column = GridPane.getColumnIndex(boardGridCell);
+            int value = Integer.parseInt(boardGridCells[row][column].getText());
 
-        if(board.placeValueInCell(row, column, value))
-        {
-            boardGrid.requestFocus(); // un-focus all cells
-
-            if(!valueInsertHistory.contains(boardGridCell))
+            if(board.getBoard()[row][column] != 0)
             {
-                valueInsertHistory.add(boardGridCell);
+                board.setBoardValue(row, column, 0);
             }
 
-            updateFilledCellsUI();
+            if(board.placeValueInCell(row, column, value))
+            {
+                boardGrid.requestFocus(); // un-focus all cells
 
-            feedbackField.setText("");
+                if(!valueInsertHistory.contains(boardGridCell))
+                {
+                    valueInsertHistory.add(boardGridCell);
+                }
+
+                feedbackField.setText("");
+
+                updateFilledCells();
+
+                if(!board.isGameFinished() || boardView == boardViewState.CustomBoardShown)
+                {
+                    playSoundEffect(insertSound, 0.5);
+                }
+            }
+            else
+            {
+                boardGridCells[row][column].clear(); // reset cell
+
+                feedbackField.setText(board.getErrorMessage());
+            }
         }
-        else
+        catch(NumberFormatException exception)
         {
-            valueInsertHistory.remove(boardGridCell);
-
-            updateFilledCellsUI();
-
-            boardGridCells[row][column].clear(); // reset cell
-
-            feedbackField.setText(board.getErrorMessage());
+            feedbackField.setText("Only values from 1-" + board.getMaxPuzzleValue() + " are valid!");
         }
     }
 
     /**
      * @author Danny & Abinav
      */
-    public void updateFilledCellsUI()
+    public void updateFilledCells()
     {
         filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
 
-        if(board.getFilledCells() == board.getAvailableCells())
+        if(board.isGameFinished() && boardView != boardViewState.CustomBoardShown)
         {
             userSolveTimer.stop();
 
             feedbackField.setText("You have solved the Sudoku!");
+
+            playSoundEffect(winSound, 0.25);
         }
     }
 
@@ -456,7 +492,7 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 if(!boardGridCells[row][column].isDisable())
                 {
-                    updateFilledCellsUI();
+                    updateFilledCells();
 
                     activeTextField.clear();
                     activeTextField.setPromptText(String.valueOf(value));
@@ -494,7 +530,7 @@ public class SudokuApp implements Initializable, ActionListener
             int column = GridPane.getColumnIndex(valueInsertHistory.get(valueInsertHistory.size() - 1));
 
             board.setBoardValue(row, column, 0);
-            updateFilledCellsUI();
+            updateFilledCells();
 
             boardGridCells[row][column].setDisable(false);
             boardGridCells[row][column].clear();
@@ -521,7 +557,7 @@ public class SudokuApp implements Initializable, ActionListener
             int column = GridPane.getColumnIndex(hintInsertHistory.get(hintInsertHistory.size() - 1));
 
             board.setBoardValue(row, column, 0);
-            updateFilledCellsUI();
+            updateFilledCells();
 
             boardGridCells[row][column].setDisable(false);
             boardGridCells[row][column].clear();
@@ -574,6 +610,50 @@ public class SudokuApp implements Initializable, ActionListener
         String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
         String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
         timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
+    }
+
+    public void playButtonClickSound()
+    {
+        playSoundEffect(clickSound, 0.05);
+    }
+
+    /**
+     * @author Danny
+     */
+    public void playSoundEffect(Media soundToPlay, double volume)
+    {
+        if(!soundMuted)
+        {
+            MediaPlayer soundPlayer = new MediaPlayer(soundToPlay);
+            soundPlayer.setVolume(volume);
+
+            soundPlayer.play();
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void muteUnmuteSound()
+    {
+        soundMuted = !soundMuted;
+
+        updateSoundIcon();
+    }
+
+    /**
+     * @author Danny
+     */
+    public void updateSoundIcon()
+    {
+        if(soundMuted)
+        {
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound off.png")).toExternalForm()));
+        }
+        else
+        {
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound on.png")).toExternalForm()));
+        }
     }
 
     /**

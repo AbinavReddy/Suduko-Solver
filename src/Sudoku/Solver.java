@@ -44,6 +44,11 @@ public class Solver
      */
     public boolean solveBoard(boolean isStandardBoard)
     {
+        if(solvedBoard.isGameFinished()) // board is solved from the beginning
+        {
+            return true;
+        }
+
         boolean solvingResult;
 
         long startSolvingTime = System.currentTimeMillis();
