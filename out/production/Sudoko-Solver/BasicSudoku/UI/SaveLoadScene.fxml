@@ -48,6 +48,6 @@
       <ListView fx:id="saveLoadSlotList" layoutX="326.0" layoutY="402.0" prefHeight="415.0" prefWidth="547.0" />
       <Button fx:id="saveLoadButton" layoutX="539.0" layoutY="844.0" mnemonicParsing="false" onAction="#onPressedLoadSave" prefHeight="40.0" prefWidth="83.0" text="Load" />
       <Button layoutX="155.0" layoutY="190.0" mnemonicParsing="false" onAction="#goToMenuScene" text="Menu" />
-      <Button fx:id="backButton" layoutX="235.0" layoutY="187.0" mnemonicParsing="false" onAction="#goToPuzzleScene" prefHeight="31.0" prefWidth="47.0" text="Back" />
+      <Button fx:id="backButton" layoutX="228.0" layoutY="190.0" mnemonicParsing="false" onAction="#goToPuzzleScene" prefHeight="25.0" prefWidth="47.0" text="Back" />
    </children>
 </AnchorPane>

@@ -50,6 +50,8 @@ public class SudokuApp implements Initializable, ActionListener
     private static SudokuBoard board;
     private static List<Node> valueInsertHistory;
     private static List<Node> hintInsertHistory;
+
+    private static List<String> hintInsertHistorySaved;
     private static List<String> valueInsertHistorySaved;
     private static boolean gameLoaded = false;
     private static boolean savingGame = false;
@@ -136,6 +138,7 @@ public class SudokuApp implements Initializable, ActionListener
                 boardAlreadySolved = true;
             } else {
                 valueInsertHistorySaved = new ArrayList<>();
+                hintInsertHistorySaved = new ArrayList<>();
             }
             valueInsertHistory = new ArrayList<>();
             hintInsertHistory = new ArrayList<>();
@@ -223,7 +226,6 @@ public class SudokuApp implements Initializable, ActionListener
             if(savingGame) {
                 saveLoadSceneTitle.setText("Save");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
-                saveLoadConfirmationText.setText("Press confirm to load board from slot:");
                 saveLoadButton.setText("Save");
                 backButton.setOpacity(1);
                 backButton.setDisable(false);
@@ -346,12 +348,21 @@ public class SudokuApp implements Initializable, ActionListener
 
         }
 
-        if(gameLoaded && valueInsertHistorySaved != null){
-            for (String cell: valueInsertHistorySaved){
-                String[] cellRowColumn = cell.split(",");
-                int cellsRow = Integer.parseInt(cellRowColumn[0]);
-                int cellsColumn = Integer.parseInt(cellRowColumn[1]);
-                valueInsertHistory.add((Node) boardGridCells[cellsRow][cellsColumn]);
+        if(gameLoaded) {
+            if (valueInsertHistorySaved != null) {
+                for (String cell : valueInsertHistorySaved) {
+                    String[] cellRowColumn = cell.split(",");
+                    int cellsRow = Integer.parseInt(cellRowColumn[0]);
+                    int cellsColumn = Integer.parseInt(cellRowColumn[1]);
+                    valueInsertHistory.add((Node) boardGridCells[cellsRow][cellsColumn]);
+                }
+            }  if (hintInsertHistorySaved != null) {
+                for (String cell : hintInsertHistorySaved) {
+                    String[] cellRowColumn = cell.split(",");
+                    int cellsRow = Integer.parseInt(cellRowColumn[0]);
+                    int cellsColumn = Integer.parseInt(cellRowColumn[1]);
+                    hintInsertHistory.add((Node) boardGridCells[cellsRow][cellsColumn]);
+                }
             }
         }
 
@@ -562,6 +573,7 @@ public class SudokuApp implements Initializable, ActionListener
                     activeTextField.setPromptText(String.valueOf(value));
 
                     hintInsertHistory.add(activeTextField);
+                    hintInsertHistorySaved.add(row+","+column);
 
                     boardGridCells[row][column].setDisable(true);
 
@@ -629,6 +641,7 @@ public class SudokuApp implements Initializable, ActionListener
             boardGridCells[row][column].setPromptText("");
 
             hintInsertHistory.remove(hintInsertHistory.size() - 1);
+            hintInsertHistorySaved.remove(hintInsertHistorySaved.size()-1);
         }
     }
 
@@ -719,6 +732,11 @@ public class SudokuApp implements Initializable, ActionListener
                 jsonNode.set("userInsertedValues",objectMapper.convertValue(valueInsertHistorySaved, JsonNode.class));
             }else {
                 jsonNode.set("userInsertedValues",null);
+            }
+            if(!hintInsertHistorySaved.isEmpty()){
+                jsonNode.set("HintHistory",objectMapper.convertValue(hintInsertHistorySaved, JsonNode.class));
+            }else {
+                jsonNode.set("HintHistory",null);
             }
             jsonNode.set("filledcells",objectMapper.convertValue(board.getFilledCells(), JsonNode.class));
             jsonNode.put("userTime", userSolvingTime);
@@ -820,6 +838,7 @@ public class SudokuApp implements Initializable, ActionListener
         int loadSelectedSlot = selectedSlot+1;
         if(selectedSlot != -1 && savingGame) {
             saveGame(selectedSlot);
+            saveLoadGameSlotView();
             savingGame = false;
         } else if (!saveLoadSlotList.getItems().get(selectedSlot).equals("slot " + loadSelectedSlot)) {
             loadGame(selectedSlot);
@@ -854,6 +873,13 @@ public class SudokuApp implements Initializable, ActionListener
                        }
                        valueInsertHistorySaved = insertedValuesOnBoardSaved;
                    }
+                    if(!jsonNode.get("HintHistory").isNull() && jsonNode.get("HintHistory").isArray()) {
+                        List<String> hintValuesOnBoardSaved = new ArrayList<>();
+                        for (JsonNode node : jsonNode.get("HintHistory")) {
+                            hintValuesOnBoardSaved.add(node.asText());
+                        }
+                        hintInsertHistorySaved = hintValuesOnBoardSaved;
+                    }
                     board = new SudokuBoard(boardSizeBoxesSaved, boxSizeRowsColumnSaved, false);
                     convertJsonArrayIntoArray(boardArraySaved ,true);
                     board.setFilledCells(filledCellsSaved);
