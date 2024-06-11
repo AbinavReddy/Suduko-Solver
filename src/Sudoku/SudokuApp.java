@@ -111,8 +111,7 @@ public class SudokuApp implements Initializable, ActionListener
             userSolveTimer.start();
 
             feedbackField.setText("");
-
-            updateFilledCells();
+            
             updateSoundIcon();
 
             undoButton.setDisable(true);
