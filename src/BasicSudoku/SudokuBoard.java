@@ -242,6 +242,10 @@ public class SudokuBoard
         board[row][column] = value;
     }
 
+    public void setFilledCells(int value){
+        this.filledCells = value;
+    }
+
     /**
      * @author Danny
      */

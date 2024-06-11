@@ -1,5 +1,8 @@
 package BasicSudoku;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -16,18 +19,19 @@ import javafx.fxml.FXMLLoader;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionModel;
+
+import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.input.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
-import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.scene.shape.Rectangle;
 import javafx.geometry.Pos;
@@ -46,6 +50,11 @@ public class SudokuApp implements Initializable, ActionListener
     private static SudokuBoard board;
     private static List<Node> valueInsertHistory;
     private static List<Node> hintInsertHistory;
+    private static List<String> valueInsertHistorySaved;
+    private static boolean gameLoaded = false;
+    private static boolean savingGame = false;
+    public static boolean boardAlreadySolved = false;
+    private static long savedTimeLoaded ;
 
     // JavaFX related
     private static Stage appStage;
@@ -76,36 +85,24 @@ public class SudokuApp implements Initializable, ActionListener
     private Text gamePausedField; // puzzle
 
     @FXML
-    private Text confirmationText;
+    private Text saveLoadConfirmationText; // saveload
 
     @FXML
-    private Text viewTitle;
+    private Text saveLoadSceneSubtitle; // saveload
 
     @FXML
-    private Button confirm;
+    private Label saveLoadSceneTitle; // saveload
 
     @FXML
-    private Button save;
+    private Button backButton; // saveload
 
     @FXML
-    private ListView saveLoadSlotList;
+    private Button saveLoadButton; // saveload
 
     @FXML
-    private Text loadconfirmationText;
-
-    @FXML
-    private Button loadConfirmationButton;
-
-    @FXML
-    private Button load;
+    private ListView saveLoadSlotList; // saveload
 
     private boolean gamePaused;
-
-    @FXML
-    private Button randomButton; // menu
-
-    @FXML
-    private Button customButton; // menu
 
     @FXML
     private Button undoButton; // puzzle
@@ -113,13 +110,11 @@ public class SudokuApp implements Initializable, ActionListener
     private Button hintButton; // puzzle
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    List<String> list = new ArrayList<>(List.of("slot 1", "slot 3", "slot 3", "slot 4", "slot 5"));
-
-
+    List<String> list = new ArrayList<>(List.of("Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5"));
 
     private enum boardViewState
     {
-        NoBoardShown, UnsolvedBoardShown, SolvedBoardShown, CustomBoardShown
+        NoBoardShown, NoBoardShownSaveLoad, UnsolvedBoardShown, SolvedBoardShown, CustomBoardShown,
     }
 
     private static boardViewState boardView = boardViewState.NoBoardShown;
@@ -129,25 +124,30 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and is also needed to inject some JavaFX fields
     {
-        saveLoadSlotList.getItems().addAll(list);
         if(boardView == boardViewState.UnsolvedBoardShown) // PuzzleScene
         {
-
-            if(board.getIsCustomBoard() && board.getIsSolverCandidate())
+            savingGame = false;
+            if(board.getIsCustomBoard() && board.getIsSolverCandidate() && !gameLoaded)
             {
                 board.solve();
             }
 
-            showBoardValues(true);
-
-            userSolvingTime = 0;
-            userSolveTimer.start();
-
-            filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
-            feedbackField.setText("");
-
+            if (gameLoaded) {
+                boardAlreadySolved = true;
+            } else {
+                valueInsertHistorySaved = new ArrayList<>();
+            }
             valueInsertHistory = new ArrayList<>();
             hintInsertHistory = new ArrayList<>();
+
+
+            showBoardValues(true);
+
+            userSolvingTime = gameLoaded? savedTimeLoaded : 0;
+            userSolveTimer.start();
+            filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
+            feedbackField.setText("");
+            gameLoaded = false;
         }
         else if(boardView == boardViewState.CustomBoardShown) // CustomScene
         {
@@ -160,11 +160,10 @@ public class SudokuApp implements Initializable, ActionListener
         }
         else if(boardView == boardViewState.SolvedBoardShown) // SolverScene
         {
-            if(board.getIsCustomBoard() && board.getIsSolverCandidate() && !board.getSolver().getSolvedBoard().isGameFinished()) // last condition is to not solve twice
+            if(board.getIsCustomBoard() && board.getIsSolverCandidate() && !board.getSolver().getSolvedBoard().isGameFinished() && !boardAlreadySolved) // second last condition is to not solve twice
             {
                 board.solve();
             }
-
             showBoardValues(false);
 
             boardGrid.setDisable(true); // if there are empty cells, the user should not be able to edit them
@@ -179,10 +178,11 @@ public class SudokuApp implements Initializable, ActionListener
             String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
             String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
             timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
-
             filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
 
-            if(board.getSolver().getSolvedBoard().isGameFinished())
+
+
+            if(board.getSolver().getSolvedBoard().isGameFinished() && !boardAlreadySolved)
             {
                 if(board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
                 {
@@ -203,8 +203,10 @@ public class SudokuApp implements Initializable, ActionListener
                 {
                     feedbackField.setText("The puzzle is too large to determine if it is solvable!");
                 }
-                else
-                {
+                else if (boardAlreadySolved) {
+                    feedbackField.setText("This is the solution for saved puzzle!");
+                }
+                else {
                     feedbackField.setText("The puzzle is unsolvable!");
                 }
             }
@@ -213,10 +215,33 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 userSolveTimer.stop();
             }
+            boardAlreadySolved = false;
+        }
+        else if(boardView == boardViewState.NoBoardShownSaveLoad) // SaveLoadScene
+        {
+
+            if(savingGame) {
+                saveLoadSceneTitle.setText("Save");
+                saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
+                saveLoadConfirmationText.setText("Press confirm to load board from slot:");
+                saveLoadButton.setText("Save");
+                backButton.setOpacity(1);
+                backButton.setDisable(false);
+            } else {
+                backButton.setOpacity(0);
+                backButton.setDisable(true);
+            }
+
+            saveLoadSlotList.getItems().addAll(list);
+            try {
+                saveLoadGameSlotView();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         else // MenuScene
         {
-
+            savingGame = false;
             if(userSolveTimer.isRunning())
             {
                 userSolveTimer.stop();
@@ -278,8 +303,7 @@ public class SudokuApp implements Initializable, ActionListener
 
         for(int row = 0; row < boardSizeRowsColumns; row++)
         {
-            for (int column = 0; column < boardSizeRowsColumns; column++)
-            {
+            for (int column = 0; column < boardSizeRowsColumns; column++) {
                 // Style the text of the grid cell
                 boardGridCells[row][column] = new TextField();
                 TextField temp = boardGridCells[row][column];
@@ -290,7 +314,7 @@ public class SudokuApp implements Initializable, ActionListener
                 temp.setOnMouseClicked(event -> updateActiveTextField(temp)); // needed to know the currently active text field
                 temp.setOnMouseDragged(event -> updateActiveTextField(temp));
 
-                // Fill cell
+               // Fill cell
                 if(boardToShow[row][column] == 0)
                 {
                     temp.setPromptText("");
@@ -299,10 +323,35 @@ public class SudokuApp implements Initializable, ActionListener
                 else
                 {
                     temp.setPromptText(String.valueOf(boardToShow[row][column]));
-                    temp.setDisable(true);
+                    if(gameLoaded && valueInsertHistorySaved != null && valueInsertHistorySaved.contains(row+","+column)){
+                        temp.setDisable(false);
+                        temp.setEditable(true);
+                        temp.setStyle("-fx-border-width: 0px; "
+                                        + "-fx-padding: 1px;"
+                                        + "-fx-border-color: #000000; "
+                                        + "-fx-background-color: #ffffff;"
+                                        + "-fx-font-size: " + cellTextSize + "px; "
+                                        + "-fx-font-family: 'Arial'; "
+                                        + "-fx-control-inner-background:#FF0000;"
+                                        + "-fx-text-fill: #960000;"
+                                        + "-fx-opacity: 1;");
+
+                    } else {
+                        temp.setDisable(true);
+                    }
                 }
 
                 boardGrid.add(temp, column, row); // fill the grid with created cells
+            }
+
+        }
+
+        if(gameLoaded && valueInsertHistorySaved != null){
+            for (String cell: valueInsertHistorySaved){
+                String[] cellRowColumn = cell.split(",");
+                int cellsRow = Integer.parseInt(cellRowColumn[0]);
+                int cellsColumn = Integer.parseInt(cellRowColumn[1]);
+                valueInsertHistory.add((Node) boardGridCells[cellsRow][cellsColumn]);
             }
         }
 
@@ -436,6 +485,7 @@ public class SudokuApp implements Initializable, ActionListener
             if(!valueInsertHistory.contains(boardGridCell))
             {
                 valueInsertHistory.add(boardGridCell);
+                valueInsertHistorySaved.add(row+","+column);
             }
 
             updateFilledCellsUI();
@@ -445,6 +495,7 @@ public class SudokuApp implements Initializable, ActionListener
         else
         {
             valueInsertHistory.remove(boardGridCell);
+            valueInsertHistorySaved.removeIf(position -> position.equals(row+","+column));;
 
             updateFilledCellsUI();
 
@@ -550,6 +601,7 @@ public class SudokuApp implements Initializable, ActionListener
             boardGridCells[row][column].setPromptText("");
 
             valueInsertHistory.remove(valueInsertHistory.size() - 1);
+            valueInsertHistorySaved.remove(valueInsertHistorySaved.size()-1);
 
             feedbackField.setText("Value insertion undone in cell (" + (row + 1) + ", " + (column + 1) + ")");
         }
@@ -625,33 +677,61 @@ public class SudokuApp implements Initializable, ActionListener
         timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
     }
 
+    /**
+     * @author Abinav
+     */
+    private ArrayNode convertArrayToJsonArray(ObjectMapper objectMapper, int[][] array){
+        ArrayNode arrayNode = objectMapper.createArrayNode();
+        for (int[] row : array) { // formats into json array
+            ArrayNode rowNode = objectMapper.createArrayNode();
+            for (int value : row) {
+                rowNode.add(value);
+            }
+            arrayNode.add(rowNode);
+        }
+        return arrayNode;
+    }
 
+    /**
+     * @author Abinav
+     */
     public ObjectNode convertDataIntoJson( ObjectMapper objectMapper) {
 
             ObjectNode jsonNode = objectMapper.createObjectNode();
+            ArrayNode solvedBoardNode = null;
+            int[][] solvedBoardArray;
 
             int[][] boardArray = board.getBoard();
-            ArrayNode boardNode = objectMapper.createArrayNode(); // Create an ArrayNode to represent the board in JSON format
-
-            for (int[] row : boardArray) { // formats into json array
-                ArrayNode rowNode = objectMapper.createArrayNode();
-                for (int value : row) {
-                    rowNode.add(value);
-                }
-                boardNode.add(rowNode);
+            if(board.getIsSolverCandidate()) {
+                solvedBoardArray = board.getSolver().getSolvedBoard().getBoard();
+                solvedBoardNode = convertArrayToJsonArray(objectMapper,solvedBoardArray);
             }
 
+            ArrayNode boardNode = convertArrayToJsonArray(objectMapper,boardArray); // Create an ArrayNode to represent the board in JSON format
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+            LocalDateTime currentTime = LocalDateTime.now();
             // saves following data as json object
+
+            jsonNode.set("savedOnDateAndTime",objectMapper.convertValue(dtf.format(currentTime), JsonNode.class));
             jsonNode.set("board", boardNode);
-            jsonNode.put("filledcells", board.getFilledCells());
+            jsonNode.set("solvedboard", solvedBoardNode);
+            if(!valueInsertHistorySaved.isEmpty()){
+                jsonNode.set("userInsertedValues",objectMapper.convertValue(valueInsertHistorySaved, JsonNode.class));
+            }else {
+                jsonNode.set("userInsertedValues",null);
+            }
+            jsonNode.set("filledcells",objectMapper.convertValue(board.getFilledCells(), JsonNode.class));
             jsonNode.put("userTime", userSolvingTime);
             jsonNode.set("boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
             jsonNode.set("boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
-            jsonNode.set("board", boardNode);
+
 
         return jsonNode;
     }
 
+    /**
+     * @author Abinav
+     */
     public void saveGame(int slotNo) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         File jsonFile = new File("saveLoad.json");
@@ -680,47 +760,13 @@ public class SudokuApp implements Initializable, ActionListener
         // saving the json obj in specified slot
         objectMapper.writeValue(jsonFile, arrayNode);
         System.out.println("Data saved to saveLoad.json");
-
     }
 
+    /**
+     * @author Abinav
+     */
     public void saveLoadGameSlotView() throws IOException {
-
-        if(boardView == boardViewState.UnsolvedBoardShown) {
-
-            pauseResumeButton.setDisable(true);
-            undoButton.setDisable(true);
-            hintButton.setDisable(true);
-            userSolveTimer.stop();
-            save.setDisable(true);
-            boardGrid.requestFocus(); // un-focus all cells
-            gamePausedOverlay.setOpacity(0.8);
-            confirmationText.setOpacity(0.9);
-            confirmationText.setText("Press Confirm to save in the selected slot");
-            confirm.setOpacity(0.85);
-            viewTitle.setOpacity(0.9);
-            viewTitle.setText("Select a slot to save in");
-        }
-        else if(boardView == boardViewState.NoBoardShown) {
-            randomButton.setDisable(true);
-            customButton.setDisable(true);
-            boardSizeField.setDisable(true);
-            boxSizeField.setDisable(true);
-            load.setDisable(true);
-            boardSizeValidationField.setText("Select a board to load!");
-            boardSizeValidationField.setY(-60);
-            randomButton.setOpacity(0);
-            customButton.setOpacity(0);
-            boardSizeField.setOpacity(0);
-            boxSizeField.setOpacity(0);
-            load.setOpacity(0);
-            loadconfirmationText.setOpacity(0.85);
-            loadConfirmationButton.setOpacity(1.0);
-        }
-
-
         ObservableList items = saveLoadSlotList.getItems();
-
-
 
         executorService.submit(() -> {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -731,74 +777,94 @@ public class SudokuApp implements Initializable, ActionListener
                     nodes = (ArrayNode) objectMapper.readTree(jsonFile);
                     for (int i = 0; i < 5; i++) {
                         JsonNode jsonNode = nodes.get(i);
+                        String dateAndTime = jsonNode.get("savedOnDateAndTime").asText();
                         int boardSizeBoxesNode = jsonNode.get("boardsizeBoxes").asInt();
                         int boxSizeRowsColumnNode = jsonNode.get("boxsizeRowsColumn").asInt();
                         final int index = i; // Need to make it effectively final
-                        Platform.runLater(() -> items.set(index, boardSizeBoxesNode + "x" + boxSizeRowsColumnNode + "board"));
+                        Platform.runLater(() -> items.set(index, boardSizeBoxesNode + "x" + boxSizeRowsColumnNode + " board                             saved on: " + dateAndTime));
                     }
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
-
-
-        saveLoadSlotList.setFixedCellSize(50.0);
-        saveLoadSlotList.prefHeightProperty().bind(Bindings.size(saveLoadSlotList.getItems()).multiply(50));
-        saveLoadSlotList.setOpacity(0.95);
+        saveLoadSlotList.setFixedCellSize(80.0);
+        saveLoadSlotList.prefHeightProperty().bind(Bindings.size(saveLoadSlotList.getItems()).multiply(80));
+        // disables scrollbar
+        saveLoadSlotList.skinProperty().addListener((observable, oldValue, newValue) -> {
+            for (Node node : saveLoadSlotList.lookupAll(".scroll-bar")) {
+                if (node instanceof ScrollBar) {
+                    ScrollBar scrollBar = (ScrollBar) node;
+                    scrollBar.setDisable(true);
+                    scrollBar.setVisible(false);
+                }
+            }
+        });
+        // styles elements in list
+        saveLoadSlotList.setStyle("-fx-background-color: #000000; "
+                                    + "-fx-border-width: 0px; "
+                                    + "-fx-padding: 0 -10px 0px  0; "
+                                    + "-fx-font-size: 18px; "
+                                    + "-fx-font-family: 'Segoe UI'; "
+                                    + "-fx-control-inner-background:#000000;");
 
     }
 
 
-    public void onPressedConfirm() throws IOException {
-
+    /**
+     * @author Abinav
+     */
+    public void onPressedLoadSave() throws IOException {
         SelectionModel<String> selectionModel = saveLoadSlotList.getSelectionModel();
         int selectedSlot = selectionModel.getSelectedIndex();
-        if(selectedSlot != -1) {
+        int loadSelectedSlot = selectedSlot+1;
+        if(selectedSlot != -1 && savingGame) {
             saveGame(selectedSlot);
-
-            userSolveTimer.start();
-            save.setDisable(false);
-            gamePausedOverlay.setOpacity(0);
-            confirmationText.setOpacity(0);
-            confirmationText.setText("");
-            confirm.setOpacity(0);
-            viewTitle.setOpacity(0);
-            viewTitle.setText("");
-            saveLoadSlotList.setOpacity(0);
+            savingGame = false;
+        } else if (!saveLoadSlotList.getItems().get(selectedSlot).equals("slot " + loadSelectedSlot)) {
             loadGame(selectedSlot);
-
-            if(gamePaused)
-            {
-                gamePaused = false;
-                gamePausedField.setOpacity(0);
-                pauseResumeButton.setText("Pause");
-            }
-            undoButton.setDisable(false);
-            hintButton.setDisable(false);
-            pauseResumeButton.setDisable(false);
         }
-
     }
 
+    /**
+     * @author Abinav
+     */
     public void loadGame(int slotNo){
         ObjectMapper objectMapper = new ObjectMapper();
         File jsonFile = new File("saveLoad.json");
         try {
-
-
             ArrayNode nodes;
             if(jsonFile.exists()) {
                 nodes = (ArrayNode) objectMapper.readTree(jsonFile);
 
                 if (slotNo >=0 && slotNo < 5) {
                     JsonNode jsonNode = nodes.get(slotNo);
-                    int filledCells = jsonNode.get("filledcells").asInt();
-                    int boardSizeBoxesNode = jsonNode.get("boardsizeBoxes").asInt();
-                    int boxSizeRowsColumnNode = jsonNode.get("boxsizeRowsColumn").asInt();
-                    long userSolvingTime = jsonNode.get("userTime").asLong();
-                    int[][] boardArray = objectMapper.convertValue(jsonNode.get("board"), int[][].class);
-                    System.out.println(filledCells);
+                    int filledCellsSaved = jsonNode.get("filledcells").asInt();
+                    int boardSizeBoxesSaved = jsonNode.get("boardsizeBoxes").asInt();
+                    int boxSizeRowsColumnSaved = jsonNode.get("boxsizeRowsColumn").asInt();
+                    long userSolvingTimeSaved = jsonNode.get("userTime").asLong();
+                    int[][] boardArraySaved = objectMapper.convertValue(jsonNode.get("board"), int[][].class);
+                    int[][] solvedBoardArraySaved = objectMapper.convertValue(jsonNode.get("solvedboard"), int[][].class);
+
+                    // setting the saved values
+                   if(!jsonNode.get("userInsertedValues").isNull() && jsonNode.get("userInsertedValues").isArray()){
+                       List<String> insertedValuesOnBoardSaved = new ArrayList<>();
+                       for (JsonNode node : jsonNode.get("userInsertedValues")) {
+                           insertedValuesOnBoardSaved.add(node.asText());
+                       }
+                       valueInsertHistorySaved = insertedValuesOnBoardSaved;
+                   }
+                    board = new SudokuBoard(boardSizeBoxesSaved, boxSizeRowsColumnSaved, false);
+                    convertJsonArrayIntoArray(boardArraySaved ,true);
+                    board.setFilledCells(filledCellsSaved);
+                    if(solvedBoardArraySaved != null){
+                        convertJsonArrayIntoArray(solvedBoardArraySaved,false);
+                        board.getSolver().getSolvedBoard().setFilledCells(board.getAvailableCells());
+                    }
+                    savedTimeLoaded = userSolvingTimeSaved;
+                    gameLoaded = true;
+                    goToPuzzleScene();
+
                 }
             }
         } catch (IOException e) {
@@ -806,13 +872,28 @@ public class SudokuApp implements Initializable, ActionListener
         }
     }
 
-
-    //  shut down the executor service when your application exits
-    public void shutdownExecutorService() {
-        System.out.println("reached here");
-        executorService.shutdown();
+    /**
+     * @author Abinav
+     */
+    private  void  convertJsonArrayIntoArray(int[][] boardArraySaved, boolean unsolvedBoard) {
+        for (int row = 0; row < boardArraySaved.length; row++) {
+            for (int column = 0; column < boardArraySaved[row].length; column++) {
+                if(unsolvedBoard) {
+                    board.setBoardValue(row, column, boardArraySaved[row][column]);
+                } else {
+                    board.getSolver().getSolvedBoard().setBoardValue(row, column, boardArraySaved[row][column]);
+                }
+            }
+        }
     }
 
+    /**
+     * @author Abinav
+     */
+    public void onPressedSave() throws IOException {
+        savingGame = true;
+        goToSaveLoadScene();
+    }
 
 
     /**
@@ -849,6 +930,15 @@ public class SudokuApp implements Initializable, ActionListener
     {
         boardView = boardViewState.CustomBoardShown;
         setActiveScene("CustomScene");
+    }
+
+    /**
+     * @author Abinav
+     */
+    public void goToSaveLoadScene() throws IOException
+    {
+        boardView = boardViewState.NoBoardShownSaveLoad;
+        setActiveScene("SaveLoadScene");
     }
 
     /**

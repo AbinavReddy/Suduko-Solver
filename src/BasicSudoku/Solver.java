@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Solver
 {
-    private final SudokuBoard solvedBoard;
+    private SudokuBoard solvedBoard;
     private boolean solvedWithStrategies;
     private boolean solvedWithBacktracking;
     private long solvingTime; // in milliseconds
@@ -2925,6 +2925,7 @@ public class Solver
             }
         }
     }
+
 
     /**
      * @author Danny
