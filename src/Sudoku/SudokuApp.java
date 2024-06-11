@@ -8,6 +8,10 @@ import javafx.fxml.FXMLLoader;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import javafx.scene.image.ImageView;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.scene.Parent;
@@ -69,6 +73,16 @@ public class SudokuApp implements Initializable, ActionListener
     private Button undoButton; // puzzle
     @FXML
     private Button hintButton; // puzzle
+    @FXML
+    private Button resetButton; // puzzle, custom
+    private static boolean soundMuted = false;
+    @FXML
+    private ImageView soundButtonImage;
+    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/click sound.wav")).toExternalForm());
+    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/insert sound.wav")).toExternalForm());
+    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/error sound.wav")).toExternalForm());
+    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/win sound.wav")).toExternalForm());
+    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/lose sound.wav")).toExternalForm());
 
     private enum boardViewState
     {
@@ -84,35 +98,49 @@ public class SudokuApp implements Initializable, ActionListener
     {
         if(boardView == boardViewState.UnsolvedBoardShown) // PuzzleScene
         {
-            if(board.getIsCustomBoard() && board.getIsSolverCandidate())
+            if(!board.getSolver().getSolverHasRun()) // needed to solve custom boards
             {
                 board.solve();
             }
 
             showBoardValues(true);
 
+            boardGrid.requestFocus();
+
             userSolvingTime = 0;
             userSolveTimer.start();
 
-            filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
             feedbackField.setText("");
+
+            updateFilledCells();
+            updateSoundIcon();
+
+            undoButton.setDisable(true);
+            resetButton.setDisable(true);
 
             valueInsertHistory = new ArrayList<>();
             hintInsertHistory = new ArrayList<>();
+
+            updateFilledCells();
         }
         else if(boardView == boardViewState.CustomBoardShown) // CustomScene
         {
             showBoardValues(true);
 
-            filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
-
             feedbackField.setText("");
 
+            updateSoundIcon();
+
+            undoButton.setDisable(true);
+            resetButton.setDisable(true);
+
             valueInsertHistory = new ArrayList<>();
+
+            updateFilledCells();
         }
         else if(boardView == boardViewState.SolvedBoardShown) // SolverScene
         {
-            if(board.getIsCustomBoard() && board.getIsSolverCandidate() && !board.getSolver().getSolvedBoard().isGameFinished()) // last condition is to not solve twice
+            if(!board.getSolver().getSolverHasRun()) // needed to solve custom boards
             {
                 board.solve();
             }
@@ -134,32 +162,7 @@ public class SudokuApp implements Initializable, ActionListener
 
             filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
 
-            if(board.getSolver().getSolvedBoard().isGameFinished())
-            {
-                if(board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
-                {
-                    feedbackField.setText("The puzzle was solved with strategies!");
-                }
-                else if(board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
-                {
-                    feedbackField.setText("The puzzle was solved with strategies and backtracking!");
-                }
-                else
-                {
-                    feedbackField.setText("The puzzle was solved with backtracking!");
-                }
-            }
-            else
-            {
-                if(!board.getIsSolverCandidate())
-                {
-                    feedbackField.setText("The puzzle is too large to determine if it is solvable!");
-                }
-                else
-                {
-                    feedbackField.setText("The puzzle is unsolvable!");
-                }
-            }
+            feedbackField.setText(createSolverFeedbackMessage());
 
             if(userSolveTimer.isRunning())
             {
@@ -168,6 +171,8 @@ public class SudokuApp implements Initializable, ActionListener
         }
         else // MenuScene
         {
+            updateSoundIcon();
+
             if(userSolveTimer.isRunning())
             {
                 userSolveTimer.stop();
@@ -180,18 +185,35 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void initializeRandomBoard() throws IOException
     {
-        int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
-        int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
-
-        if((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns)) // k*n <= n^2, requirement for being valid
+        try
         {
-            board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, false);
+            int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
+            int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
 
-            goToPuzzleScene();
+            if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, requirement for being valid
+            {
+                board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, false);
+
+                goToPuzzleScene();
+            }
+            else
+            {
+                boardSizeField.clear();
+                boxSizeField.clear();
+
+                boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+
+                playSoundEffect(errorSound, 0.15);
+            }
         }
-        else
+        catch(NumberFormatException exception)
         {
+            boardSizeField.clear();
+            boxSizeField.clear();
+
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+
+            playSoundEffect(errorSound, 0.15);
         }
     }
 
@@ -200,18 +222,35 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void initializeCustomBoard() throws IOException
     {
-        int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
-        int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
-
-        if((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns)) // k*n <= n^2, requirement for being valid
+        try
         {
-            board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, true);
+            int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
+            int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
 
-            goToCustomScene();
+            if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, where k and n > 0, requirement for being valid
+            {
+                board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, true);
+
+                goToCustomScene();
+            }
+            else
+            {
+                boardSizeField.clear();
+                boxSizeField.clear();
+
+                boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+
+                playSoundEffect(errorSound, 0.15);
+            }
         }
-        else
+        catch(NumberFormatException exception)
         {
+            boardSizeField.clear();
+            boxSizeField.clear();
+
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+
+            playSoundEffect(errorSound, 0.15);
         }
     }
 
@@ -237,6 +276,7 @@ public class SudokuApp implements Initializable, ActionListener
                 temp.setPrefSize(cellSize, cellSize);
                 temp.setStyle("-fx-border-width: 1px; " + "-fx-padding: 1px;" + "-fx-border-color: #ffffff; " + "-fx-background-color: #ffffff;" + "-fx-font-size: " + cellTextSize + "px; " + "-fx-font-family: 'Arial'; " + "-fx-control-inner-background:#c0c0c0;" + "-fx-text-fill: #960000;" + "-fx-opacity: 1;");
                 temp.setAlignment(Pos.CENTER);
+                temp.setFocusTraversable(false);
 
                 temp.setOnMouseClicked(event -> updateActiveTextField(temp)); // needed to know the currently active text field
                 temp.setOnMouseDragged(event -> updateActiveTextField(temp));
@@ -321,6 +361,8 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void pauseResumeGame()
     {
+        feedbackField.setText("");
+
         if(!gamePaused)
         {
             userSolveTimer.stop();
@@ -350,7 +392,11 @@ public class SudokuApp implements Initializable, ActionListener
             pauseResumeButton.setText("Pause");
 
             // Enable buttons
-            undoButton.setDisable(false);
+            if(!valueInsertHistory.isEmpty())
+            {
+                undoButton.setDisable(false);
+            }
+
             hintButton.setDisable(false);
         }
     }
@@ -362,7 +408,10 @@ public class SudokuApp implements Initializable, ActionListener
     {
         if(event.getCode() == KeyCode.ENTER) // user pressed Enter and is trying to insert a value
         {
-            insertBoardValue((Node) event.getTarget());
+            if(activeTextField.equals(event.getTarget()))
+            {
+                insertBoardValue((Node) event.getTarget());
+            }
         }
     }
 
@@ -371,52 +420,87 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void insertBoardValue(Node boardGridCell)
     {
-        int row = GridPane.getRowIndex(boardGridCell);
-        int column = GridPane.getColumnIndex(boardGridCell);
-        int value = Integer.parseInt(boardGridCells[row][column].getText());
-
-        if(board.getBoard()[row][column] != 0)
+        try
         {
-            board.setBoardValue(row, column, 0);
-        }
+            int row = GridPane.getRowIndex(boardGridCell);
+            int column = GridPane.getColumnIndex(boardGridCell);
+            int value = Integer.parseInt(boardGridCells[row][column].getText());
 
-        if(board.placeValueInCell(row, column, value))
-        {
-            boardGrid.requestFocus(); // un-focus all cells
-
-            if(!valueInsertHistory.contains(boardGridCell))
+            if(board.getBoard()[row][column] != 0)
             {
-                valueInsertHistory.add(boardGridCell);
+                board.setBoardValue(row, column, 0);
             }
 
-            updateFilledCellsUI();
+            if(board.placeValueInCell(row, column, value))
+            {
+                boardGrid.requestFocus(); // un-focus all cells
 
-            feedbackField.setText("");
+                if(!valueInsertHistory.contains(boardGridCell))
+                {
+                    valueInsertHistory.add(boardGridCell);
+                }
+
+                feedbackField.setText("");
+
+                if(undoButton.isDisable())
+                {
+                    undoButton.setDisable(false);
+                }
+
+                if(resetButton.isDisable())
+                {
+                    resetButton.setDisable(false);
+                }
+
+                updateFilledCells();
+
+                if(!board.isGameFinished() || boardView == boardViewState.CustomBoardShown)
+                {
+                    playSoundEffect(insertSound, 0.37);
+                }
+            }
+            else
+            {
+                boardGridCells[row][column].clear(); // reset cell
+
+                feedbackField.setText(board.getErrorMessage());
+
+                playSoundEffect(errorSound, 0.15);
+            }
         }
-        else
+        catch(NumberFormatException exception)
         {
-            valueInsertHistory.remove(boardGridCell);
+            feedbackField.setText("Only values from 1-" + board.getMaxPuzzleValue() + " are valid!");
 
-            updateFilledCellsUI();
-
-            boardGridCells[row][column].clear(); // reset cell
-
-            feedbackField.setText(board.getErrorMessage());
+            playSoundEffect(errorSound, 0.15);
         }
     }
 
     /**
      * @author Danny & Abinav
      */
-    public void updateFilledCellsUI()
+    public void updateFilledCells()
     {
         filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
 
-        if(board.getFilledCells() == board.getAvailableCells())
+        if(board.isGameFinished() && boardView != boardViewState.CustomBoardShown)
         {
             userSolveTimer.stop();
 
-            feedbackField.setText("You have solved the Sudoku!");
+            if(!valueInsertHistory.isEmpty())
+            {
+                feedbackField.setText("You have solved the Sudoku!");
+            }
+            else // board was already solved
+            {
+                feedbackField.setText("The puzzle was already solved!");
+            }
+
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
+            pauseResumeButton.setDisable(true);
+
+            playSoundEffect(winSound, 0.5);
         }
     }
 
@@ -456,8 +540,6 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 if(!boardGridCells[row][column].isDisable())
                 {
-                    updateFilledCellsUI();
-
                     activeTextField.clear();
                     activeTextField.setPromptText(String.valueOf(value));
 
@@ -469,7 +551,14 @@ public class SudokuApp implements Initializable, ActionListener
 
                     feedbackField.setText("Solution for cell (" + (row + 1) + "," + (column + 1) + ") revealed!");
 
+                    updateFilledCells();
+
                     activeTextField = null;
+
+                    if(resetButton.isDisable())
+                    {
+                        resetButton.setDisable(false);
+                    }
                 }
             }
             else
@@ -494,7 +583,7 @@ public class SudokuApp implements Initializable, ActionListener
             int column = GridPane.getColumnIndex(valueInsertHistory.get(valueInsertHistory.size() - 1));
 
             board.setBoardValue(row, column, 0);
-            updateFilledCellsUI();
+            updateFilledCells();
 
             boardGridCells[row][column].setDisable(false);
             boardGridCells[row][column].clear();
@@ -502,11 +591,13 @@ public class SudokuApp implements Initializable, ActionListener
 
             valueInsertHistory.remove(valueInsertHistory.size() - 1);
 
+            if(valueInsertHistory.isEmpty())
+            {
+                undoButton.setDisable(true);
+                resetButton.setDisable(true);
+            }
+
             feedbackField.setText("Value insertion undone in cell (" + (row + 1) + ", " + (column + 1) + ")");
-        }
-        else
-        {
-            feedbackField.setText("There are no insertions to undo!");
         }
     }
 
@@ -521,7 +612,7 @@ public class SudokuApp implements Initializable, ActionListener
             int column = GridPane.getColumnIndex(hintInsertHistory.get(hintInsertHistory.size() - 1));
 
             board.setBoardValue(row, column, 0);
-            updateFilledCellsUI();
+            updateFilledCells();
 
             boardGridCells[row][column].setDisable(false);
             boardGridCells[row][column].clear();
@@ -541,15 +632,24 @@ public class SudokuApp implements Initializable, ActionListener
             undoValueInsertion();
         }
 
-        while(!hintInsertHistory.isEmpty() )
+        while(hintInsertHistory != null && !hintInsertHistory.isEmpty())
         {
             undoHintInsertion();
         }
 
-        userSolvingTime = 0;
-        userSolveTimer.start();
+        if(boardView == boardViewState.UnsolvedBoardShown)
+        {
+            userSolvingTime = 0;
+            userSolveTimer.start();
+
+            hintButton.setDisable(false);
+            pauseResumeButton.setDisable(false);
+        }
 
         feedbackField.setText("The puzzle has been reset!");
+
+        undoButton.setDisable(true);
+        resetButton.setDisable(true);
 
         if(gamePaused)
         {
@@ -574,6 +674,103 @@ public class SudokuApp implements Initializable, ActionListener
         String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
         String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
         timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
+    }
+
+    public void playButtonClickSound()
+    {
+        playSoundEffect(clickSound, 0.1);
+    }
+
+    /**
+     * @author Danny
+     */
+    public void playSoundEffect(Media soundToPlay, double volume)
+    {
+        if(!soundMuted)
+        {
+            MediaPlayer soundPlayer = new MediaPlayer(soundToPlay);
+            soundPlayer.setVolume(volume);
+
+            soundPlayer.play();
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void muteUnmuteSound()
+    {
+        soundMuted = !soundMuted;
+
+        updateSoundIcon();
+    }
+
+    /**
+     * @author Danny
+     */
+    public void updateSoundIcon()
+    {
+        if(soundMuted)
+        {
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound off.png")).toExternalForm()));
+        }
+        else
+        {
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound on.png")).toExternalForm()));
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    public String createSolverFeedbackMessage()
+    {
+        if(board.getSolver().getSolvedBoard().isGameFinished())
+        {
+            if(board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
+            {
+                return "The puzzle was solved with hard coding!";
+            }
+            if(!board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
+            {
+                return "The puzzle was solved with strategies!";
+            }
+            else if(!board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
+            {
+                return "The puzzle was solved with backtracking!";
+            }
+            else if(board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
+            {
+                return "The puzzle was solved with hard coding and strategies!";
+            }
+            else if(board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
+            {
+                return "The puzzle was solved with hard coding and backtracking!";
+            }
+            else if(!board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
+            {
+                return "The puzzle was solved with strategies and backtracking!";
+            }
+            else if(board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
+            {
+                return "The puzzle was solved with hard coding, strategies and backtracking!";
+            }
+            else
+            {
+                return "The puzzle was already solved!";
+            }
+        }
+        else
+        {
+            if(!board.getIsSolverCandidate())
+            {
+                return "The puzzle is too large to determine if it is solvable!";
+            }
+            else
+            {
+                return "The puzzle is unsolvable!";
+            }
+        }
     }
 
     /**
