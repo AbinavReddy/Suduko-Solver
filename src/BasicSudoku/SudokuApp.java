@@ -1,6 +1,5 @@
 package BasicSudoku;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -85,9 +84,6 @@ public class SudokuApp implements Initializable, ActionListener
     private Rectangle gamePausedOverlay; // puzzle
     @FXML
     private Text gamePausedField; // puzzle
-
-    @FXML
-    private Text saveLoadConfirmationText; // saveload
 
     @FXML
     private Text saveLoadSceneSubtitle; // saveload
