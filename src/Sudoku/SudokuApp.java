@@ -58,7 +58,7 @@ public class SudokuApp implements Initializable, ActionListener
 
     private static List<String> hintInsertHistorySaved;
     private static List<String> valueInsertHistorySaved;
-    private static boolean gameLoaded = false;
+    private static boolean gameSavedLoaded = false;
     private static boolean savingGame = false;
     public static boolean boardAlreadySolved = false;
     private static long savedTimeLoaded ;
@@ -140,38 +140,41 @@ public class SudokuApp implements Initializable, ActionListener
         if(boardView == boardViewState.UnsolvedBoardShown) // PuzzleScene
         {
             savingGame = false;
-            if(!board.getSolver().getSolverHasRun() && !gameLoaded) // needed to solve custom boards
+            if(!board.getSolver().getSolverHasRun() && !gameSavedLoaded) // needed to solve custom boards
             {
                 board.solve();
             }
 
-            if (gameLoaded) {
+            if (gameSavedLoaded) {
                 boardAlreadySolved = true;
             } else {
                 valueInsertHistorySaved = new ArrayList<>();
                 hintInsertHistorySaved = new ArrayList<>();
             }
-            valueInsertHistory = new ArrayList<>();
-            hintInsertHistory = new ArrayList<>();
-
 
             showBoardValues(true);
 
             boardGrid.requestFocus();
             
-            userSolvingTime = gameLoaded? savedTimeLoaded : 0;
+            userSolvingTime = gameSavedLoaded ? savedTimeLoaded : 0;
             userSolveTimer.start();
 
             feedbackField.setText("");
-            gameLoaded = false;
+
             
             updateSoundIcon();
 
-            undoButton.setDisable(true);
-            resetButton.setDisable(true);
+            if(gameSavedLoaded) {
+                undoButton.setDisable(false);
+                resetButton.setDisable(false);
+            }
+            else
+            {
+                undoButton.setDisable(true);
+                resetButton.setDisable(true);
+            }
 
-            //valueInsertHistory = new ArrayList<>();
-            //hintInsertHistory = new ArrayList<>();
+            gameSavedLoaded = false;
 
             updateFilledCells();
         }
@@ -225,6 +228,7 @@ public class SudokuApp implements Initializable, ActionListener
         else if(boardView == boardViewState.NoBoardShownSaveLoad) // SaveLoadScene
         {
 
+            gameSavedLoaded = true;
             if(savingGame) {
                 saveLoadSceneTitle.setText("Save");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
@@ -245,6 +249,9 @@ public class SudokuApp implements Initializable, ActionListener
         }
         else // MenuScene
         {
+            valueInsertHistory = new ArrayList<>();
+            hintInsertHistory = new ArrayList<>();
+
             updateSoundIcon();
 
             savingGame = false;
@@ -365,7 +372,8 @@ public class SudokuApp implements Initializable, ActionListener
                 else
                 {
                     temp.setPromptText(String.valueOf(boardToShow[row][column]));
-                    if(gameLoaded && valueInsertHistorySaved != null && valueInsertHistorySaved.contains(row+","+column)){
+
+                    if(gameSavedLoaded && valueInsertHistorySaved != null && valueInsertHistorySaved.contains(row+","+column) ){
                         temp.setDisable(false);
                         temp.setEditable(true);
                         temp.setStyle("-fx-border-width: 0px; "
@@ -388,7 +396,7 @@ public class SudokuApp implements Initializable, ActionListener
 
         }
 
-        if(gameLoaded) {
+        if(gameSavedLoaded) {
             if (valueInsertHistorySaved != null) {
                 for (String cell : valueInsertHistorySaved) {
                     String[] cellRowColumn = cell.split(",");
@@ -924,12 +932,12 @@ public class SudokuApp implements Initializable, ActionListener
             jsonNode.set("savedOnDateAndTime",objectMapper.convertValue(dtf.format(currentTime), JsonNode.class));
             jsonNode.set("board", boardNode);
             jsonNode.set("solvedboard", solvedBoardNode);
-            if(!valueInsertHistorySaved.isEmpty()){
+            if(valueInsertHistorySaved != null){
                 jsonNode.set("userInsertedValues",objectMapper.convertValue(valueInsertHistorySaved, JsonNode.class));
             }else {
                 jsonNode.set("userInsertedValues",null);
             }
-            if(!hintInsertHistorySaved.isEmpty()){
+            if(hintInsertHistorySaved != null){
                 jsonNode.set("HintHistory",objectMapper.convertValue(hintInsertHistorySaved, JsonNode.class));
             }else {
                 jsonNode.set("HintHistory",null);
@@ -972,8 +980,8 @@ public class SudokuApp implements Initializable, ActionListener
         if (slotNo >=0 && slotNo < 5)  arrayNode.set(slotNo,gameStateAsJson);
 
         // saving the json obj in specified slot
+        System.out.println("game saved");
         objectMapper.writeValue(jsonFile, arrayNode);
-        System.out.println("Data saved to saveLoad.json");
     }
 
     /**
@@ -1084,7 +1092,8 @@ public class SudokuApp implements Initializable, ActionListener
                         board.getSolver().getSolvedBoard().setFilledCells(board.getAvailableCells());
                     }
                     savedTimeLoaded = userSolvingTimeSaved;
-                    gameLoaded = true;
+                    gameSavedLoaded = true;
+                    System.out.println("game loaded");
                     goToPuzzleScene();
 
                 }
