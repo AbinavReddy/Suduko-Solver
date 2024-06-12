@@ -227,8 +227,10 @@ public class SudokuApp implements Initializable, ActionListener
         }
         else if(boardView == boardViewState.NoBoardShownSaveLoad) // SaveLoadScene
         {
-
             gameSavedLoaded = true;
+
+            updateSoundIcon();
+
             if(savingGame) {
                 saveLoadSceneTitle.setText("Save");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
@@ -249,6 +251,8 @@ public class SudokuApp implements Initializable, ActionListener
         }
         else // MenuScene
         {
+            gameSavedLoaded = false;
+
             valueInsertHistory = new ArrayList<>();
             hintInsertHistory = new ArrayList<>();
 
@@ -285,7 +289,7 @@ public class SudokuApp implements Initializable, ActionListener
 
                 boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
 
-                playSoundEffect(errorSound, 0.15);
+                playSoundEffect(errorSound, 0.2);
             }
         }
         catch(NumberFormatException exception)
@@ -295,7 +299,7 @@ public class SudokuApp implements Initializable, ActionListener
 
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
 
-            playSoundEffect(errorSound, 0.15);
+            playSoundEffect(errorSound, 0.2);
         }
     }
 
@@ -322,7 +326,7 @@ public class SudokuApp implements Initializable, ActionListener
 
                 boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
 
-                playSoundEffect(errorSound, 0.15);
+                playSoundEffect(errorSound, 0.2);
             }
         }
         catch(NumberFormatException exception)
@@ -332,7 +336,7 @@ public class SudokuApp implements Initializable, ActionListener
 
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
 
-            playSoundEffect(errorSound, 0.15);
+            playSoundEffect(errorSound, 0.2);
         }
     }
 
@@ -574,7 +578,7 @@ public class SudokuApp implements Initializable, ActionListener
 
                 if(!board.isGameFinished() || boardView == boardViewState.CustomBoardShown)
                 {
-                    playSoundEffect(insertSound, 0.37);
+                    playSoundEffect(insertSound, 0.43);
                 }
             }
             else
@@ -583,14 +587,14 @@ public class SudokuApp implements Initializable, ActionListener
 
                 feedbackField.setText(board.getErrorMessage());
 
-                playSoundEffect(errorSound, 0.15);
+                playSoundEffect(errorSound, 0.2);
             }
         }
         catch(NumberFormatException exception)
         {
             feedbackField.setText("Only values from 1-" + board.getMaxPuzzleValue() + " are valid!");
 
-            playSoundEffect(errorSound, 0.15);
+            playSoundEffect(errorSound, 0.2);
         }
     }
 
@@ -799,7 +803,7 @@ public class SudokuApp implements Initializable, ActionListener
 
     public void playButtonClickSound()
     {
-        playSoundEffect(clickSound, 0.1);
+        playSoundEffect(clickSound, 0.15);
     }
 
     /**
