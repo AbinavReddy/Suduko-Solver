@@ -70,7 +70,7 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Button layoutX="43.0" layoutY="40.0" mnemonicParsing="false" onAction="#goToMenuScene" prefHeight="28.0" prefWidth="50.0" text="Menu">
+      <Button layoutX="43.0" layoutY="40.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="50.0" text="Menu">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
@@ -130,7 +130,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button layoutX="361.0" layoutY="1076.0" mnemonicParsing="false" onAction="#onPressedSave" prefHeight="28.0" prefWidth="65.0" text="Save">
+      <Button layoutX="361.0" layoutY="1076.0" mnemonicParsing="false" onAction="#onPressedSave" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Save">
          <font>
             <Font name="System Bold" size="12.0" />
          </font></Button>
