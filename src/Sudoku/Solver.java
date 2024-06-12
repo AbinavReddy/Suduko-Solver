@@ -5,6 +5,8 @@ import java.util.*;
 public class Solver
 {
     private SudokuBoard solvedBoard;
+    private boolean solverHasRun;
+    private boolean solvedWithHardCoding;
     private boolean solvedWithStrategies;
     private boolean solvedWithBacktracking;
     private long solvingTime; // in milliseconds
@@ -28,6 +30,8 @@ public class Solver
         this.solvedBoard = boardToSolve;
         solvedWithStrategies = false;
         solvedWithBacktracking = false;
+        solvedWithHardCoding = false;
+        solverHasRun = false;
         boardSizeBoxes = boardToSolve.getBoardSizeBoxes();
         boardSizeRowsColumns = boardToSolve.getBoardSizeRowsColumns();
         boxSizeRowsColumns = boardToSolve.getBoxSizeRowsColumns();
@@ -44,16 +48,20 @@ public class Solver
      */
     public boolean solveBoard(boolean isStandardBoard)
     {
+        solverHasRun = true;
+
+        if(solvedBoard.isGameFinished()) // board is solved from the beginning
+        {
+            return true;
+        }
+
         boolean solvingResult;
 
         long startSolvingTime = System.currentTimeMillis();
 
-        if(solvedBoard.getFilledCells() == 0) // an initial filled row increases solving speed on empty boards
+        if(solvedBoard.getFilledCells() <= 1) // a row can be filled from the start on empty boards and sometimes on boards with 1 initial value (increases solving speed)
         {
-            for(int column = 0; column < solvedBoard.getBoardSizeRowsColumns(); column++)
-            {
-                solvedBoard.setBoardValue(0, column, column + 1);
-            }
+            fillFirstRow();
         }
 
         possibleValuesInCells();
@@ -70,6 +78,37 @@ public class Solver
         solvingTime = System.currentTimeMillis() - startSolvingTime; // current system time = end solving time
 
         return solvingResult;
+    }
+
+    /**
+     * @author Danny
+     */
+    public void fillFirstRow()
+    {
+        boolean canFillRow = false;
+
+        for(int column = 0; column < solvedBoard.getBoardSizeRowsColumns(); column++)
+        {
+            if(!solvedBoard.checkPlacementRow(0, column + 1) || !solvedBoard.checkPlacementColumn(column, column + 1) || !solvedBoard.checkPlacementSubBoard(0, column, column + 1))
+            {
+                break;
+            }
+
+            if(column == solvedBoard.getBoardSizeRowsColumns() - 1)
+            {
+                canFillRow = true;
+            }
+        }
+
+        if(canFillRow)
+        {
+            for(int column = 0; column < solvedBoard.getBoardSizeRowsColumns(); column++)
+            {
+                solvedBoard.setBoardValue(0, column, column + 1);
+            }
+
+            solvedWithHardCoding = true;
+        }
     }
 
     /**
@@ -2930,13 +2969,28 @@ public class Solver
         }
     }
 
-
     /**
      * @author Danny
      */
     public SudokuBoard getSolvedBoard()
     {
         return solvedBoard;
+    }
+
+    /**
+     * @author Danny
+     */
+    public boolean getSolverHasRun()
+    {
+        return solverHasRun;
+    }
+
+    /**
+     * @author Danny
+     */
+    public boolean getSolvedWithHardCoding()
+    {
+        return solvedWithHardCoding;
     }
 
     /**
