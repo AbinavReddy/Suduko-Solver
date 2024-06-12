@@ -552,7 +552,7 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 boardGrid.requestFocus(); // un-focus all cells
 
-            if(!valueInsertHistory.contains(boardGridCell))
+            if(!valueInsertHistory.contains(boardGridCell) && boardView != boardViewState.CustomBoardShown)
             {
                 valueInsertHistory.add(boardGridCell);
                 valueInsertHistorySaved.add(row+","+column);
