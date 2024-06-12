@@ -79,7 +79,7 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private Text timeSolvingField; // puzzle
     private final Timer userSolveTimer = new Timer(100, this); // puzzle
-    private long userSolvingTime; // puzzle
+    private static long userSolvingTime; // puzzle
     @FXML
     private Text filledCellsField; // puzzle, solver, custom
     @FXML
