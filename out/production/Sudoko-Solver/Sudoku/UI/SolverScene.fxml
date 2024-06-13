@@ -68,7 +68,12 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Button focusTraversable="false" layoutX="568.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Menu">
+      <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="54.0" layoutY="46.0" onMouseClicked="#playButtonClickSound" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@Media/menu%20icon.png" />
+         </image>
+      </ImageView>
+      <Button focusTraversable="false" layoutX="54.0" layoutY="46.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playButtonClickSound" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Menu">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
