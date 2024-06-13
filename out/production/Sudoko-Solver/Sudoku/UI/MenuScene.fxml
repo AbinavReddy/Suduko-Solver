@@ -82,6 +82,5 @@
          </font>
       </Text>
       <Button fx:id="load" layoutX="558.0" layoutY="508.0" mnemonicParsing="false" onAction="#goToSaveLoadScene" onMouseClicked="#playButtonClickSound" prefHeight="32.0" prefWidth="83.0" text="Load Game" />
-      <Text layoutX="467.0" layoutY="247.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Text" wrappingWidth="225.13671875" />
    </children>
 </AnchorPane>

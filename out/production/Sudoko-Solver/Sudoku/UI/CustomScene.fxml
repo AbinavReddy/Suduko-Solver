@@ -68,7 +68,7 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Button focusTraversable="false" layoutX="402.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Menu">
+      <Button fx:id="resetButton" focusTraversable="false" layoutX="527.0" layoutY="1076.0" mnemonicParsing="false" onAction="#resetBoard" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Reset">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
@@ -76,7 +76,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button fx:id="resetButton" focusTraversable="false" layoutX="568.0" layoutY="1076.0" mnemonicParsing="false" onAction="#resetBoard" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Reset">
+      <Button fx:id="undoButton" focusTraversable="false" layoutX="444.0" layoutY="1076.0" mnemonicParsing="false" onAction="#undoValueInsertion" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Undo">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
@@ -84,7 +84,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button fx:id="undoButton" focusTraversable="false" layoutX="485.0" layoutY="1076.0" mnemonicParsing="false" onAction="#undoValueInsertion" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Undo">
+      <Button focusTraversable="false" layoutX="693.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToSolverScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Solver">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
@@ -92,7 +92,7 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button focusTraversable="false" layoutX="734.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToSolverScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Solver">
+      <Button focusTraversable="false" layoutX="610.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToPuzzleScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Puzzle">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>
@@ -100,7 +100,12 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button focusTraversable="false" layoutX="651.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToPuzzleScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Puzzle">
+      <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="54.0" layoutY="46.0" onMouseClicked="#playButtonClickSound" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@Media/menu%20icon.png" />
+         </image>
+      </ImageView>
+      <Button focusTraversable="false" layoutX="54.0" layoutY="46.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playButtonClickSound" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Menu">
          <font>
             <Font name="System Bold" size="12.0" />
          </font>

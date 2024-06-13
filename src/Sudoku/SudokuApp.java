@@ -33,7 +33,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -55,7 +54,6 @@ public class SudokuApp implements Initializable, ActionListener
     private static SudokuBoard board;
     private static List<Node> valueInsertHistory;
     private static List<Node> hintInsertHistory;
-
     private static List<String> hintInsertHistorySaved;
     private static List<String> valueInsertHistorySaved;
     private static boolean gameSavedLoaded = false;
@@ -232,14 +230,13 @@ public class SudokuApp implements Initializable, ActionListener
             updateSoundIcon();
 
             if(savingGame) {
+                backButton.setOnAction((event -> {try { goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
+
                 saveLoadSceneTitle.setText("Save");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
                 saveLoadButton.setText("Save");
-                backButton.setOpacity(1);
-                backButton.setDisable(false);
             } else {
-                backButton.setOpacity(0);
-                backButton.setDisable(true);
+                backButton.setOnAction((event -> {try { goToMenuScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
             }
 
             saveLoadSlotList.getItems().addAll(list);
@@ -687,6 +684,8 @@ public class SudokuApp implements Initializable, ActionListener
             else
             {
                 feedbackField.setText("Cannot provide hint due to a wrongly inserted value!");
+
+                playSoundEffect(errorSound, 0.2);
             }
         }
         else
