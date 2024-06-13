@@ -20,7 +20,6 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -242,7 +241,7 @@ public class SudokuApp implements Initializable, ActionListener
             updateSoundIcon();
 
             if(savingGame) {
-                backButton.setOnAction((event -> {try { goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
+                backButton.setOnAction((event -> {try {clickedBack = true; goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
 
                 saveLoadSceneTitle.setText("Save");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
@@ -1116,7 +1115,6 @@ public class SudokuApp implements Initializable, ActionListener
                     }
                     savedTimeLoaded = userSolvingTimeSaved;
                     gameSavedLoaded = true;
-                    System.out.println("game loaded");
                     goToPuzzleScene();
 
                 }
@@ -1153,11 +1151,6 @@ public class SudokuApp implements Initializable, ActionListener
     /**
      * @author Abinav
      */
-    public void onClickedBack() throws IOException {
-        clickedBack = true;
-        goToPuzzleScene();
-    }
-
 
     /**
      * @author Danny

@@ -27,7 +27,7 @@
             <Font name="System Bold" size="72.0" />
          </font>
       </Label>
-      <Button fx:id="saveLoadButton" layoutX="539.0" layoutY="844.0" mnemonicParsing="false" onAction="#onPressedLoadSave" onMouseClicked="#playButtonClickSound" prefHeight="40.0" prefWidth="83.0" text="Load" />
+      <Button fx:id="saveLoadButton" layoutX="539.0" layoutY="844.0" mnemonicParsing="false" onAction="#onClickedLoadSave" onMouseClicked="#playButtonClickSound" prefHeight="40.0" prefWidth="83.0" text="Load" />
       <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="54.0" layoutY="46.0" onMouseClicked="#playButtonClickSound" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@Media/back%20arrow.png" />
@@ -61,7 +61,5 @@
       </Text>
       <ListView fx:id="saveLoadSlotList" layoutX="326.0" layoutY="402.0" prefHeight="415.0" prefWidth="547.0" />
       <Button fx:id="saveLoadButton" layoutX="539.0" layoutY="844.0" mnemonicParsing="false" onAction="#onClickedLoadSave" onMouseClicked="#playButtonClickSound" prefHeight="40.0" prefWidth="83.0" text="Load" />
-      <Button layoutX="155.0" layoutY="190.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playButtonClickSound" text="Menu" />
-      <Button fx:id="backButton" layoutX="228.0" layoutY="190.0" mnemonicParsing="false" onAction="#onClickedBack" onMouseClicked="#playButtonClickSound" prefHeight="25.0" prefWidth="47.0" text="Back" />
    </children>
 </AnchorPane>
