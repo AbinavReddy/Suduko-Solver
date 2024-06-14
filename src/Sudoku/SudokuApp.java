@@ -551,6 +551,15 @@ public class SudokuApp implements Initializable, ActionListener
                 if(board.getBoard()[row][column] != 0)
                 {
                     board.setBoardValue(row, column, 0);
+
+                    valueInsertHistory.remove(activeTextField);
+                    valueInsertHistorySaved.removeIf(string -> string.equals(row+","+column));
+
+                    if(valueInsertHistorySaved.isEmpty())
+                    {
+                        undoButton.setDisable(true);
+                        resetButton.setDisable(true);
+                    }
                 }
 
                 updateFilledCells();
@@ -586,6 +595,13 @@ public class SudokuApp implements Initializable, ActionListener
                     updateFilledCells();
 
                     valueInsertHistory.remove(activeTextField);
+                    valueInsertHistorySaved.removeIf(string -> string.equals(row+","+column));
+
+                    if(valueInsertHistorySaved.isEmpty())
+                    {
+                        undoButton.setDisable(true);
+                        resetButton.setDisable(true);
+                    }
 
                     boardGrid.requestFocus();
                 }
@@ -631,7 +647,7 @@ public class SudokuApp implements Initializable, ActionListener
                     resetButton.setDisable(false);
                 }
 
-                if(!board.isGameFinished() || boardView == boardViewState.CustomBoardShown)
+                if(!board.isGameFinished() && boardView == boardViewState.CustomBoardShown)
                 {
                     playSoundEffect(insertSound, 0.43);
                 }

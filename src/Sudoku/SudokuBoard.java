@@ -6,6 +6,7 @@ public class SudokuBoard
 {
     private int[][] board;
     private final int boardSizeBoxes; // boxes on each side of the board
+    private final int boardBoxes; // boxes in total
     private final int boardSizeRowsColumns; // rows and columns on each side of the board
     private final int boxSizeRowsColumns; // rows and columns on each side of the boxes
     private final int maxPuzzleValue; // the maximum value at play in the puzzle
@@ -24,6 +25,7 @@ public class SudokuBoard
     public SudokuBoard(int boardSizeBoxes, int boxSizeRowsColumns, boolean isCustomBoard)
     {
         this.boardSizeBoxes = boardSizeBoxes;
+        boardBoxes = boardSizeBoxes * boardSizeBoxes;
         this.boardSizeRowsColumns = boardSizeBoxes * boxSizeRowsColumns;
         this.boxSizeRowsColumns = boxSizeRowsColumns;
         maxPuzzleValue = boxSizeRowsColumns * boxSizeRowsColumns;
@@ -61,6 +63,7 @@ public class SudokuBoard
         }
 
         boardSizeBoxes = boardToCopy.boardSizeBoxes;
+        boardBoxes = boardToCopy.boardBoxes;
         boardSizeRowsColumns = boardToCopy.boardSizeRowsColumns;
         boxSizeRowsColumns = boardToCopy.boxSizeRowsColumns;
         maxPuzzleValue = boardToCopy.maxPuzzleValue;
@@ -258,6 +261,14 @@ public class SudokuBoard
      * @author Danny
      */
     public int getBoardSizeBoxes()
+    {
+        return boardSizeBoxes;
+    }
+
+    /**
+     * @author Danny, Yahya & Abinav
+     */
+    public int getBoardBoxes()
     {
         return boardSizeBoxes;
     }
