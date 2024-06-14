@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
@@ -33,6 +34,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -57,13 +60,18 @@ public class SudokuApp implements Initializable, ActionListener
     private static List<String> hintInsertHistorySaved;
     private static List<String> valueInsertHistorySaved;
     private static boolean gameSavedLoaded = false;
+    private static boolean clickedBack = false;
+
     private static boolean savingGame = false;
     public static boolean boardAlreadySolved = false;
     private static long savedTimeLoaded ;
 
+    private static long preSaveLoadUserTime;
+
     // JavaFX related
     private static Stage appStage;
     private static Scene currentScene;
+
     @FXML
     private GridPane boardGrid; // puzzle, solver
     private TextField[][] boardGridCells; // puzzle, solver
@@ -77,7 +85,7 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private Text timeSolvingField; // puzzle
     private final Timer userSolveTimer = new Timer(100, this); // puzzle
-    private static long userSolvingTime; // puzzle
+    private  long userSolvingTime; // puzzle
     @FXML
     private Text filledCellsField; // puzzle, solver, custom
     @FXML
@@ -103,6 +111,8 @@ public class SudokuApp implements Initializable, ActionListener
 
     @FXML
     private ListView saveLoadSlotList; // saveload
+
+    PauseTransition pauseTransition = new PauseTransition(Duration.seconds(1.5));
 
     private boolean gamePaused;
     @FXML
@@ -153,8 +163,8 @@ public class SudokuApp implements Initializable, ActionListener
             showBoardValues(true);
 
             boardGrid.requestFocus();
-            
-            userSolvingTime = gameSavedLoaded ? savedTimeLoaded : 0;
+
+            userSolvingTime = clickedBack ? preSaveLoadUserTime : (gameSavedLoaded ? savedTimeLoaded : 0);
             userSolveTimer.start();
 
             feedbackField.setText("");
@@ -172,6 +182,7 @@ public class SudokuApp implements Initializable, ActionListener
                 resetButton.setDisable(true);
             }
 
+            clickedBack = false;
             gameSavedLoaded = false;
 
             updateFilledCells();
@@ -230,11 +241,13 @@ public class SudokuApp implements Initializable, ActionListener
             updateSoundIcon();
 
             if(savingGame) {
-                backButton.setOnAction((event -> {try { goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
+                backButton.setOnAction((event -> {try {clickedBack = true; goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
 
                 saveLoadSceneTitle.setText("Save");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
                 saveLoadButton.setText("Save");
+                backButton.setOpacity(1);
+                backButton.setDisable(false);
             } else {
                 backButton.setOnAction((event -> {try { goToMenuScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
             }
@@ -933,6 +946,8 @@ public class SudokuApp implements Initializable, ActionListener
             // saves following data as json object
 
             jsonNode.set("savedOnDateAndTime",objectMapper.convertValue(dtf.format(currentTime), JsonNode.class));
+            jsonNode.set("boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
+            jsonNode.set("boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
             jsonNode.set("board", boardNode);
             jsonNode.set("solvedboard", solvedBoardNode);
             if(valueInsertHistorySaved != null){
@@ -947,9 +962,6 @@ public class SudokuApp implements Initializable, ActionListener
             }
             jsonNode.set("filledcells",objectMapper.convertValue(board.getFilledCells(), JsonNode.class));
             jsonNode.put("userTime", userSolvingTime);
-            jsonNode.set("boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
-            jsonNode.set("boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
-
 
         return jsonNode;
     }
@@ -1015,6 +1027,7 @@ public class SudokuApp implements Initializable, ActionListener
         });
         saveLoadSlotList.setFixedCellSize(80.0);
         saveLoadSlotList.prefHeightProperty().bind(Bindings.size(saveLoadSlotList.getItems()).multiply(80));
+
         // disables scrollbar
         saveLoadSlotList.skinProperty().addListener((observable, oldValue, newValue) -> {
             for (Node node : saveLoadSlotList.lookupAll(".scroll-bar")) {
@@ -1022,33 +1035,39 @@ public class SudokuApp implements Initializable, ActionListener
                     ScrollBar scrollBar = (ScrollBar) node;
                     scrollBar.setDisable(true);
                     scrollBar.setVisible(false);
+                    scrollBar.setStyle("-fx-opacity: 0; -fx-max-width: 0; -fx-pref-width: 0;");
+
                 }
             }
         });
         // styles elements in list
-        saveLoadSlotList.setStyle("-fx-background-color: #000000; "
-                                    + "-fx-border-width: 0px; "
-                                    + "-fx-padding: 0 -10px 0px  0; "
+        saveLoadSlotList.setStyle("-fx-border-width: 3px; "
+                                    +"-fx-border-color: ffe767; "
                                     + "-fx-font-size: 18px; "
                                     + "-fx-font-family: 'Segoe UI'; "
                                     + "-fx-control-inner-background:#000000;");
-
+        saveLoadSlotList.setFocusTraversable(false);
     }
 
 
     /**
      * @author Abinav
      */
-    public void onPressedLoadSave() throws IOException {
+    public void onClickedLoadSave() throws IOException {
         SelectionModel<String> selectionModel = saveLoadSlotList.getSelectionModel();
         int selectedSlot = selectionModel.getSelectedIndex();
-        int loadSelectedSlot = selectedSlot+1;
-        if(selectedSlot != -1 && savingGame) {
-            saveGame(selectedSlot);
-            saveLoadGameSlotView();
-            savingGame = false;
-        } else if (!saveLoadSlotList.getItems().get(selectedSlot).equals("slot " + loadSelectedSlot)) {
-            loadGame(selectedSlot);
+        int loadSelectedSlot = selectedSlot + 1;
+
+        if (selectedSlot != -1){
+            if (savingGame) {
+                saveGame(selectedSlot);
+                saveLoadGameSlotView();
+                saveLoadSceneSubtitle.setText("Game saved in slot " +loadSelectedSlot);
+                pauseTransition.setOnFinished(e ->  saveLoadSceneSubtitle.setText("Choose a slot to save the game in!"));
+                pauseTransition.play();
+            } else if (!saveLoadSlotList.getItems().get(selectedSlot).equals("slot " + loadSelectedSlot)) {
+                loadGame(selectedSlot);
+            }
         }
     }
 
@@ -1096,7 +1115,6 @@ public class SudokuApp implements Initializable, ActionListener
                     }
                     savedTimeLoaded = userSolvingTimeSaved;
                     gameSavedLoaded = true;
-                    System.out.println("game loaded");
                     goToPuzzleScene();
 
                 }
@@ -1124,11 +1142,15 @@ public class SudokuApp implements Initializable, ActionListener
     /**
      * @author Abinav
      */
-    public void onPressedSave() throws IOException {
+    public void onClickedSave() throws IOException {
         savingGame = true;
+        preSaveLoadUserTime = userSolvingTime;
         goToSaveLoadScene();
     }
 
+    /**
+     * @author Abinav
+     */
 
     /**
      * @author Danny
