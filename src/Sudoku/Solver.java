@@ -55,6 +55,11 @@ public class Solver
             return true;
         }
 
+        if(!solvedBoard.getIsSolverCandidate()) // skip solving if board is not a solving candidate
+        {
+            return false;
+        }
+
         boolean solvingResult;
 
         long startSolvingTime = System.currentTimeMillis();
