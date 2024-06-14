@@ -35,7 +35,6 @@ import javafx.scene.text.Text;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -533,6 +532,39 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * @author Danny & Abinav
+     */
+    public void updateActiveTextField(TextField boardGridCell)
+    {
+        if(activeTextField == null)
+        {
+            activeTextField = boardGridCell;
+        }
+
+        if(!activeTextField.equals(boardGridCell))
+        {
+            int row = GridPane.getRowIndex(activeTextField);
+            int column = GridPane.getColumnIndex(activeTextField);
+
+            if(activeTextField.getText().isEmpty())
+            {
+                if(board.getBoard()[row][column] != 0)
+                {
+                    board.setBoardValue(row, column, 0);
+                }
+
+                updateFilledCells();
+            }
+            else
+            {
+                insertBoardValue(activeTextField);
+            }
+        }
+
+        activeTextField = boardGridCell;
+    }
+
+    /**
      * @author Danny
      */
     public void userPressedKeyboard(KeyEvent event)
@@ -541,7 +573,22 @@ public class SudokuApp implements Initializable, ActionListener
         {
             if(activeTextField.equals(event.getTarget()))
             {
-                insertBoardValue((Node) event.getTarget());
+                int row = GridPane.getRowIndex(activeTextField);
+                int column = GridPane.getColumnIndex(activeTextField);
+
+                if(!activeTextField.getText().isEmpty())
+                {
+                    insertBoardValue((Node) event.getTarget());
+                }
+                else if(board.getBoard()[row][column] != 0)
+                {
+                    board.setBoardValue(row, column, 0);
+                    updateFilledCells();
+
+                    valueInsertHistory.remove(activeTextField);
+
+                    boardGrid.requestFocus();
+                }
             }
         }
     }
@@ -566,11 +613,11 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 boardGrid.requestFocus(); // un-focus all cells
 
-            if(!valueInsertHistory.contains(boardGridCell) && boardView != boardViewState.CustomBoardShown)
-            {
-                valueInsertHistory.add(boardGridCell);
-                valueInsertHistorySaved.add(row+","+column);
-            }
+                if(!valueInsertHistory.contains(boardGridCell) && boardView != boardViewState.CustomBoardShown)
+                {
+                    valueInsertHistory.add(boardGridCell);
+                    valueInsertHistorySaved.add(row+","+column);
+                }
 
                 feedbackField.setText("");
 
@@ -584,8 +631,6 @@ public class SudokuApp implements Initializable, ActionListener
                     resetButton.setDisable(false);
                 }
 
-                updateFilledCells();
-
                 if(!board.isGameFinished() || boardView == boardViewState.CustomBoardShown)
                 {
                     playSoundEffect(insertSound, 0.43);
@@ -594,11 +639,11 @@ public class SudokuApp implements Initializable, ActionListener
             else
             {
                 boardGridCells[row][column].clear(); // reset cell
-
                 feedbackField.setText(board.getErrorMessage());
-
                 playSoundEffect(errorSound, 0.2);
             }
+
+            updateFilledCells();
         }
         catch(NumberFormatException exception)
         {
@@ -634,27 +679,6 @@ public class SudokuApp implements Initializable, ActionListener
 
             playSoundEffect(winSound, 0.5);
         }
-    }
-
-    /**
-     * @author Danny & Abinav
-     */
-    public void updateActiveTextField(TextField boardGridCell)
-    {
-        if(activeTextField == null)
-        {
-            activeTextField = boardGridCell;
-        }
-
-        int row = GridPane.getRowIndex(activeTextField);
-        int column = GridPane.getColumnIndex(activeTextField);
-
-        if(!activeTextField.equals(boardGridCell) && board.getBoard()[row][column] == 0)
-        {
-            activeTextField.clear();
-        }
-
-        activeTextField = boardGridCell;
     }
 
     /**

@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Solver
 {
-    private SudokuBoard solvedBoard;
+    private final SudokuBoard solvedBoard;
     private boolean solverHasRun;
     private boolean solvedWithHardCoding;
     private boolean solvedWithStrategies;
