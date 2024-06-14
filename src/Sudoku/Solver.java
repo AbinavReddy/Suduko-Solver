@@ -55,6 +55,11 @@ public class Solver
             return true;
         }
 
+        if(!solvedBoard.getIsSolverCandidate())
+        {
+            return false;
+        }
+
         boolean solvingResult;
 
         long startSolvingTime = System.currentTimeMillis();
