@@ -75,7 +75,7 @@ public class Solver
 
         if(isStandardBoard) // strategies can be used
         {
-            solvingResult = solveWithStrategies() || solveWithBacktracking(sortKeysForBacktracking(), 0);
+            solvingResult = solveWithStrategies();
         }
         else // strategies cannot be used
         {
@@ -124,7 +124,7 @@ public class Solver
     private boolean solveWithStrategies()
     {
         List<Runnable> strategies = new ArrayList<>();
-        strategies.add(this::nakedSingles); // working
+        //strategies.add(this::nakedSingles); // working
         //strategies.add(this::hiddenSingles); // working
         //strategies.add(this::nakedPairs); // working
         //strategies.add(this::nakedTriples); // // working
@@ -136,6 +136,7 @@ public class Solver
         //strategies.add(this::xWing); // working
         //strategies.add(this::simpleColouring); // working
         //strategies.add(this::yWingWithXYZExtension); // working
+        strategies.add(this::emptyRectangle); // not working
         //strategies.add(this::swordFish); // working
         //strategies.add(this::bug); // not working (alone and with other strategies) (unknown)
         //strategies.add(this::wXYZWingExtended); // working
@@ -2117,11 +2118,11 @@ public class Solver
                     }
                 }
             }
-            findEmptyRectangle(candidate);
+            findEmptyRectangle(candidate, conjugatePairs);
         }
     }
 
-    private void findEmptyRectangle (int candidate) {
+    private void findEmptyRectangle (int candidate, List<List<String>> conjugatePairs) {
         boolean rowColCondition = false;
         boolean cellFound = false;
         boolean lastCellIsRow = false;
@@ -2157,27 +2158,74 @@ public class Solver
                             firstRow = row;
                             firstCol = col;
                             cellFound = true;
-
                         }
-
                     }
+
                     if(solvedBoard.getBoard()[row][col] != 0 || possibleNumbers.get(key) != null && !possibleNumbers.get(key).contains(candidate))
                     {
-                        if(!lastCellIsRow )
-                        {
-                            if(col != secCol) emptyCells++;
-                        }
-                        else {
-
-                            if(row != secRow) emptyCells++;
-                        }
-
+                        emptyCells++;
                     }
-                    if(rowColCondition && emptyCells == 4) {
-                        System.out.println();
+
+                    if((addedRows == boxSizeRowsColumns - 1) && (addedColumns == boxSizeRowsColumns - 1) && rowColCondition)
+                    {
+                        emptyCells = emptyCells - (5 - valuePossibleCountSubBoards[candidate][subBoard]);
+
+                        if(emptyCells == 4 && valuePossibleCountSubBoards[candidate][subBoard] <= 5) {
+
+                            alignmentWithConjugatePairs(candidate, firstRow, firstCol, secRow, secCol, conjugatePairs);
+                        }
                     }
                 }
 
+            }
+        }
+    }
+
+    public void alignmentWithConjugatePairs(int candidate, int firstRow, int firstCol, int secRow, int secCol, List<List<String>> conjugatePairs)
+    {
+        for(List<String> conjugateList : conjugatePairs)
+        {
+            String[] keyA = conjugateList.get(0).split(",");
+            String[] keyB = conjugateList.get(1).split(",");
+            int conjugateRowA = Integer.parseInt(keyA[0]);
+            int conjugateColumnA = Integer.parseInt(keyA[1]);
+            int conjugateRowB = Integer.parseInt(keyB[0]);
+            int conjugateColumnB = Integer.parseInt(keyB[1]);
+
+            boolean conjugateAIsY = false;
+            boolean eliminateInRow = conjugateRowA == firstRow;
+
+            if(conjugateRowB == firstRow)
+            {
+                conjugateAIsY = true;
+                eliminateInRow = true;
+            }
+            else if(conjugateColumnB == firstCol)
+            {
+                conjugateAIsY = true;
+            }
+
+            for(int rowOrCol = 0; rowOrCol < boardSizeRowsColumns; rowOrCol++)
+            {
+                if(!conjugateAIsY)
+                {
+                    if(eliminateInRow)
+                    {
+                        String key = conjugateRowB + "," + rowOrCol;
+
+                        if(possibleNumbers.get(key) != null)
+                        {
+                            if(possibleNumbers.get(key).contains(candidate) && rowOrCol == secCol)
+                            {
+                                possibleNumbers.get(key).remove((Integer) candidate);
+
+                                System.out.println(key + " (" + candidate + ")" + "test1");
+
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
