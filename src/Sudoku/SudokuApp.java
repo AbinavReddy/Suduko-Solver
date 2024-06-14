@@ -849,11 +849,11 @@ public class SudokuApp implements Initializable, ActionListener
     {
         if(soundMuted)
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound off.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound off icon.png")).toExternalForm()));
         }
         else
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound on.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound on icon.png")).toExternalForm()));
         }
     }
 
