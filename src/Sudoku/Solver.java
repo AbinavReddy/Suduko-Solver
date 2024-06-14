@@ -55,7 +55,7 @@ public class Solver
             return true;
         }
 
-        if(!solvedBoard.getIsSolverCandidate())
+        if(!solvedBoard.getIsSolverCandidate()) // skip solving if board is not a solving candidate
         {
             return false;
         }
