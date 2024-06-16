@@ -2074,6 +2074,10 @@ public class Solver
 
         findConjugatePairs();
     }
+
+    /**
+     * Yahya
+     */
     private void findConjugatePairs () {
         for (int candidate = 1; candidate <= maxPuzzleValue; candidate++) {
             List<List<String>> conjugatePairs = new ArrayList<>();
@@ -2122,20 +2126,28 @@ public class Solver
         }
     }
 
+    /**
+     * Yahya & Danny
+     */
     private void findEmptyRectangle (int candidate, List<List<String>> conjugatePairs) {
-        boolean rowColCondition = false;
-        boolean cellFound = false;
-        boolean lastCellIsRow = false;
-        int emptyCells = 0;
-        int firstRow= 0;
-        int firstCol= 0;
-        int secRow= 0;
-        int secCol= 0;
+        boolean rowColCondition;
+        boolean cellFound;
+        int emptyCells;
+        int firstRow;
+        int firstCol;
+        int secRow;
+        int secCol;
 
         for(int subBoard = 0; subBoard < boardBoxes; subBoard++) {
+            rowColCondition = false;
             cellFound = false;
-            emptyCells=0;
-            rowColCondition=false;
+            emptyCells = 0;
+
+            firstRow = 0;
+            firstCol = 0;
+            secRow = 0;
+            secCol = 0;
+
             int startingRow = (subBoard / boardSizeBoxes) * boxSizeRowsColumns;
             int startingColumn = boardSizeRowsColumns - (boxSizeRowsColumns * (boardSizeBoxes - (subBoard - (boardSizeBoxes * (subBoard / boardSizeBoxes)))));
             for (int addedRows = 0; addedRows < boxSizeRowsColumns; addedRows++) {
@@ -2149,12 +2161,7 @@ public class Solver
                             secRow=row;
                             secCol=col;
                             rowColCondition = true;
-                            if(!(row < firstRow))
-                            {
-                                lastCellIsRow = true;
-                            }
                         } else if (!cellFound) {
-
                             firstRow = row;
                             firstCol = col;
                             cellFound = true;
@@ -2171,8 +2178,7 @@ public class Solver
                         emptyCells = emptyCells - (5 - valuePossibleCountSubBoards[candidate][subBoard]);
 
                         if(emptyCells == 4 && valuePossibleCountSubBoards[candidate][subBoard] <= 5) {
-
-                            alignmentWithConjugatePairs(candidate, firstRow, firstCol, secRow, secCol, conjugatePairs);
+                            emptyRectangleElimination(firstRow, firstCol, secRow, secCol, subBoard, candidate, conjugatePairs);
                         }
                     }
                 }
@@ -2181,45 +2187,71 @@ public class Solver
         }
     }
 
-    public void alignmentWithConjugatePairs(int candidate, int firstRow, int firstCol, int secRow, int secCol, List<List<String>> conjugatePairs)
+    /**
+     * Danny, Yahya & Abinav
+     */
+    public void emptyRectangleElimination(int firstRow, int firstCol, int secRow, int secCol, int subBoard, int candidate, List<List<String>> conjugatePairs)
     {
         for(List<String> conjugateList : conjugatePairs)
         {
             String[] keyA = conjugateList.get(0).split(",");
             String[] keyB = conjugateList.get(1).split(",");
-            int conjugateRowA = Integer.parseInt(keyA[0]);
-            int conjugateColumnA = Integer.parseInt(keyA[1]);
-            int conjugateRowB = Integer.parseInt(keyB[0]);
-            int conjugateColumnB = Integer.parseInt(keyB[1]);
+            int keyARow = Integer.parseInt(keyA[0]);
+            int keyAColumn = Integer.parseInt(keyA[1]);
+            int keyBRow = Integer.parseInt(keyB[0]);
+            int keyBColumn = Integer.parseInt(keyB[1]);
+            int keyASubBoard = solvedBoard.findSubBoardNumber(keyARow, keyAColumn);
+            int keyBSubBoard = solvedBoard.findSubBoardNumber(keyBRow, keyBColumn);
 
-            boolean conjugateAIsY = false;
-            boolean eliminateInRow = conjugateRowA == firstRow;
+            if(keyASubBoard != subBoard && keyBSubBoard != subBoard)
+            {
+                int xRow = 0;
+                int xColumn = 0;
+                int yRow = 0;
+                int yColumn = 0;
 
-            if(conjugateRowB == firstRow)
-            {
-                conjugateAIsY = true;
-                eliminateInRow = true;
-            }
-            else if(conjugateColumnB == firstCol)
-            {
-                conjugateAIsY = true;
-            }
+                boolean xAlignedWithFirst = keyARow == firstRow || keyAColumn == firstCol || keyBRow == firstRow || keyBColumn == firstCol;
+                boolean xAlignedWithSecond = keyARow == secRow || keyAColumn == secCol || keyBRow == secRow || keyBColumn == secCol;
 
-            for(int rowOrCol = 0; rowOrCol < boardSizeRowsColumns; rowOrCol++)
-            {
-                if(!conjugateAIsY)
+                if(xAlignedWithFirst)
                 {
-                    if(eliminateInRow)
+                    xRow = keyARow;
+                    xColumn = keyAColumn;
+                    yRow = keyBRow;
+                    yColumn = keyBColumn;
+                }
+                else if(xAlignedWithSecond)
+                {
+                    xRow = keyBRow;
+                    xColumn = keyBColumn;
+                    yRow = keyARow;
+                    yColumn = keyAColumn;
+                }
+
+                if(xAlignedWithFirst || xAlignedWithSecond)
+                {
+                    boolean eliminateInRow = keyARow < yRow;
+
+                    for(int rowOrCol = 0; rowOrCol < boardSizeRowsColumns; rowOrCol++)
                     {
-                        String key = conjugateRowB + "," + rowOrCol;
+                        String key;
+
+                        if(eliminateInRow)
+                        {
+                            key = yRow + "," + rowOrCol;
+                        }
+                        else
+                        {
+                            key = rowOrCol + "," + yColumn;
+                        }
 
                         if(possibleNumbers.get(key) != null)
                         {
-                            if(possibleNumbers.get(key).contains(candidate) && rowOrCol == secCol)
+                            if(possibleNumbers.get(key).contains(candidate) && (xAlignedWithFirst ? (eliminateInRow ? rowOrCol == secCol : rowOrCol == secRow) : (eliminateInRow ? rowOrCol == firstCol : rowOrCol == firstRow)))
                             {
-                                possibleNumbers.get(key).remove((Integer) candidate);
+                                updatePossibleNumbersAndCounts(key, candidate, null, false);
 
-                                System.out.println(key + " (" + candidate + ")" + "test1");
+                                System.out.println(key + " (" + candidate + ")");
 
                                 break;
                             }
