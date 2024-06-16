@@ -82,6 +82,8 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private Text boardSizeValidationField; // menu
     @FXML
+    private ComboBox comboBox; // menu
+    @FXML
     private Text timeSolvingField; // puzzle
     private final Timer userSolveTimer = new Timer(100, this); // puzzle
     private  long userSolvingTime; // puzzle
@@ -247,8 +249,6 @@ public class SudokuApp implements Initializable, ActionListener
                 saveLoadSceneTitle.setText("Save");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
                 saveLoadButton.setText("Save");
-                backButton.setOpacity(1);
-                backButton.setDisable(false);
             } else {
                 backButton.setOnAction((event -> {try { goToMenuScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
             }
@@ -268,6 +268,8 @@ public class SudokuApp implements Initializable, ActionListener
             hintInsertHistory = new ArrayList<>();
 
             updateSoundIcon();
+
+            comboBox.getItems().addAll("Timed Mode", "Death Mode", "Hardcore Mode");
 
             savingGame = false;
             if(userSolveTimer.isRunning())
@@ -576,7 +578,7 @@ public class SudokuApp implements Initializable, ActionListener
                         resetButton.setDisable(true);
                     }
 
-                    playSoundEffect(removeSound, 0.02);
+                    playSoundEffect(removeSound, 0.03);
                 }
             }
         }
