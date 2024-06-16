@@ -135,7 +135,7 @@ public class Solver
         //strategies.add(this::simpleColouring); // working
         //strategies.add(this::yWingWithXYZExtension); // working
         //strategies.add(this::swordFish); // working
-        //strategies.add(this::bug); // not working (alone and with other strategies) (unknown)
+        //strategies.add(this::bug); //  working 
         //strategies.add(this::wXYZWingExtended); // working
 
         boolean possibleValuesChanged;
@@ -2058,22 +2058,18 @@ public class Solver
         return new HashSet<>();
     }
 
-    /**
-     * @author Yahya
-     */
-    public void bug() {
-        applybug();
-    }
 
     /**
      * @author Yahya
      */
-    private boolean applybug() {
+    private boolean bug() {
         HashMap<String, List<Integer>> bivalueCells = findBivalueCells();
-        String trivalueCellKey = findTrivalueCell();
-        if (!trivalueCellKey.isEmpty()) {
-            boolean result = checkAndResolveBug(trivalueCellKey);
-            return result;
+        if(possibleNumbers.keySet().size()-1 == bivalueCells.size()) {
+            String trivalueCellKey = findTrivalueCell();
+            if (!trivalueCellKey.isEmpty()) {
+                // System.out.println();
+                return checkAndResolveBug(trivalueCellKey);
+            }
         }
         return false;
     }
@@ -2085,14 +2081,24 @@ public class Solver
         HashMap<String, List<Integer>> bivalueCells = new HashMap<>();
         for (String key : possibleNumbers.keySet()) {
             List<Integer> values = possibleNumbers.get(key);
+
             if (values.size() == 2) {
                 String[] parts = key.split(",");
                 int row = Integer.parseInt(parts[0]);
                 int column = Integer.parseInt(parts[1]);
                 int subBoard = solvedBoard.findSubBoardNumber(row, column);
+                boolean repeatsOnlyTwice = false;
+
+                for (Integer number : values){
+                    if (valuePossibleCountRows[number][row] == 2 && valuePossibleCountColumns[number][column] == 2 && valuePossibleCountSubBoards[number][subBoard] == 2) {
+                        repeatsOnlyTwice = true;
+                    }
+                }
 
                 // Check the appearance frequency within row, column, and sub-board
-                bivalueCells.put(key, new ArrayList<>(values));
+                if(repeatsOnlyTwice){
+                    bivalueCells.put(key, new ArrayList<>(values));
+                }
             }
         }
 
@@ -2122,20 +2128,8 @@ public class Solver
         int column = Integer.parseInt(parts[1]);
         int subBoard = solvedBoard.findSubBoardNumber(row, column);
 
-        // Gather all cells in the row, column, and sub-board
-        List<String> rowKeys = getRowKeys(row);
-        List<String> columnKeys = getColumnKeys(column);
-        List<String> subBoardKeys = getCellsInSubBoard(subBoard);
-
-        // Count the occurrences of each number
-        int[] countsInRow = new int[solvedBoard.getBoardSizeRowsColumns() + 1];
-        int[] countsInColumn = new int[solvedBoard.getBoardSizeRowsColumns() + 1];
-        int[] countsInSubBoard = new int[solvedBoard.getBoardSizeRowsColumns() + 1];
-        updateCounts(rowKeys, countsInRow);
-        updateCounts(columnKeys, countsInColumn);
-        updateCounts(subBoardKeys, countsInSubBoard);
         for (int value : values) {
-            if (countsInRow[value] == 3 && countsInColumn[value] == 3 && countsInSubBoard[value] == 3) {
+            if (valuePossibleCountRows[value][row] == 3 && valuePossibleCountColumns[value][column] == 3 && valuePossibleCountSubBoards[value][subBoard] == 3) {
                 // If the value appears exactly three times in row, column, and sub-board
                 List<Integer> valuesToBeRemoved = new ArrayList<>(possibleNumbers.get(trivalueCellKey));
                 valuesToBeRemoved.remove((Integer) value);
