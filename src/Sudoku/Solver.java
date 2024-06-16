@@ -16,7 +16,6 @@ public class Solver
     private final int boxSizeRowsColumns;
     private final int maxPuzzleValue;
     private final HashMap<String, List<Integer>> possibleNumbers = new HashMap<>();
-    private final HashMap<String, List<Integer>> possibleNumbersBeginning = new HashMap<>(); // for testing (temp)
     private int possibleValuesCount;
     private final int[][] valuePossibleCountRows; // [value][row]
     private final int[][] valuePossibleCountColumns; // [value][column]
@@ -75,7 +74,7 @@ public class Solver
 
         if(isStandardBoard) // strategies can be used
         {
-            solvingResult = solveWithStrategies();
+            solvingResult = solveWithStrategies() || solveWithBacktracking(sortKeysForBacktracking(), 0);
         }
         else // strategies cannot be used
         {
@@ -124,22 +123,22 @@ public class Solver
     private boolean solveWithStrategies()
     {
         List<Runnable> strategies = new ArrayList<>();
-        //strategies.add(this::nakedSingles); // working
-        //strategies.add(this::hiddenSingles); // working
-        //strategies.add(this::nakedPairs); // working
-        //strategies.add(this::nakedTriples); // // working
-        //strategies.add(this::hiddenPairs); // working
-        //strategies.add(this::hiddenTriples); // working
-        //strategies.add(this::nakedQuads); // working
-        //strategies.add(this::hiddenQuads); // working
-        //strategies.add(this::pointingPairsWithBLR); // working
-        //strategies.add(this::xWing); // working
-        //strategies.add(this::simpleColouring); // working
-        //strategies.add(this::yWingWithXYZExtension); // working
-        //strategies.add(this::emptyRectangle); // not working
-        //strategies.add(this::swordFish); // working
-        //strategies.add(this::bug); //  working
-        //strategies.add(this::wXYZWingExtended); // working
+        strategies.add(this::nakedSingles);
+        strategies.add(this::hiddenSingles);
+        strategies.add(this::nakedPairs);
+        strategies.add(this::nakedTriples);
+        strategies.add(this::hiddenPairs);
+        strategies.add(this::hiddenTriples);
+        strategies.add(this::nakedQuads);
+        strategies.add(this::hiddenQuads);
+        strategies.add(this::pointingPairsWithBLR);
+        strategies.add(this::xWing);
+        strategies.add(this::simpleColouring);
+        strategies.add(this::yWingWithXYZExtension);
+        strategies.add(this::emptyRectangle);
+        strategies.add(this::swordFish);
+        strategies.add(this::bug);
+        strategies.add(this::wXYZWingExtended);
 
         boolean possibleValuesChanged;
         int possibleCountBefore;
@@ -278,21 +277,6 @@ public class Solver
     }
 
     /**
-     * @author Abinav & Yahya
-     */
-    public void printPossibleNumbers(boolean initial) {
-        for (int rows = 0; rows < boardSizeRowsColumns; rows++) {
-            for (int columns = 0; columns < boardSizeRowsColumns; columns++) {
-                String currentPosition = rows + "," + columns;
-                List<Integer> values = initial ? possibleNumbersBeginning.get(currentPosition) : possibleNumbers.get(currentPosition); // for testing (temp)
-                if (values != null) {
-                    System.out.println("Position: (" + rows + "," + columns + ") Possible Values: " + values);
-                }
-            }
-        }
-    }
-
-    /**
      * @author Danny
      */
     private void updatePossibleNumbersAndCounts(String key, Integer valueToUpdate, List<Integer> valuesToUpdate, boolean increase)
@@ -304,7 +288,6 @@ public class Solver
         if(increase) // only used when generating boards (intensely, therefore first condition)
         {
             possibleNumbers.put(key, valuesToUpdate);
-            possibleNumbersBeginning.put(key, valuesToUpdate); // for testing (temp)
 
             for(Integer value : valuesToUpdate)
             {
@@ -348,7 +331,6 @@ public class Solver
      */
     private void nakedSingles()
     {
-        /*
         HashMap<String, Integer> keysValuesToRemove = new HashMap<>();
 
         for(String key : possibleNumbers.keySet())
@@ -374,8 +356,6 @@ public class Solver
         }
 
         eliminateEmptyLists();
-
-         */
     }
 
     /**
@@ -400,7 +380,7 @@ public class Solver
     }
 
     /**
-     * @author Abinav
+     * @author Abinav & Danny
      */
     private void eliminateEmptyLists()
     {
@@ -2084,13 +2064,18 @@ public class Solver
                             positions.add(key);
                         }
                     }
-                    String position1 = positions.get(0);
-                    String[] cell1 = position1.split(",");
-                    String position2 = positions.get(1);
-                    String[] cell2 = position2.split(",");
-                    if ((solvedBoard.findSubBoardNumber(Integer.parseInt(cell1[0]), Integer.parseInt(cell1[1])) != (solvedBoard.findSubBoardNumber(Integer.parseInt(cell2[0]), Integer.parseInt(cell2[1]))))) {
-                        conjugatePairs.add(positions);
 
+                    if(!positions.isEmpty())
+                    {
+                        String position1 = positions.get(0);
+                        String[] cell1 = position1.split(",");
+                        String position2 = positions.get(1);
+                        String[] cell2 = position2.split(",");
+
+                        if ((solvedBoard.findSubBoardNumber(Integer.parseInt(cell1[0]), Integer.parseInt(cell1[1])) != (solvedBoard.findSubBoardNumber(Integer.parseInt(cell2[0]), Integer.parseInt(cell2[1]))))) {
+                            conjugatePairs.add(positions);
+
+                        }
                     }
                 }
             }
@@ -2105,17 +2090,22 @@ public class Solver
                             positions.add(key);
                         }
                     }
-                    String position1 = positions.get(0);
-                    String[] cell1 = position1.split(",");
-                    String position2 = positions.get(1);
-                    String[] cell2 = position2.split(",");
 
-                    if ((solvedBoard.findSubBoardNumber(Integer.parseInt(cell1[0]), Integer.parseInt(cell1[1])) != (solvedBoard.findSubBoardNumber(Integer.parseInt(cell2[0]), Integer.parseInt(cell2[1]))))) {
-                        conjugatePairs.add(positions);
+                    if(!positions.isEmpty())
+                    {
+                        String position1 = positions.get(0);
+                        String[] cell1 = position1.split(",");
+                        String position2 = positions.get(1);
+                        String[] cell2 = position2.split(",");
 
+                        if ((solvedBoard.findSubBoardNumber(Integer.parseInt(cell1[0]), Integer.parseInt(cell1[1])) != (solvedBoard.findSubBoardNumber(Integer.parseInt(cell2[0]), Integer.parseInt(cell2[1]))))) {
+                            conjugatePairs.add(positions);
+
+                        }
                     }
                 }
             }
+
             findEmptyRectangle(candidate, conjugatePairs);
         }
     }
@@ -2184,8 +2174,10 @@ public class Solver
     /**
      * Danny, Yahya & Abinav
      */
-    public void emptyRectangleElimination(int firstRow, int firstCol, int secRow, int secCol, int subBoard, int candidate, List<List<String>> conjugatePairs)
+    public void emptyRectangleElimination(int firstRow, int firstColumn, int secondRow, int secondColumn, int subBoard, int candidate, List<List<String>> conjugatePairs)
     {
+        boolean eliminationIsLegal = false;
+
         for(List<String> conjugateList : conjugatePairs)
         {
             String[] keyA = conjugateList.get(0).split(",");
@@ -2199,23 +2191,28 @@ public class Solver
 
             if(keyASubBoard != subBoard && keyBSubBoard != subBoard)
             {
+                boolean xAlignedWithFirst = false;
+                boolean xAlignedWithSecond = false;
                 int xRow = 0;
                 int xColumn = 0;
                 int yRow = 0;
                 int yColumn = 0;
 
-                boolean xAlignedWithFirst = keyARow == firstRow || keyAColumn == firstCol || keyBRow == firstRow || keyBColumn == firstCol;
-                boolean xAlignedWithSecond = keyARow == secRow || keyAColumn == secCol || keyBRow == secRow || keyBColumn == secCol;
-
-                if(xAlignedWithFirst)
+                if(keyARow == firstRow || keyAColumn == firstColumn || keyARow == secondRow || keyAColumn == secondColumn)
                 {
+                    xAlignedWithFirst = keyARow == firstRow || keyAColumn == firstColumn;
+                    xAlignedWithSecond = !xAlignedWithFirst;
+
                     xRow = keyARow;
                     xColumn = keyAColumn;
                     yRow = keyBRow;
                     yColumn = keyBColumn;
                 }
-                else if(xAlignedWithSecond)
+                else if(keyBRow == firstRow || keyBColumn == firstColumn || keyBRow == secondRow || keyBColumn == secondColumn)
                 {
+                    xAlignedWithFirst = keyBRow == firstRow || keyBColumn == firstColumn;
+                    xAlignedWithSecond = !xAlignedWithFirst;
+
                     xRow = keyBRow;
                     xColumn = keyBColumn;
                     yRow = keyARow;
@@ -2226,28 +2223,80 @@ public class Solver
                 {
                     boolean eliminateInRow = keyARow < yRow;
 
-                    for(int rowOrCol = 0; rowOrCol < boardSizeRowsColumns; rowOrCol++)
+                    if(valuePossibleCountSubBoards[candidate][subBoard] == 2)
                     {
-                        String key;
-
-                        if(eliminateInRow)
+                        if(xAlignedWithFirst)
                         {
-                            key = yRow + "," + rowOrCol;
+                            if(eliminateInRow)
+                            {
+                                eliminationIsLegal = xRow == firstRow;
+                            }
+                            else
+                            {
+                                eliminationIsLegal = xColumn == firstColumn;
+                            }
                         }
                         else
                         {
-                            key = rowOrCol + "," + yColumn;
-                        }
-
-                        if(possibleNumbers.get(key) != null)
-                        {
-                            if(possibleNumbers.get(key).contains(candidate) && (xAlignedWithFirst ? (eliminateInRow ? rowOrCol == secCol : rowOrCol == secRow) : (eliminateInRow ? rowOrCol == firstCol : rowOrCol == firstRow)))
+                            if(eliminateInRow)
                             {
-                                updatePossibleNumbersAndCounts(key, candidate, null, false);
+                                eliminationIsLegal = xRow == secondRow;
+                            }
+                            else
+                            {
+                                eliminationIsLegal = xColumn == secondColumn;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(xAlignedWithFirst)
+                        {
+                            if(valuePossibleCountRows[candidate][firstRow] > 1 && !(valuePossibleCountColumns[candidate][firstColumn] > 1))
+                            {
+                                eliminationIsLegal = xRow == firstRow;
+                            }
+                            else if(!(valuePossibleCountRows[candidate][firstRow] > 1) && valuePossibleCountColumns[candidate][firstColumn] > 1)
+                            {
+                                eliminationIsLegal = xColumn == firstColumn;
+                            }
+                        }
+                        else
+                        {
+                            if(valuePossibleCountRows[candidate][secondRow] > 1 && !(valuePossibleCountColumns[candidate][secondColumn] > 1))
+                            {
+                                eliminationIsLegal = xRow == secondRow;
+                            }
+                            else if(!(valuePossibleCountRows[candidate][secondRow] > 1) && valuePossibleCountColumns[candidate][secondColumn] > 1)
+                            {
+                                eliminationIsLegal = xColumn == secondColumn;
+                            }
+                        }
+                    }
 
-                                System.out.println(key + " (" + candidate + ")");
+                    if(eliminationIsLegal)
+                    {
+                        for(int rowOrCol = 0; rowOrCol < boardSizeRowsColumns; rowOrCol++)
+                        {
+                            String key;
 
-                                break;
+                            if(eliminateInRow)
+                            {
+                                key = yRow + "," + rowOrCol;
+                            }
+                            else
+                            {
+                                key = rowOrCol + "," + yColumn;
+                            }
+
+                            if(possibleNumbers.get(key) != null)
+                            {
+                                if(possibleNumbers.get(key).contains(candidate) && (xAlignedWithFirst ? (eliminateInRow ? rowOrCol == secondColumn : rowOrCol == secondRow) : (eliminateInRow ? rowOrCol == firstColumn : rowOrCol == firstRow)))
+                                {
+                                    updatePossibleNumbersAndCounts(key, candidate, null, false);
+
+                                    break;
+                                }
                             }
                         }
                     }
@@ -3152,38 +3201,5 @@ public class Solver
     public long getSolvingTime()
     {
         return solvingTime;
-    }
-
-    // god tier debugging - it is! >:(
-    public void emptyCellsDebug()
-    {
-        for(int iterations = 1; iterations <= 1000; iterations++)
-        {
-            System.out.println("Iteration: " + iterations);
-
-            SudokuBoard testBoard = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, false);
-            for(int row = 0; row < boardSizeRowsColumns; row++)
-            {
-                for(int column = 0; column < boardSizeRowsColumns; column++)
-                {
-                    if(testBoard.getSolver().solvedBoard.getBoard()[row][column] == 0)
-                    {
-                        BoardTester.printBoard(testBoard);
-                        testBoard.getSolver().printPossibleNumbers(true);
-                        BoardTester.printBoard(testBoard.getSolver().solvedBoard);
-                        testBoard.getSolver().printPossibleNumbers(false);
-
-                        System.out.println("Failed...");
-
-                    }
-                    else if(iterations == 1000)
-                    {
-                        System.out.println("Success!");
-
-                        return;
-                    }
-                }
-            }
-        }
     }
 }

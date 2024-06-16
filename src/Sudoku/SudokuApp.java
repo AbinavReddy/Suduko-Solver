@@ -535,7 +535,7 @@ public class SudokuApp implements Initializable, ActionListener
                     resetButton.setDisable(true);
                 }
 
-                playSoundEffect(removeSound, 0.02);
+                playSoundEffect(removeSound, 0.03);
             }
 
             updateFilledCells();

@@ -34,7 +34,6 @@ public class SudokuBoard
         isStandardSize = boardSizeBoxes == 3 && boxSizeRowsColumns == 3;
         isSolverCandidate = (boardSizeRowsColumns * boardSizeRowsColumns) <= 81; // standard has 81 cells, we can only reliably solve this amount or less
 
-        /*
         if(!isCustomBoard)
         {
             Random chooseSolvable = new Random();
@@ -49,14 +48,6 @@ public class SudokuBoard
             solver = new Solver(boardForSolving);
         }
         while(!isCustomBoard && ((isSolverCandidate && (createSolvableBoard && !solve() || !createSolvableBoard && solve()))) || !solver.possibleValuesInCells());
-        */
-
-        board = new int[boardSizeRowsColumns][boardSizeRowsColumns];
-
-        initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
-
-        SudokuBoard boardForSolving = new SudokuBoard(this);
-        solver = new Solver(boardForSolving);
     }
 
     /**
@@ -106,27 +97,6 @@ public class SudokuBoard
             column = randomNumber.nextInt(0, boardSizeRowsColumns);
 
             placeValueInCell(row, column, value);
-        }
-    }
-
-    /**
-     * @author Abinav & Danny
-     */
-    private void initializeBoardTemp(int[][] predefinedBoard)
-    {
-        for(int row = 0; row < boardSizeRowsColumns; row++)
-        {
-            for(int column = 0; column < boardSizeRowsColumns; column++)
-            {
-                if(predefinedBoard[row][column] != 0)
-                {
-                    placeValueInCell(row, column, predefinedBoard[row][column]);
-                }
-                else
-                {
-                    board[row][column] = 0;
-                }
-            }
         }
     }
 
