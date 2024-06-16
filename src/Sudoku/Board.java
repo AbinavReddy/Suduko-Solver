@@ -2,7 +2,7 @@ package Sudoku;
 
 import java.util.Random;
 
-public class SudokuBoard
+public class Board
 {
     private int[][] board;
     private final int boardSizeBoxes; // boxes on each side of the board
@@ -22,7 +22,7 @@ public class SudokuBoard
     /**
      * @author Danny, Abinav & Yahya
      */
-    public SudokuBoard(int boardSizeBoxes, int boxSizeRowsColumns, boolean isCustomBoard)
+    public Board(int boardSizeBoxes, int boxSizeRowsColumns, boolean isCustomBoard)
     {
         this.boardSizeBoxes = boardSizeBoxes;
         boardBoxes = boardSizeBoxes * boardSizeBoxes;
@@ -34,7 +34,6 @@ public class SudokuBoard
         isStandardSize = boardSizeBoxes == 3 && boxSizeRowsColumns == 3;
         isSolverCandidate = (boardSizeRowsColumns * boardSizeRowsColumns) <= 81; // standard has 81 cells, we can only reliably solve this amount or less
 
-
         if(!isCustomBoard)
         {
             Random chooseSolvable = new Random();
@@ -45,28 +44,16 @@ public class SudokuBoard
         {
             initializeBoard(!isCustomBoard ? (int) (availableCells * 0.38) : 0);
 
-            SudokuBoard boardForSolving = new SudokuBoard(this);
+            Board boardForSolving = new Board(this);
             solver = new Solver(boardForSolving);
         }
         while(!isCustomBoard && ((isSolverCandidate && (createSolvableBoard && !solve() || !createSolvableBoard && solve()))) || !solver.possibleValuesInCells());
-
-
-
-       /*
-        board = new int[boardSizeRowsColumns][boardSizeRowsColumns];
-
-        initializeBoardTemp(PredefinedBoard.selectBoardRandomly()); // temp
-
-        SudokuBoard boardForSolving = new SudokuBoard(this);
-        solver = new Solver(boardForSolving);
-
-         */
     }
 
     /**
      * @author Danny & Abinav
      */
-    public SudokuBoard(SudokuBoard boardToCopy)
+    public Board(Board boardToCopy)
     {
         board = new int[boardToCopy.boardSizeRowsColumns][boardToCopy.boardSizeRowsColumns];
 
@@ -110,27 +97,6 @@ public class SudokuBoard
             column = randomNumber.nextInt(0, boardSizeRowsColumns);
 
             placeValueInCell(row, column, value);
-        }
-    }
-
-    /**
-     * @author Abinav & Danny
-     */
-    private void initializeBoardTemp(int[][] predefinedBoard)
-    {
-        for(int row = 0; row < boardSizeRowsColumns; row++)
-        {
-            for(int column = 0; column < boardSizeRowsColumns; column++)
-            {
-                if(predefinedBoard[row][column] != 0)
-                {
-                    placeValueInCell(row, column, predefinedBoard[row][column]);
-                }
-                else
-                {
-                    board[row][column] = 0;
-                }
-            }
         }
     }
 
@@ -255,7 +221,7 @@ public class SudokuBoard
     {
         if(isCustomBoard)
         {
-            SudokuBoard boardForSolving = new SudokuBoard(this);
+            Board boardForSolving = new Board(this);
             solver = new Solver(boardForSolving);
         }
 

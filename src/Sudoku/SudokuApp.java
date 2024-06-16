@@ -53,7 +53,7 @@ import java.util.concurrent.Executors;
 
 public class SudokuApp implements Initializable, ActionListener
 {
-    private static SudokuBoard board;
+    private static Board board;
     private static List<Node> valueInsertHistory;
     private static List<Node> hintInsertHistory;
     private static List<String> valueInsertHistorySaved;
@@ -291,7 +291,7 @@ public class SudokuApp implements Initializable, ActionListener
 
             if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, requirement for being valid
             {
-                board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, false);
+                board = new Board(boardSizeBoxes, boxSizeRowsColumns, false);
 
                 goToPuzzleScene();
             }
@@ -328,7 +328,7 @@ public class SudokuApp implements Initializable, ActionListener
 
             if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, where k and n > 0, requirement for being valid
             {
-                board = new SudokuBoard(boardSizeBoxes, boxSizeRowsColumns, true);
+                board = new Board(boardSizeBoxes, boxSizeRowsColumns, true);
 
                 goToCustomScene();
             }
@@ -537,7 +537,7 @@ public class SudokuApp implements Initializable, ActionListener
                     resetButton.setDisable(true);
                 }
 
-                playSoundEffect(removeSound, 0.02);
+                playSoundEffect(removeSound, 0.03);
             }
 
             updateFilledCells();
@@ -1027,7 +1027,7 @@ public class SudokuApp implements Initializable, ActionListener
                         }
                         hintInsertHistorySaved = hintValuesOnBoardSaved;
                     }
-                    board = new SudokuBoard(boardSizeBoxesSaved, boxSizeRowsColumnSaved, false);
+                    board = new Board(boardSizeBoxesSaved, boxSizeRowsColumnSaved, false);
                     convertJsonArrayIntoArray(boardArraySaved ,true);
                     board.setFilledCells(filledCellsSaved);
                     if(solvedBoardArraySaved != null){
