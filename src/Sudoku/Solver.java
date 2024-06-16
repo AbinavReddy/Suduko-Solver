@@ -1524,7 +1524,6 @@ public class Solver
                             }
                             boolean validSF = uniqueCOR.size() == 3 && checkOccurenceOfEachElement(emptyList, uniqueCOR);
                             if(validSF){
-                               // System.out.println();
                                 eliminateNonSFC(processingRows, number, uniqueCOR, candidates);
                             }
                         }
@@ -1551,7 +1550,6 @@ public class Solver
                 for (Integer setElement : uniqueCOR) {
                     if (setElement == column) {
                         if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
-                            //System.out.println();
                             deletedKeys.add(key);
                             updatePossibleNumbersAndCounts(key, number, null, false);
                         }
@@ -1562,7 +1560,6 @@ public class Solver
                     if (setElement == row) {
                         if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(number)) {
                             deletedKeys.add(key);
-                            //System.out.println();
                             updatePossibleNumbersAndCounts(key, number, null, false);
                         }
                     }
