@@ -2,7 +2,7 @@ package Sudoku;
 
 import java.util.Random;
 
-public class SudokuBoard
+public class Board
 {
     private int[][] board;
     private final int boardSizeBoxes; // boxes on each side of the board
@@ -22,7 +22,7 @@ public class SudokuBoard
     /**
      * @author Danny, Abinav & Yahya
      */
-    public SudokuBoard(int boardSizeBoxes, int boxSizeRowsColumns, boolean isCustomBoard)
+    public Board(int boardSizeBoxes, int boxSizeRowsColumns, boolean isCustomBoard)
     {
         this.boardSizeBoxes = boardSizeBoxes;
         boardBoxes = boardSizeBoxes * boardSizeBoxes;
@@ -44,7 +44,7 @@ public class SudokuBoard
         {
             initializeBoard(!isCustomBoard ? (int) (availableCells * 0.38) : 0);
 
-            SudokuBoard boardForSolving = new SudokuBoard(this);
+            Board boardForSolving = new Board(this);
             solver = new Solver(boardForSolving);
         }
         while(!isCustomBoard && ((isSolverCandidate && (createSolvableBoard && !solve() || !createSolvableBoard && solve()))) || !solver.possibleValuesInCells());
@@ -53,7 +53,7 @@ public class SudokuBoard
     /**
      * @author Danny & Abinav
      */
-    public SudokuBoard(SudokuBoard boardToCopy)
+    public Board(Board boardToCopy)
     {
         board = new int[boardToCopy.boardSizeRowsColumns][boardToCopy.boardSizeRowsColumns];
 
@@ -221,7 +221,7 @@ public class SudokuBoard
     {
         if(isCustomBoard)
         {
-            SudokuBoard boardForSolving = new SudokuBoard(this);
+            Board boardForSolving = new Board(this);
             solver = new Solver(boardForSolving);
         }
 
