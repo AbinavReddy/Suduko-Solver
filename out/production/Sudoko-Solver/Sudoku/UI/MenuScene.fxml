@@ -85,7 +85,7 @@
       </Text>
       <Button fx:id="load" layoutX="558.0" layoutY="508.0" mnemonicParsing="false" onAction="#goToSaveLoadScene" onMouseClicked="#playButtonClickSound" prefHeight="32.0" prefWidth="83.0" text="Load Game" />
       <ComboBox fx:id="comboBox" layoutX="662.0" layoutY="450.0" prefHeight="30.0" prefWidth="113.0" promptText="Game Mode" />
-      <CheckBox layoutX="133.0" layoutY="1020.0" mnemonicParsing="false" text="Unlimited hints" textFill="WHITE" />
-      <CheckBox layoutX="133.0" layoutY="982.0" mnemonicParsing="false" text="Solvable only" textFill="WHITE" />
+      <CheckBox fx:id="unlimitedHintsCheckBox" layoutX="133.0" layoutY="1020.0" mnemonicParsing="false" text="Unlimited hints" textFill="WHITE" />
+      <CheckBox fx:id="solvableCheckBox" layoutX="133.0" layoutY="982.0" mnemonicParsing="false" text="Solvable only" textFill="WHITE" />
    </children>
 </AnchorPane>

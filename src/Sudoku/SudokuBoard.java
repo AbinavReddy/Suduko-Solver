@@ -168,6 +168,7 @@ public class SudokuBoard
         }
 
         setBoardValue(row, column, value);
+        errorMessage = "";
 
         return true;
     }

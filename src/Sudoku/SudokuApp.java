@@ -65,6 +65,8 @@ public class SudokuApp implements Initializable, ActionListener
     public static boolean boardAlreadySolved = false;
     private static long savedTimeLoaded ;
 
+    private static boolean timedMode;
+
     private static long preSaveLoadUserTime;
 
     // JavaFX related
@@ -82,7 +84,11 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private Text boardSizeValidationField; // menu
     @FXML
-    private ComboBox comboBox; // menu
+    private ComboBox<String> comboBox; // menu
+    @FXML
+    private CheckBox solvableCheckBox; // menu
+    @FXML
+    private CheckBox unlimitedHintsCheckBox; // menu
     @FXML
     private Text timeSolvingField; // puzzle
     private final Timer userSolveTimer = new Timer(100, this); // puzzle
@@ -167,7 +173,14 @@ public class SudokuApp implements Initializable, ActionListener
 
             boardGrid.requestFocus();
 
-            userSolvingTime = clickedBack ? preSaveLoadUserTime : (gameSavedLoaded ? savedTimeLoaded : 0);
+            if(clickedBack && timedMode){
+                userSolvingTime = preSaveLoadUserTime;
+            } else if ( timedMode) {
+                userSolvingTime = (board.getAvailableCells() - board.getFilledCells()) * 6000L;
+                hintButton.setDisable(true);
+            } else {
+                userSolvingTime = clickedBack ? preSaveLoadUserTime : (gameSavedLoaded ? savedTimeLoaded : 0);
+            }
             userSolveTimer.start();
 
             feedbackField.setText("");
@@ -178,8 +191,10 @@ public class SudokuApp implements Initializable, ActionListener
             if(gameSavedLoaded) {
                 undoButton.setDisable(false);
                 resetButton.setDisable(false);
-            }
-            else
+            } else if (timedMode) {
+                undoButton.setDisable(true);
+                resetButton.setDisable(false);
+            } else
             {
                 undoButton.setDisable(true);
                 resetButton.setDisable(true);
@@ -235,6 +250,7 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 userSolveTimer.stop();
             }
+            timedMode = false;
             boardAlreadySolved = false;
         }
         else if(boardView == boardViewState.NoBoardShownSaveLoad) // SaveLoadScene
@@ -263,6 +279,7 @@ public class SudokuApp implements Initializable, ActionListener
         else // MenuScene
         {
             gameSavedLoaded = false;
+            timedMode = false;
 
             valueInsertHistory = new ArrayList<>();
             hintInsertHistory = new ArrayList<>();
@@ -271,10 +288,31 @@ public class SudokuApp implements Initializable, ActionListener
 
             comboBox.getItems().addAll("Timed Mode", "Death Mode", "Hardcore Mode");
 
+            comboBox.setOnAction( event -> {
+                try {
+                    handleModeSelected();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
             savingGame = false;
             if(userSolveTimer.isRunning())
             {
                 userSolveTimer.stop();
+            }
+        }
+    }
+
+    /**
+     * @author  Abinav
+     */
+    private void handleModeSelected() throws IOException {
+        String selectedItem = comboBox.getSelectionModel().getSelectedItem();
+        if(selectedItem != null) {
+            if (selectedItem.equals("Timed Mode")) {
+                timedMode = true;
+                initializeRandomBoard();
             }
         }
     }
@@ -302,6 +340,12 @@ public class SudokuApp implements Initializable, ActionListener
 
                 boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
 
+                Platform.runLater(() -> {
+                    comboBox.getSelectionModel().clearSelection();
+
+                });
+
+                comboBox.setPromptText("Game Mode");
                 playSoundEffect(errorSound, 0.2);
             }
         }
@@ -311,6 +355,11 @@ public class SudokuApp implements Initializable, ActionListener
             boxSizeField.clear();
 
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+
+
+            Platform.runLater(() -> {
+                    comboBox.getSelectionModel().clearSelection();
+            });
 
             playSoundEffect(errorSound, 0.2);
         }
@@ -352,6 +401,7 @@ public class SudokuApp implements Initializable, ActionListener
             playSoundEffect(errorSound, 0.2);
         }
     }
+
 
     /**
      * @author Danny & Abinav
@@ -647,12 +697,14 @@ public class SudokuApp implements Initializable, ActionListener
                     playSoundEffect(errorSound, 0.2);
                 }
 
+                if(timedMode && !board.getErrorMessage().isEmpty()) userSolvingTime -= 500L;
+
                 updateFilledCells();
             }
             catch(NumberFormatException exception)
             {
                 feedbackField.setText("Only values from 1-" + board.getMaxPuzzleValue() + " are valid!");
-
+                if(timedMode) userSolvingTime -= 500L;
                 playSoundEffect(errorSound, 0.2);
             }
         }
@@ -676,6 +728,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void puzzleHasBeenSolved()
     {
+
         userSolveTimer.stop();
 
         if(!valueInsertHistory.isEmpty())
@@ -813,7 +866,8 @@ public class SudokuApp implements Initializable, ActionListener
 
         if(boardView == boardViewState.UnsolvedBoardShown)
         {
-            userSolvingTime = 0;
+
+            userSolvingTime = timedMode? (board.getAvailableCells() - board.getFilledCells()) * 6000L: 0;
             userSolveTimer.start();
 
             hintButton.setDisable(false);
@@ -1167,7 +1221,20 @@ public class SudokuApp implements Initializable, ActionListener
     @Override
     public void actionPerformed(ActionEvent actionEvent) // updates solving timer every second
     {
+        if(userSolvingTime <= 0 && timedMode){
+            userSolveTimer.stop();
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
+            pauseResumeButton.setDisable(true);
+            boardGrid.setDisable(true);
+            feedbackField.setText("You have run out of time!");
+            playSoundEffect(loseSound, 0.5);
+
+        } else if (timedMode ) {
+            userSolvingTime -= 100;
+        } else {
         userSolvingTime += 100;
+        }
 
         // Display the time used by the Solver to solve the puzzle
         int totalSeconds = (int) (userSolvingTime / 1000);
