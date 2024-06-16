@@ -4,13 +4,14 @@ import java.util.*;
 
 public class Solver
 {
-    private SudokuBoard solvedBoard;
+    private final SudokuBoard solvedBoard;
     private boolean solverHasRun;
     private boolean solvedWithHardCoding;
     private boolean solvedWithStrategies;
     private boolean solvedWithBacktracking;
     private long solvingTime; // in milliseconds
     private final int boardSizeBoxes;
+    private final int boardBoxes;
     private final int boardSizeRowsColumns;
     private final int boxSizeRowsColumns;
     private final int maxPuzzleValue;
@@ -33,6 +34,7 @@ public class Solver
         solvedWithHardCoding = false;
         solverHasRun = false;
         boardSizeBoxes = boardToSolve.getBoardSizeBoxes();
+        boardBoxes = boardToSolve.getBoardBoxes();
         boardSizeRowsColumns = boardToSolve.getBoardSizeRowsColumns();
         boxSizeRowsColumns = boardToSolve.getBoxSizeRowsColumns();
         maxPuzzleValue = boardToSolve.getMaxPuzzleValue();
@@ -73,7 +75,7 @@ public class Solver
 
         if(isStandardBoard) // strategies can be used
         {
-            solvingResult = solveWithStrategies() || solveWithBacktracking(sortKeysForBacktracking(), 0);
+            solvingResult = solveWithStrategies();
         }
         else // strategies cannot be used
         {
@@ -122,7 +124,7 @@ public class Solver
     private boolean solveWithStrategies()
     {
         List<Runnable> strategies = new ArrayList<>();
-        strategies.add(this::nakedSingles); // working
+        //strategies.add(this::nakedSingles); // working
         //strategies.add(this::hiddenSingles); // working
         //strategies.add(this::nakedPairs); // working
         //strategies.add(this::nakedTriples); // // working
@@ -134,8 +136,9 @@ public class Solver
         //strategies.add(this::xWing); // working
         //strategies.add(this::simpleColouring); // working
         //strategies.add(this::yWingWithXYZExtension); // working
+        //strategies.add(this::emptyRectangle); // not working
         //strategies.add(this::swordFish); // working
-        //strategies.add(this::bug); //  working 
+        //strategies.add(this::bug); //  working
         //strategies.add(this::wXYZWingExtended); // working
 
         boolean possibleValuesChanged;
@@ -2058,6 +2061,200 @@ public class Solver
         return new HashSet<>();
     }
 
+    /**
+     * Yahya
+     */
+    private void emptyRectangle() {
+
+        findConjugatePairs();
+    }
+
+    /**
+     * Yahya
+     */
+    private void findConjugatePairs () {
+        for (int candidate = 1; candidate <= maxPuzzleValue; candidate++) {
+            List<List<String>> conjugatePairs = new ArrayList<>();
+            for (int row = 0; row < maxPuzzleValue; row++) {
+                if (valuePossibleCountRows[candidate][row] == 2) {
+                    List<String> positions = new ArrayList<>();
+                    for (String key : possibleNumbers.keySet()) {
+                        String[] key2 = key.split(",");
+                        if (Integer.parseInt(key2[0]) == row && possibleNumbers.get(key).contains(candidate)) {
+                            positions.add(key);
+                        }
+                    }
+                    String position1 = positions.get(0);
+                    String[] cell1 = position1.split(",");
+                    String position2 = positions.get(1);
+                    String[] cell2 = position2.split(",");
+                    if ((solvedBoard.findSubBoardNumber(Integer.parseInt(cell1[0]), Integer.parseInt(cell1[1])) != (solvedBoard.findSubBoardNumber(Integer.parseInt(cell2[0]), Integer.parseInt(cell2[1]))))) {
+                        conjugatePairs.add(positions);
+
+                    }
+                }
+            }
+
+            for (int col = 0; col < boardSizeRowsColumns; col++) {
+
+                if (valuePossibleCountColumns[candidate][col] == 2) {
+                    List<String> positions = new ArrayList<>();
+                    for (String key : possibleNumbers.keySet()) {
+                        String[] key2 = key.split(",");
+                        if (Integer.parseInt(key2[1]) == col && possibleNumbers.get(key).contains(candidate)) {
+                            positions.add(key);
+                        }
+                    }
+                    String position1 = positions.get(0);
+                    String[] cell1 = position1.split(",");
+                    String position2 = positions.get(1);
+                    String[] cell2 = position2.split(",");
+
+                    if ((solvedBoard.findSubBoardNumber(Integer.parseInt(cell1[0]), Integer.parseInt(cell1[1])) != (solvedBoard.findSubBoardNumber(Integer.parseInt(cell2[0]), Integer.parseInt(cell2[1]))))) {
+                        conjugatePairs.add(positions);
+
+                    }
+                }
+            }
+            findEmptyRectangle(candidate, conjugatePairs);
+        }
+    }
+
+    /**
+     * Yahya & Danny
+     */
+    private void findEmptyRectangle (int candidate, List<List<String>> conjugatePairs) {
+        boolean rowColCondition;
+        boolean cellFound;
+        int emptyCells;
+        int firstRow;
+        int firstCol;
+        int secRow;
+        int secCol;
+
+        for(int subBoard = 0; subBoard < boardBoxes; subBoard++) {
+            rowColCondition = false;
+            cellFound = false;
+            emptyCells = 0;
+
+            firstRow = 0;
+            firstCol = 0;
+            secRow = 0;
+            secCol = 0;
+
+            int startingRow = (subBoard / boardSizeBoxes) * boxSizeRowsColumns;
+            int startingColumn = boardSizeRowsColumns - (boxSizeRowsColumns * (boardSizeBoxes - (subBoard - (boardSizeBoxes * (subBoard / boardSizeBoxes)))));
+            for (int addedRows = 0; addedRows < boxSizeRowsColumns; addedRows++) {
+                for (int addedColumns = 0; addedColumns < boxSizeRowsColumns; addedColumns++) {
+                    int row = startingRow + addedRows;
+                    int col = startingColumn + addedColumns;
+                    String key = row + "," + col;
+                    if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(candidate))
+                    {
+                        if(cellFound && row != firstRow && col != firstCol) {
+                            secRow=row;
+                            secCol=col;
+                            rowColCondition = true;
+                        } else if (!cellFound) {
+                            firstRow = row;
+                            firstCol = col;
+                            cellFound = true;
+                        }
+                    }
+
+                    if(solvedBoard.getBoard()[row][col] != 0 || possibleNumbers.get(key) != null && !possibleNumbers.get(key).contains(candidate))
+                    {
+                        emptyCells++;
+                    }
+
+                    if((addedRows == boxSizeRowsColumns - 1) && (addedColumns == boxSizeRowsColumns - 1) && rowColCondition)
+                    {
+                        emptyCells = emptyCells - (5 - valuePossibleCountSubBoards[candidate][subBoard]);
+
+                        if(emptyCells == 4 && valuePossibleCountSubBoards[candidate][subBoard] <= 5) {
+                            emptyRectangleElimination(firstRow, firstCol, secRow, secCol, subBoard, candidate, conjugatePairs);
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+
+    /**
+     * Danny, Yahya & Abinav
+     */
+    public void emptyRectangleElimination(int firstRow, int firstCol, int secRow, int secCol, int subBoard, int candidate, List<List<String>> conjugatePairs)
+    {
+        for(List<String> conjugateList : conjugatePairs)
+        {
+            String[] keyA = conjugateList.get(0).split(",");
+            String[] keyB = conjugateList.get(1).split(",");
+            int keyARow = Integer.parseInt(keyA[0]);
+            int keyAColumn = Integer.parseInt(keyA[1]);
+            int keyBRow = Integer.parseInt(keyB[0]);
+            int keyBColumn = Integer.parseInt(keyB[1]);
+            int keyASubBoard = solvedBoard.findSubBoardNumber(keyARow, keyAColumn);
+            int keyBSubBoard = solvedBoard.findSubBoardNumber(keyBRow, keyBColumn);
+
+            if(keyASubBoard != subBoard && keyBSubBoard != subBoard)
+            {
+                int xRow = 0;
+                int xColumn = 0;
+                int yRow = 0;
+                int yColumn = 0;
+
+                boolean xAlignedWithFirst = keyARow == firstRow || keyAColumn == firstCol || keyBRow == firstRow || keyBColumn == firstCol;
+                boolean xAlignedWithSecond = keyARow == secRow || keyAColumn == secCol || keyBRow == secRow || keyBColumn == secCol;
+
+                if(xAlignedWithFirst)
+                {
+                    xRow = keyARow;
+                    xColumn = keyAColumn;
+                    yRow = keyBRow;
+                    yColumn = keyBColumn;
+                }
+                else if(xAlignedWithSecond)
+                {
+                    xRow = keyBRow;
+                    xColumn = keyBColumn;
+                    yRow = keyARow;
+                    yColumn = keyAColumn;
+                }
+
+                if(xAlignedWithFirst || xAlignedWithSecond)
+                {
+                    boolean eliminateInRow = keyARow < yRow;
+
+                    for(int rowOrCol = 0; rowOrCol < boardSizeRowsColumns; rowOrCol++)
+                    {
+                        String key;
+
+                        if(eliminateInRow)
+                        {
+                            key = yRow + "," + rowOrCol;
+                        }
+                        else
+                        {
+                            key = rowOrCol + "," + yColumn;
+                        }
+
+                        if(possibleNumbers.get(key) != null)
+                        {
+                            if(possibleNumbers.get(key).contains(candidate) && (xAlignedWithFirst ? (eliminateInRow ? rowOrCol == secCol : rowOrCol == secRow) : (eliminateInRow ? rowOrCol == firstCol : rowOrCol == firstRow)))
+                            {
+                                updatePossibleNumbersAndCounts(key, candidate, null, false);
+
+                                System.out.println(key + " (" + candidate + ")");
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * @author Yahya
@@ -2140,59 +2337,6 @@ public class Solver
         }
 
         return false;
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void updateCounts(List<String> keys, int[] counts) {
-        for (String key : keys) {
-            List<Integer> possibleValues = possibleNumbers.get(key);
-            if (possibleValues != null) {
-                for (int value : possibleValues) {
-                    counts[value]++;
-                }
-            }
-        }
-    }
-
-    /**
-     * @author Yahya
-     */
-    private List<String> getRowKeys(int row) {
-        List<String> keys = new ArrayList<>();
-        for (int col = 0; col < solvedBoard.getBoardSizeRowsColumns(); col++) {
-            keys.add(row + "," + col);
-        }
-        return keys;
-    }
-
-    /**
-     * @author Yahya
-     */
-    private List<String> getColumnKeys(int column) {
-        List<String> keys = new ArrayList<>();
-        for (int row = 0; row < solvedBoard.getBoardSizeRowsColumns(); row++) {
-            keys.add(row + "," + column);
-        }
-        return keys;
-    }
-
-    /**
-     * @author Yahya
-     */
-    public List<String> getCellsInSubBoard(int subBoardIndex) {
-        List<String> cellKeys = new ArrayList<>();
-        int subBoardSize = solvedBoard.getBoardSizeBoxes();  // Assuming square sub-boards in a square grid
-        int startingRow = (subBoardIndex / boardSizeBoxes) * boxSizeRowsColumns;
-        int startingColumn = boardSizeRowsColumns - (boxSizeRowsColumns * (boardSizeBoxes - (subBoardIndex - (boardSizeBoxes * (subBoardIndex / boardSizeBoxes)))));
-
-        for (int row = startingRow; row < startingRow + subBoardSize; row++) {
-            for (int column = startingColumn; column < startingColumn + subBoardSize; column++) {
-                cellKeys.add(row + "," + column);  // Collecting cell keys in "row,column" format
-            }
-        }
-        return cellKeys;
     }
 
     /**
