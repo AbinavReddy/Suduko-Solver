@@ -2,6 +2,8 @@
 
 <?import javafx.scene.Cursor?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
@@ -31,7 +33,7 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Button focusTraversable="false" layoutX="515.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeRandomBoard" onMouseClicked="#playButtonClickSound" prefHeight="30.0" prefWidth="75.0" text="Random">
+      <Button focusTraversable="false" layoutX="442.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeRandomBoard" onMouseClicked="#playButtonClickSound" prefHeight="30.0" prefWidth="75.0" text="Random">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
@@ -46,7 +48,7 @@
             <Font name="System Bold" size="72.0" />
          </font>
       </Label>
-      <Button focusTraversable="false" layoutX="610.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeCustomBoard" onMouseClicked="#playButtonClickSound" prefHeight="30.0" prefWidth="75.0" text="Custom" />
+      <Button focusTraversable="false" layoutX="558.0" layoutY="450.0" mnemonicParsing="false" onAction="#initializeCustomBoard" onMouseClicked="#playButtonClickSound" prefHeight="30.0" prefWidth="75.0" text="Custom" />
       <Rectangle arcHeight="5.0" arcWidth="5.0" disable="true" fill="#2b2b2b" height="32.0" layoutX="421.0" layoutY="1067.0" stroke="BLACK" strokeType="INSIDE" width="358.0" />
       <ImageView fx:id="soundButtonImage" fitHeight="31.0" fitWidth="31.0" layoutX="1115.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
          <image>
@@ -82,5 +84,8 @@
          </font>
       </Text>
       <Button fx:id="load" layoutX="558.0" layoutY="508.0" mnemonicParsing="false" onAction="#goToSaveLoadScene" onMouseClicked="#playButtonClickSound" prefHeight="32.0" prefWidth="83.0" text="Load Game" />
+      <ComboBox fx:id="comboBox" layoutX="662.0" layoutY="450.0" prefHeight="30.0" prefWidth="113.0" promptText="Game Mode" />
+      <CheckBox layoutX="133.0" layoutY="1020.0" mnemonicParsing="false" text="Unlimited hints" textFill="WHITE" />
+      <CheckBox layoutX="133.0" layoutY="982.0" mnemonicParsing="false" text="Solvable only" textFill="WHITE" />
    </children>
 </AnchorPane>

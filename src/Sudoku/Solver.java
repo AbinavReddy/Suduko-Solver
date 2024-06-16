@@ -75,7 +75,7 @@ public class Solver
 
         if(isStandardBoard) // strategies can be used
         {
-            solvingResult = solveWithStrategies();
+            solvingResult = solveWithStrategies() || solveWithBacktracking(sortKeysForBacktracking(), 0);
         }
         else // strategies cannot be used
         {
@@ -124,7 +124,7 @@ public class Solver
     private boolean solveWithStrategies()
     {
         List<Runnable> strategies = new ArrayList<>();
-        //strategies.add(this::nakedSingles); // working
+        strategies.add(this::nakedSingles); // working
         //strategies.add(this::hiddenSingles); // working
         //strategies.add(this::nakedPairs); // working
         //strategies.add(this::nakedTriples); // // working
