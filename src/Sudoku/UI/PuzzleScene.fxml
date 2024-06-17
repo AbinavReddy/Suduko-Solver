@@ -145,7 +145,7 @@
             <Font name="System Bold" size="64.0" />
          </font>
       </Text>
-      <Text fx:id="livesRemainingField" disable="true" fill="WHITE" layoutX="757.0" layoutY="155.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Lives: 0" visible="false" wrappingWidth="65.0">
+      <Text fx:id="livesRemainingField" disable="true" fill="WHITE" layoutX="751.0" layoutY="155.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Lives: 0" wrappingWidth="91.0">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
