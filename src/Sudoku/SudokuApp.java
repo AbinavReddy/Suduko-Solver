@@ -65,6 +65,10 @@ public class SudokuApp implements Initializable, ActionListener
     public static boolean boardAlreadySolved = false;
     private static long savedTimeLoaded ;
 
+    private static int lives;
+
+    private static boolean deathMode;
+
     private static boolean timedMode;
 
     private static long preSaveLoadUserTime;
@@ -147,6 +151,7 @@ public class SudokuApp implements Initializable, ActionListener
         NoBoardShown, NoBoardShownSaveLoad, UnsolvedBoardShown, CustomBoardShown, SolvedBoardShown
     }
 
+
     private static boardViewState boardView = boardViewState.NoBoardShown;
 
     /**
@@ -173,11 +178,17 @@ public class SudokuApp implements Initializable, ActionListener
 
             boardGrid.requestFocus();
 
-            if(clickedBack && timedMode){
+            if(deathMode) {
+                lives = (board.getAvailableCells()-board.getFilledCells()) / 7; // 1 life per 7 empty cells
+                userSolvingTime = 0;
+
+            } else if(clickedBack && timedMode){
                 userSolvingTime = preSaveLoadUserTime;
+
             } else if ( timedMode) {
-                userSolvingTime = (board.getAvailableCells() - board.getFilledCells()) * 6000L;
+                userSolvingTime = (board.getAvailableCells() - board.getFilledCells()) * 6000L; // 6 seconds per empty cell
                 hintButton.setDisable(true);
+
             } else {
                 userSolvingTime = clickedBack ? preSaveLoadUserTime : (gameSavedLoaded ? savedTimeLoaded : 0);
             }
@@ -250,6 +261,7 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 userSolveTimer.stop();
             }
+            deathMode = false;
             timedMode = false;
             boardAlreadySolved = false;
         }
@@ -280,6 +292,7 @@ public class SudokuApp implements Initializable, ActionListener
         {
             gameSavedLoaded = false;
             timedMode = false;
+            deathMode = false;
 
             valueInsertHistory = new ArrayList<>();
             hintInsertHistory = new ArrayList<>();
@@ -313,6 +326,9 @@ public class SudokuApp implements Initializable, ActionListener
             if (selectedItem.equals("Timed Mode")) {
                 timedMode = true;
                 initializeRandomBoard();
+            } else if (selectedItem.equals("Death Mode")) {
+                deathMode = true;
+                initializeRandomBoard();
             }
         }
     }
@@ -345,7 +361,6 @@ public class SudokuApp implements Initializable, ActionListener
 
                 });
 
-                comboBox.setPromptText("Game Mode");
                 playSoundEffect(errorSound, 0.2);
             }
         }
@@ -360,7 +375,6 @@ public class SudokuApp implements Initializable, ActionListener
             Platform.runLater(() -> {
                     comboBox.getSelectionModel().clearSelection();
             });
-
             playSoundEffect(errorSound, 0.2);
         }
     }
@@ -697,13 +711,19 @@ public class SudokuApp implements Initializable, ActionListener
                     playSoundEffect(errorSound, 0.2);
                 }
 
-                if(timedMode && !board.getErrorMessage().isEmpty()) userSolvingTime -= 500L;
+                if(!board.getErrorMessage().isEmpty())
+                    if(timedMode) {
+                        userSolvingTime -= 500L;
+                    } else {
+                        checkAndUpdateLivesRemaining();
+                    }
 
                 updateFilledCells();
             }
             catch(NumberFormatException exception)
             {
                 feedbackField.setText("Only values from 1-" + board.getMaxPuzzleValue() + " are valid!");
+                checkAndUpdateLivesRemaining();
                 if(timedMode) userSolvingTime -= 500L;
                 playSoundEffect(errorSound, 0.2);
             }
@@ -720,6 +740,23 @@ public class SudokuApp implements Initializable, ActionListener
         if(board.isGameFinished() && boardView != boardViewState.CustomBoardShown)
         {
             puzzleHasBeenSolved();
+        }
+    }
+
+    public void checkAndUpdateLivesRemaining(){
+        if(deathMode) {
+            if (lives > 0) {
+                lives--;
+            }
+            if (lives == 0) {
+                userSolveTimer.stop();
+                undoButton.setDisable(true);
+                hintButton.setDisable(true);
+                pauseResumeButton.setDisable(true);
+                boardGrid.setDisable(true);
+                feedbackField.setText("You have run out of lives!");
+                playSoundEffect(loseSound, 0.5);
+            }
         }
     }
 
