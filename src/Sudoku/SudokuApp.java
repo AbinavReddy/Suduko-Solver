@@ -402,9 +402,9 @@ public class SudokuApp implements Initializable, ActionListener
             undoButton.setDisable(true);
             saveButton.setDisable(true);
             lives = calculateLivesBasedOnBoardSize();
+            livesRemainingField.setVisible(true);
             livesRemainingField.setText("Lives: " + lives);
             userSolvingTime = calculateUserSolvingTime();
-            livesRemainingField.setVisible(true);
             feedbackField.setText("Welcome to Hardcore Mode!");
             pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before time, lives, or both run out!"));
             pauseTransition.play();
@@ -412,9 +412,9 @@ public class SudokuApp implements Initializable, ActionListener
         } else if(deathMode) { // Mode allowing limited mistakes based on board size
 
             lives = calculateLivesBasedOnBoardSize();
+            livesRemainingField.setVisible(true);
             livesRemainingField.setText("Lives: " + lives);
             userSolvingTime = 0;
-            livesRemainingField.setVisible(true);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
             feedbackField.setText("Welcome to Death Mode!");
@@ -424,6 +424,7 @@ public class SudokuApp implements Initializable, ActionListener
         } else if ( timedMode) { // Timer countdown mode
 
             userSolvingTime = calculateUserSolvingTime();
+            livesRemainingField.setVisible(false);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
             feedbackField.setText("Welcome to Timed Mode!");
@@ -774,7 +775,7 @@ public class SudokuApp implements Initializable, ActionListener
                 {
                     timedMode = true;
                     loadMenuButton.setDisable(true);
-                    unlimitedHintsCheckBox.setVisible(false);
+                    unlimitedHintsCheckBox.setDisable(true);
                     deathMode = false;
                     hardcoreMode = false;
                 }
@@ -783,7 +784,7 @@ public class SudokuApp implements Initializable, ActionListener
                 {
                     deathMode = true;
                     loadMenuButton.setDisable(true);
-                    unlimitedHintsCheckBox.setVisible(true);
+                    unlimitedHintsCheckBox.setDisable(true);
                     timedMode = false;
                     hardcoreMode = false;
                 }
@@ -793,7 +794,7 @@ public class SudokuApp implements Initializable, ActionListener
                 {
                     hardcoreMode = true;
                     loadMenuButton.setDisable(true);
-                    unlimitedHintsCheckBox.setVisible(true);
+                    unlimitedHintsCheckBox.setDisable(true);
                     timedMode = false;
                     deathMode = false;
                 }
@@ -832,6 +833,11 @@ public class SudokuApp implements Initializable, ActionListener
         if (lives > 0 && (deathMode || hardcoreMode)) {
             lives--;
             livesRemainingField.setText("Lives: " + lives);
+            livesRemainingField.setStyle("-fx-fill: red;");
+            pauseTransition.setDuration(Duration.seconds(2));
+            pauseTransition.setOnFinished(e ->  livesRemainingField.setStyle("-fx-fill: white;"));
+            pauseTransition.play();
+            pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
         }
         if (lives == 0 && (deathMode || hardcoreMode)) {
             userSolveTimer.stop();
@@ -852,11 +858,21 @@ public class SudokuApp implements Initializable, ActionListener
         if(timedMode || hardcoreMode) {
             if (shouldIncrement) {
                 userSolvingTime += 10000;
+                timeSolvingField.setStyle("-fx-fill: green;");
+                pauseTransition.setDuration(Duration.seconds(2));
+                pauseTransition.setOnFinished(e ->  timeSolvingField.setStyle("-fx-fill: white;"));
+                pauseTransition.play();
+                pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
             } else  {
                 if(userSolvingTime < 10000){
                    userSolvingTime = 0;
                 } else {
                     userSolvingTime -= 10000;
+                    timeSolvingField.setStyle("-fx-fill: red;");
+                    pauseTransition.setDuration(Duration.seconds(2));
+                    pauseTransition.setOnFinished(e -> timeSolvingField.setStyle("-fx-fill: white;"));
+                    pauseTransition.play();
+                    pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
                 }
             }
         }
@@ -1014,7 +1030,13 @@ public class SudokuApp implements Initializable, ActionListener
                 boardGrid.setDisable(false);
             }
 
-            hintButton.setDisable(false);
+            if(deathMode || hardcoreMode || timedMode) {
+                timeSolvingField.setStyle("-fx-fill: white;");
+                livesRemainingField.setStyle("-fx-fill: white;");
+                hintButton.setDisable(true);
+            } else {
+                hintButton.setDisable(false);
+            }
             pauseResumeButton.setDisable(false);
         }
 
@@ -1184,8 +1206,10 @@ public class SudokuApp implements Initializable, ActionListener
                 saveLoadSceneSubtitle.setText("Game saved in slot " +loadSelectedSlot);
                 pauseTransition.setOnFinished(e ->  saveLoadSceneSubtitle.setText("Choose a slot to save the game in!"));
                 pauseTransition.play();
-            } else if (!saveLoadSlotList.getItems().get(selectedSlot).equals("slot " + loadSelectedSlot)) {
+            } else if (!saveLoadSlotList.getItems().get(selectedSlot).equals("Slot " + loadSelectedSlot)) {
                 loadGame(selectedSlot);
+            } else if(saveLoadSlotList.getItems().get(selectedSlot).equals("Slot " + loadSelectedSlot)) {
+                  saveLoadSceneSubtitle.setText("Choose a saved board to load!");
             }
         }
     }
@@ -1372,6 +1396,7 @@ public class SudokuApp implements Initializable, ActionListener
             pauseResumeButton.setDisable(true);
             boardGrid.setDisable(true);
             feedbackField.setText("Game Over! Time's up!");
+            timeSolvingField.setStyle("-fx-fill: red;");
            //playSoundEffect(loseSound, 0.5);
 
         } else if (timedMode || hardcoreMode ) {
