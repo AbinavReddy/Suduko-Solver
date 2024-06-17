@@ -986,7 +986,7 @@ public class SudokuApp implements Initializable, ActionListener
                 saveLoadSceneSubtitle.setText("Game saved in slot " +loadSelectedSlot);
                 pauseTransition.setOnFinished(e ->  saveLoadSceneSubtitle.setText("Choose a slot to save the game in!"));
                 pauseTransition.play();
-            } else if (!saveLoadSlotList.getItems().get(selectedSlot).equals("slot " + loadSelectedSlot)) {
+            } else if (!saveLoadSlotList.getItems().get(selectedSlot).equals("Slot " + loadSelectedSlot)) {
                 loadGame(selectedSlot);
             }
         }
