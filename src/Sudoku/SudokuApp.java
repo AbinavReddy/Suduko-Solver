@@ -412,10 +412,14 @@ public class SudokuApp implements Initializable, ActionListener
 
             lives = (board.getAvailableCells()-board.getFilledCells()) / 7; // 1 life per 7 empty cells
             userSolvingTime = 0;
-            hintButton.setDisable(true);
-            feedbackField.setText("Welcome to Death Mode! You have " + lives + " lives left.");
+            if(lives > 0){
+                feedbackField.setText("Welcome to Death Mode! You have " + lives + " lives left.");
+            } else {
+                feedbackField.setText("Welcome to Death Mode! No mistakes allowed!");
+            }
             pauseTransition.setOnFinished(e ->  feedbackField.setText(""));
             pauseTransition.play();
+            hintButton.setDisable(true);
             saveButton.setDisable(true);
 
         } else if ( timedMode) { // Timer countdown mode
@@ -448,7 +452,7 @@ public class SudokuApp implements Initializable, ActionListener
                     deathMode = true;
                     initializeRandomBoard();
                 }
-                case "HardCore Mode" -> {
+                case "Hardcore Mode" -> {
                     hardcoreMode = true;
                     initializeRandomBoard();
                 }
@@ -796,7 +800,7 @@ public class SudokuApp implements Initializable, ActionListener
             hintButton.setDisable(true);
             pauseResumeButton.setDisable(true);
             boardGrid.setDisable(true);
-            feedbackField.setText("You have run out of lives!");
+            feedbackField.setText("Game Over! You have run out of lives!");
             playSoundEffect(loseSound, 0.5);
         }
 
@@ -1308,7 +1312,7 @@ public class SudokuApp implements Initializable, ActionListener
             hintButton.setDisable(true);
             pauseResumeButton.setDisable(true);
             boardGrid.setDisable(true);
-            feedbackField.setText("You have run out of time!");
+            feedbackField.setText("Game Over!Time's up!");
             playSoundEffect(loseSound, 0.5);
 
         } else if (timedMode ) {
