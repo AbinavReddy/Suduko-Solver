@@ -133,6 +133,7 @@ public class Board
         }
 
         setBoardValue(row, column, value);
+        errorMessage = "";
 
         return true;
     }

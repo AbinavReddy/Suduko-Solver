@@ -508,35 +508,17 @@ public class Solver
 
             if((rowOfKey1 == rowOfKeys) && (rowOfKey2 == rowOfKeys) && code == 0 && valuesContained ){
                 updatePossibleNumbersAndCounts(originalKey, null, valuesPresent, false);
-               /* if(valuesOfKeys.contains(values.get(0)) && valuesOfKeys.contains(values.get(1))) {
-                    updatePossibleNumbersAndCounts(originalKey, null, values, false);
-                }else if(valuesOfKeys.contains(values.get(0))){
-                    updatePossibleNumbersAndCounts(originalKey, values.get(0), null, false);
-                } else if (valuesOfKeys.contains(values.get(1))) {
-                    updatePossibleNumbersAndCounts(originalKey, values.get(1), null, false);
-                } */
+
             }
 
             else if ((columnOfKey1 == columnOfKeys) && (columnOfKey2 == columnOfKeys) && code == 1 && valuesContained){
                 updatePossibleNumbersAndCounts(originalKey, null, valuesPresent, false);
-               /* if(valuesOfKeys.contains(values.get(0)) && valuesOfKeys.contains(values.get(1))) {
-                    updatePossibleNumbersAndCounts(originalKey, null, values, false);
-                }else if(valuesOfKeys.contains(values.get(0))){
-                    updatePossibleNumbersAndCounts(originalKey, values.get(0), null, false);
-                } else if (valuesOfKeys.contains(values.get(1))) {
-                    updatePossibleNumbersAndCounts(originalKey, values.get(1), null, false);
-                } */
+
             }
 
             else if ((subBoardOfKey1 == subBoardOfKeys) && (subBoardOfKey2 == subBoardOfKeys) && code == 2 && valuesContained) {
                 updatePossibleNumbersAndCounts(originalKey, null, valuesPresent, false);
-               /* if(valuesOfKeys.contains(values.get(0)) && valuesOfKeys.contains(values.get(1))) {
-                    updatePossibleNumbersAndCounts(originalKey, null, values, false);
-                }else if(valuesOfKeys.contains(values.get(0))){
-                    updatePossibleNumbersAndCounts(originalKey, values.get(0), null, false);
-                } else if (valuesOfKeys.contains(values.get(1))) {
-                    updatePossibleNumbersAndCounts(originalKey, values.get(1), null, false);
-                }*/
+
             }
         }
     }
@@ -871,7 +853,6 @@ public class Solver
                 for(List<Integer> possible: possibleValues)
                 {
                     unionOfValues.addAll(possible);
-
                 }
 
                 if (possibleValues.size() == 4 && unionOfValues.size() == 4) { // A Naked Quad is found
@@ -951,9 +932,6 @@ public class Solver
                                         valuesPresent.removeAll(valuesDuplicate);
                                         if(!valuesPresent.equals(valuesDuplicate)) {
                                             updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
-                                            //List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
-                                            //valuesPresent.removeAll(combos);
-                                            //updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
                                         }
                                     }
                                 }
@@ -1007,9 +985,7 @@ public class Solver
                                         valuesPresent.removeAll(valuesDuplicate);
                                         if(!valuesPresent.equals(valuesDuplicate)) {
                                             updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
-                                            // List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
-                                            //valuesPresent.removeAll(combos);
-                                            //updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
+
                                         }
                                     }
                                 }
@@ -1044,12 +1020,12 @@ public class Solver
                         break;
                     }
                 }
+
                 if (count >= 2) {
                     containsOtherCandidates = true;
                     break;
                 }
             }
-
 
             // check if the cell contains atleast two elements of combos
             for(String keys : quads) {
@@ -1138,7 +1114,7 @@ public class Solver
                 if(!cellsContainingCandidate.contains(position)){
                     continue;
                 }
-                scCandidates =new LinkedHashMap<>(); // new HashMap<String,Integer>();
+                scCandidates =new LinkedHashMap<>();
                 List<String> relatedKeys = getRelatedKeys(number, position, cellsContainingCandidate,scCandidates);
                 if (relatedKeys.isEmpty()) {
                     continue;
@@ -1449,7 +1425,7 @@ public class Solver
                     }
                 }
             }
-            handleSFCandidates( pairOrTriple, substituteA,number, processingRows,  processForSF);
+            handleSFCandidates( pairOrTriple, number, processingRows,  processForSF);
 
         }
     }
@@ -1457,19 +1433,17 @@ public class Solver
     /**
      * @author Abinav
      */
-    private void handleSFCandidates( int pairOrTriple,int substituteA,int number,boolean processingRows, List<List<int[]>> processForSF) {
+    private void handleSFCandidates(int pairOrTriple, int number, boolean processingRows, List<List<int[]>> processForSF) {
         if (processForSF.size() >= 3) // enough candidates found
         {
-            substituteA = processingRows ? 1 : 0; // 0 = row index, 1 = column index
+            int rowOrColumn = processingRows ? 1 : 0; // 0 = row index, 1 = column index
             for (int j = 0; j < processForSF.size() - 2; j++) {
                 for (int k = j + 1; k < processForSF.size() - 1; k++) {
                     for (int n = k + 1; n < processForSF.size(); n++) {
 
-
                         Set<Integer> uniqueCOR = new HashSet<>();
                         List<Integer> emptyList = new ArrayList<>();
                         List<String> candidates = new ArrayList<>();
-
 
                         int windowSize = pairOrTriple; // pairs or triples in rows/columns
 
@@ -1481,8 +1455,8 @@ public class Solver
                             // For list j
                             for (int w = i; w < i + windowSize && w < processForSF.get(j).size(); w++) {
                                 int[] coord = processForSF.get(j).get(w);
-                                uniqueCOR.add(coord[substituteA]);
-                                emptyList.add(coord[substituteA]);
+                                uniqueCOR.add(coord[rowOrColumn]);
+                                emptyList.add(coord[rowOrColumn]);
                                 String key = coord[0] + "," + coord[1];
                                 candidates.add(key);
                             }
@@ -1490,8 +1464,8 @@ public class Solver
                             // For list k
                             for (int w = i; w < i + windowSize && w < processForSF.get(k).size(); w++) {
                                 int[] coord = processForSF.get(k).get(w);
-                                uniqueCOR.add(coord[substituteA]);
-                                emptyList.add(coord[substituteA]);
+                                uniqueCOR.add(coord[rowOrColumn]);
+                                emptyList.add(coord[rowOrColumn]);
                                 String key = coord[0] + "," + coord[1];
                                 candidates.add(key);
                             }
@@ -1499,8 +1473,8 @@ public class Solver
                             // For list n
                             for (int w = i; w < i + windowSize && w < processForSF.get(n).size(); w++) {
                                 int[] coord = processForSF.get(n).get(w);
-                                uniqueCOR.add(coord[substituteA]);
-                                emptyList.add(coord[substituteA]);
+                                uniqueCOR.add(coord[rowOrColumn]);
+                                emptyList.add(coord[rowOrColumn]);
                                 String key = coord[0] + "," + coord[1];
                                 candidates.add(key);
                             }

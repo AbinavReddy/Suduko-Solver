@@ -64,6 +64,14 @@ public class SudokuApp implements Initializable, ActionListener
     private static boolean savingGame = false;
     private static long savedTimeLoaded ;
 
+    private static int lives;
+
+    private static boolean deathMode;
+
+    private static boolean timedMode;
+
+    private static boolean hardcoreMode;
+
     private static long preSaveLoadUserTime;
 
     // JavaFX related
@@ -87,6 +95,8 @@ public class SudokuApp implements Initializable, ActionListener
     private CheckBox unlimitedHintsCheckBox; // menu
     private static boolean unlimitedHints; // menu
     @FXML
+    private Button loadMenuButton; // saveload
+    @FXML
     private ComboBox comboBox; // menu
     @FXML
     private Text timeSolvingField; // puzzle
@@ -104,6 +114,9 @@ public class SudokuApp implements Initializable, ActionListener
     private Text gamePausedField; // puzzle
 
     @FXML
+    private Text livesRemainingField; // puzzle
+
+    @FXML
     private Text saveLoadSceneSubtitle; // saveload
 
     @FXML
@@ -118,7 +131,7 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private ListView saveLoadSlotList; // saveload
 
-    PauseTransition pauseTransition = new PauseTransition(Duration.seconds(1.5));
+    PauseTransition pauseTransition = new PauseTransition(Duration.seconds(3));
 
     private boolean gamePaused;
 
@@ -126,6 +139,8 @@ public class SudokuApp implements Initializable, ActionListener
     private Button undoButton; // puzzle
     @FXML
     private Button hintButton; // puzzle
+    @FXML
+    private Button saveButton; // puzzle
     @FXML
     private Button resetButton; // puzzle, custom
     private static boolean soundMuted = false;
@@ -172,18 +187,23 @@ public class SudokuApp implements Initializable, ActionListener
 
             boardGrid.requestFocus();
 
-            userSolvingTime = clickedBack ? preSaveLoadUserTime : (gameSavedLoaded ? savedTimeLoaded : 0);
+            feedbackField.setText("");
+
+            intializeGameModeSettings();
+
             userSolveTimer.start();
 
             feedbackField.setText("");
-            
+
             updateSoundIcon();
 
             if(gameSavedLoaded) {
                 undoButton.setDisable(false);
                 resetButton.setDisable(false);
-            }
-            else
+            } else if (timedMode) {
+                undoButton.setDisable(true);
+                resetButton.setDisable(false);
+            } else
             {
                 undoButton.setDisable(true);
                 resetButton.setDisable(true);
@@ -239,6 +259,9 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 userSolveTimer.stop();
             }
+            hardcoreMode = false;
+            deathMode = false;
+            timedMode = false;
         }
         else if(boardView == boardViewState.NoBoardShownSaveLoad) // SaveLoadScene
         {
@@ -266,13 +289,24 @@ public class SudokuApp implements Initializable, ActionListener
         else // MenuScene
         {
             gameSavedLoaded = false;
+            timedMode = false;
+            deathMode = false;
+            hardcoreMode = false;
 
             valueInsertHistory = new ArrayList<>();
             hintInsertHistory = new ArrayList<>();
 
             updateSoundIcon();
 
-            comboBox.getItems().addAll("Timed Mode", "Death Mode", "Hardcore Mode");
+            comboBox.getItems().addAll("Normal Mode","Timed Mode", "Death Mode", "Hardcore Mode");
+
+            comboBox.setOnAction( event -> {
+                try {
+                    handleModeSelected();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
 
             savingGame = false;
 
@@ -363,6 +397,53 @@ public class SudokuApp implements Initializable, ActionListener
             playSoundEffect(errorSound, 0.2);
         }
     }
+
+    /**
+     * @author  Abinav, Danny & Yahya
+     */
+    private void intializeGameModeSettings() {
+
+        if(hardcoreMode) { // Timer countdown mode
+
+            hintButton.setDisable(true);
+            undoButton.setDisable(true);
+            saveButton.setDisable(true);
+            lives = calculateLivesBasedOnBoardSize();
+            livesRemainingField.setText("Lives: " + lives);
+            userSolvingTime = calculateUserSolvingTime();
+            livesRemainingField.setVisible(true);
+            feedbackField.setText("Welcome to Hardcore Mode!");
+            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before time, lives, or both run out!"));
+            pauseTransition.play();
+
+        } else if(deathMode) { // Mode allowing limited mistakes based on board size
+
+            lives = calculateLivesBasedOnBoardSize();
+            livesRemainingField.setText("Lives: " + lives);
+            userSolvingTime = 0;
+            livesRemainingField.setVisible(true);
+            hintButton.setDisable(true);
+            saveButton.setDisable(true);
+            feedbackField.setText("Welcome to Death Mode!");
+            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before incorrect placement depletes lives!"));
+            pauseTransition.play();
+
+        } else if ( timedMode) { // Timer countdown mode
+
+            userSolvingTime = calculateUserSolvingTime();
+            hintButton.setDisable(true);
+            saveButton.setDisable(true);
+            feedbackField.setText("Welcome to Timed Mode!");
+            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before time runs out!"));
+            pauseTransition.play();
+
+        } else {
+            userSolvingTime = clickedBack ? preSaveLoadUserTime : (gameSavedLoaded ? savedTimeLoaded : 0);
+            livesRemainingField.setVisible(false);
+        }
+
+    }
+
 
     /**
      * @author Danny & Abinav
@@ -651,12 +732,16 @@ public class SudokuApp implements Initializable, ActionListener
                     {
                         playSoundEffect(insertSound, 0.43);
                     }
+                    updateTimeOnInsert(true);
                 }
                 else
                 {
                     boardGridCells[row][column].clear(); // reset cell
                     feedbackField.setText(board.getErrorMessage());
+                    checkAndUpdateLivesRemaining();
+                    updateTimeOnInsert(false);
                     playSoundEffect(errorSound, 0.2);
+
                 }
 
                 updateFilledCells();
@@ -664,9 +749,72 @@ public class SudokuApp implements Initializable, ActionListener
             catch(NumberFormatException exception)
             {
                 feedbackField.setText("Only values from 1-" + board.getMaxPuzzleValue() + " are valid!");
-
+                checkAndUpdateLivesRemaining();
+                updateTimeOnInsert(false);
                 playSoundEffect(errorSound, 0.2);
             }
+        }
+    }
+
+    /**
+     * @author  Danny, Abinav & Yahya
+     */
+    private static long calculateUserSolvingTime() {
+        return board.getBoardSizeRowsColumns() != 1 ? (long) ((Math.ceil(((board.getBoardSizeRowsColumns() * board.getBoardSizeRowsColumns()) / 81.0) * 10.0)) * 60000) : 10000;
+    }
+
+    /**
+     * @author  Danny, Abinav & Yahya
+     */
+    private static int calculateLivesBasedOnBoardSize() {
+        return (int) (Math.ceil(((board.getBoardSizeRowsColumns() / 2.0)) * ((1 - ((double) board.getFilledCells() / board.getAvailableCells())) / 0.63)));
+    }
+
+    /**
+     * @author  Abinav
+     */
+    private void handleModeSelected() throws IOException {
+        String selectedItem = comboBox.getSelectionModel().getSelectedItem();
+        if(selectedItem != null) {
+            switch (selectedItem) {
+                case "Timed Mode" ->
+                {
+                    timedMode = true;
+                    loadMenuButton.setDisable(true);
+                    unlimitedHintsCheckBox.setVisible(false);
+                    deathMode = false;
+                    hardcoreMode = false;
+                }
+
+                case "Death Mode" ->
+                {
+                    deathMode = true;
+                    loadMenuButton.setDisable(true);
+                    unlimitedHintsCheckBox.setVisible(true);
+                    timedMode = false;
+                    hardcoreMode = false;
+                }
+
+
+                case "Hardcore Mode" ->
+                {
+                    hardcoreMode = true;
+                    loadMenuButton.setDisable(true);
+                    unlimitedHintsCheckBox.setVisible(true);
+                    timedMode = false;
+                    deathMode = false;
+                }
+
+                default ->
+                {
+                    loadMenuButton.setDisable(false);
+                    unlimitedHintsCheckBox.setVisible(false);
+                    timedMode = false;
+                    hardcoreMode = false;
+                    deathMode = false;
+                }
+
+                }
         }
     }
 
@@ -680,6 +828,44 @@ public class SudokuApp implements Initializable, ActionListener
         if(board.isGameFinished() && boardView != boardViewState.CustomBoardShown)
         {
             puzzleHasBeenSolved();
+        }
+    }
+
+    /**
+     * @author Abinav
+     */
+    public void checkAndUpdateLivesRemaining(){
+
+        if (lives > 0 && (deathMode || hardcoreMode)) {
+            lives--;
+            livesRemainingField.setText("Lives: " + lives);
+        }
+        if (lives == 0 && (deathMode || hardcoreMode)) {
+            userSolveTimer.stop();
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
+            pauseResumeButton.setDisable(true);
+            boardGrid.setDisable(true);
+            feedbackField.setText("Game Over! You have run out of lives!");
+            //playSoundEffect(loseSound, 0.5);
+        }
+
+    }
+
+    /**
+     * @author Abinav
+     */
+    private void updateTimeOnInsert(boolean shouldIncrement) {
+        if(timedMode || hardcoreMode) {
+            if (shouldIncrement) {
+                userSolvingTime += 10000;
+            } else  {
+                if(userSolvingTime < 10000){
+                   userSolvingTime = 0;
+                } else {
+                    userSolvingTime -= 10000;
+                }
+            }
         }
     }
 
@@ -825,8 +1011,15 @@ public class SudokuApp implements Initializable, ActionListener
 
         if(boardView == boardViewState.UnsolvedBoardShown)
         {
-            userSolvingTime = 0;
+            userSolvingTime = timedMode || hardcoreMode? calculateUserSolvingTime(): 0;
             userSolveTimer.start();
+
+            if(deathMode || hardcoreMode) lives = calculateLivesBasedOnBoardSize();
+
+            if(boardGrid.isDisable())
+            {
+                boardGrid.setDisable(false);
+            }
 
             hintButton.setDisable(false);
             pauseResumeButton.setDisable(false);
@@ -1179,7 +1372,20 @@ public class SudokuApp implements Initializable, ActionListener
     @Override
     public void actionPerformed(ActionEvent actionEvent) // updates solving timer every second
     {
+        if(userSolvingTime <= 0 && (timedMode || hardcoreMode)){
+            userSolveTimer.stop();
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
+            pauseResumeButton.setDisable(true);
+            boardGrid.setDisable(true);
+            feedbackField.setText("Game Over! Time's up!");
+           //playSoundEffect(loseSound, 0.5);
+
+        } else if (timedMode || hardcoreMode ) {
+            userSolvingTime -= 100;
+        } else {
         userSolvingTime += 100;
+        }
 
         // Display the time used by the Solver to solve the puzzle
         int totalSeconds = (int) (userSolvingTime / 1000);
