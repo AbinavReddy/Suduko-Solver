@@ -77,6 +77,7 @@ public class SudokuApp implements Initializable, ActionListener
     // JavaFX related
     private static Stage appStage;
     private static Scene currentScene;
+    private static BoardViewState boardView = BoardViewState.NoBoardShown;
 
     @FXML
     private GridPane boardGrid; // puzzle, solver
@@ -97,7 +98,7 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private Button loadMenuButton; // saveload
     @FXML
-    private ComboBox comboBox; // menu
+    private ComboBox<String> comboBox; // menu
     @FXML
     private Text timeSolvingField; // puzzle
     private final Timer userSolveTimer = new Timer(100, this); // puzzle
@@ -153,22 +154,14 @@ public class SudokuApp implements Initializable, ActionListener
     private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/win sound.wav")).toExternalForm());
     private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/lose sound.wav")).toExternalForm());
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-
     List<String> list = new ArrayList<>(List.of("Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5"));
-
-    private enum boardViewState
-    {
-        NoBoardShown, NoBoardShownSaveLoad, UnsolvedBoardShown, CustomBoardShown, SolvedBoardShown
-    }
-
-    private static boardViewState boardView = boardViewState.NoBoardShown;
-
+    
     /**
      * @author Danny, Abinav & Yahya
      */
     public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and is also needed to inject some JavaFX fields
     {
-        if(boardView == boardViewState.UnsolvedBoardShown) // PuzzleScene
+        if(boardView == BoardViewState.UnsolvedBoardShown) // PuzzleScene
         {
             savingGame = false;
 
@@ -214,7 +207,7 @@ public class SudokuApp implements Initializable, ActionListener
 
             updateFilledCells();
         }
-        else if(boardView == boardViewState.CustomBoardShown) // CustomScene
+        else if(boardView == BoardViewState.CustomBoardShown) // CustomScene
         {
             showBoardValues(true);
 
@@ -229,7 +222,7 @@ public class SudokuApp implements Initializable, ActionListener
 
             updateFilledCells();
         }
-        else if(boardView == boardViewState.SolvedBoardShown) // SolverScene
+        else if(boardView == BoardViewState.SolvedBoardShown) // SolverScene
         {
             if(!board.getSolver().getSolverHasRun()) // needed to solve custom boards
             {
@@ -263,7 +256,7 @@ public class SudokuApp implements Initializable, ActionListener
             deathMode = false;
             timedMode = false;
         }
-        else if(boardView == boardViewState.NoBoardShownSaveLoad) // SaveLoadScene
+        else if(boardView == BoardViewState.NoBoardShownSaveLoad) // SaveLoadScene
         {
             gameSavedLoaded = true;
 
@@ -710,7 +703,7 @@ public class SudokuApp implements Initializable, ActionListener
 
                 if(board.placeValueInCell(row, column, value))
                 {
-                    if(!valueInsertHistory.contains(activeTextField) && boardView != boardViewState.CustomBoardShown)
+                    if(!valueInsertHistory.contains(activeTextField) && boardView != BoardViewState.CustomBoardShown)
                     {
                         valueInsertHistory.add(activeTextField);
                         valueInsertHistorySaved.add(row+","+column);
@@ -728,7 +721,7 @@ public class SudokuApp implements Initializable, ActionListener
                         resetButton.setDisable(false);
                     }
 
-                    if(!board.isGameFinished() || boardView == boardViewState.CustomBoardShown)
+                    if(!board.isGameFinished() || boardView == BoardViewState.CustomBoardShown)
                     {
                         playSoundEffect(insertSound, 0.43);
                     }
@@ -825,7 +818,7 @@ public class SudokuApp implements Initializable, ActionListener
     {
         filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
 
-        if(board.isGameFinished() && boardView != boardViewState.CustomBoardShown)
+        if(board.isGameFinished() && boardView != BoardViewState.CustomBoardShown)
         {
             puzzleHasBeenSolved();
         }
@@ -1009,7 +1002,7 @@ public class SudokuApp implements Initializable, ActionListener
             undoHintInsertion();
         }
 
-        if(boardView == boardViewState.UnsolvedBoardShown)
+        if(boardView == BoardViewState.UnsolvedBoardShown)
         {
             userSolvingTime = timedMode || hardcoreMode? calculateUserSolvingTime(): 0;
             userSolveTimer.start();
@@ -1456,7 +1449,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToMenuScene() throws IOException
     {
-        boardView = boardViewState.NoBoardShown;
+        boardView = BoardViewState.NoBoardShown;
         setActiveScene("MenuScene");
     }
 
@@ -1465,7 +1458,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToSaveLoadScene() throws IOException
     {
-        boardView = boardViewState.NoBoardShownSaveLoad;
+        boardView = BoardViewState.NoBoardShownSaveLoad;
         setActiveScene("SaveLoadScene");
     }
 
@@ -1474,7 +1467,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToPuzzleScene() throws IOException
     {
-        boardView = boardViewState.UnsolvedBoardShown;
+        boardView = BoardViewState.UnsolvedBoardShown;
         setActiveScene("PuzzleScene");
     }
 
@@ -1483,7 +1476,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToCustomScene() throws IOException
     {
-        boardView = boardViewState.CustomBoardShown;
+        boardView = BoardViewState.CustomBoardShown;
         setActiveScene("CustomScene");
     }
 
@@ -1492,7 +1485,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void goToSolverScene() throws IOException
     {
-        boardView = boardViewState.SolvedBoardShown;
+        boardView = BoardViewState.SolvedBoardShown;
         setActiveScene("SolverScene");
     }
 
