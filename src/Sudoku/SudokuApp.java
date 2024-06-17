@@ -178,15 +178,24 @@ public class SudokuApp implements Initializable, ActionListener
 
             boardGrid.requestFocus();
 
+            feedbackField.setText("");
+
             if(deathMode) {
                 lives = (board.getAvailableCells()-board.getFilledCells()) / 7; // 1 life per 7 empty cells
                 userSolvingTime = 0;
+                hintButton.setDisable(true);
+                feedbackField.setText("Welcome to Death Mode! You have " + lives + " lives left.");
+                pauseTransition.setOnFinished(e ->  feedbackField.setText(""));
+                pauseTransition.play();
 
             } else if(clickedBack && timedMode){
                 userSolvingTime = preSaveLoadUserTime;
 
             } else if ( timedMode) {
                 userSolvingTime = (board.getAvailableCells() - board.getFilledCells()) * 6000L; // 6 seconds per empty cell
+                feedbackField.setText("Welcome to Timed Mode! Solve before time runs out.");
+                pauseTransition.setOnFinished(e -> feedbackField.setText(""));
+                pauseTransition.play();
                 hintButton.setDisable(true);
 
             } else {
@@ -194,9 +203,6 @@ public class SudokuApp implements Initializable, ActionListener
             }
             userSolveTimer.start();
 
-            feedbackField.setText("");
-
-            
             updateSoundIcon();
 
             if(gameSavedLoaded) {
@@ -747,6 +753,9 @@ public class SudokuApp implements Initializable, ActionListener
         if(deathMode) {
             if (lives > 0) {
                 lives--;
+                feedbackField.setText("Lives remaining"+lives);
+                pauseTransition.setOnFinished(e -> feedbackField.setText(""));
+                pauseTransition.play();
             }
             if (lives == 0) {
                 userSolveTimer.stop();
@@ -906,6 +915,8 @@ public class SudokuApp implements Initializable, ActionListener
 
             userSolvingTime = timedMode? (board.getAvailableCells() - board.getFilledCells()) * 6000L: 0;
             userSolveTimer.start();
+
+            if(deathMode) lives = (board.getAvailableCells() - board.getFilledCells())/ 7;
 
             hintButton.setDisable(false);
             pauseResumeButton.setDisable(false);
