@@ -28,9 +28,9 @@ public class Solver
     public Solver(Board boardToSolve)
     {
         this.solvedBoard = boardToSolve;
+        solvedWithHardCoding = false;
         solvedWithStrategies = false;
         solvedWithBacktracking = false;
-        solvedWithHardCoding = false;
         solverHasRun = false;
         boardSizeBoxes = boardToSolve.getBoardSizeBoxes();
         boardBoxes = boardToSolve.getBoardBoxes();
@@ -187,10 +187,10 @@ public class Solver
      */
     private boolean solveWithBacktracking(List<String> possibleKeysSorted, int keyIndex)
     {
-        if(keyIndex == possibleKeysSorted.size()) // all elements processed, board solved
+        if(keyIndex == possibleKeysSorted.size()) // all elements have been processed
         {
             // base case
-            return true;
+            return solvedBoard.isGameFinished();
         }
         else
         {
@@ -210,7 +210,10 @@ public class Solver
 
                     if(solveWithBacktracking(possibleKeysSorted, keyIndex))
                     {
-                        solvedWithBacktracking = true; // backtracking part of solution
+                        if(!solvedWithBacktracking)
+                        {
+                            solvedWithBacktracking = true; // backtracking part of solution
+                        }
 
                         return true;
                     }
@@ -253,7 +256,7 @@ public class Solver
     /**
      * @author Abinav, Yahya & Danny
      */
-    public boolean possibleValuesInCells() {
+    public void possibleValuesInCells() {
         for (int rows = 0; rows < boardSizeRowsColumns; rows++) {
             for (int columns = 0; columns < boardSizeRowsColumns; columns++) {
                 if (solvedBoard.getBoard()[rows][columns] == 0) {
@@ -267,13 +270,9 @@ public class Solver
                    if(!listOfPosNumbers.isEmpty()) {
                        updatePossibleNumbersAndCounts(currentPosition,null, listOfPosNumbers, true);
                    }
-                   else {
-                       return false;
-                   }
                 }
             }
         }
-        return true;
     }
 
     /**
@@ -2065,7 +2064,7 @@ public class Solver
                         }
                     }
 
-                    if(!positions.isEmpty())
+                    if(positions.size() == 2)
                     {
                         String position1 = positions.get(0);
                         String[] cell1 = position1.split(",");
@@ -2091,7 +2090,7 @@ public class Solver
                         }
                     }
 
-                    if(!positions.isEmpty())
+                    if(positions.size() == 2)
                     {
                         String position1 = positions.get(0);
                         String[] cell1 = position1.split(",");

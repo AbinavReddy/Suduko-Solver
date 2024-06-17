@@ -62,7 +62,6 @@ public class SudokuApp implements Initializable, ActionListener
     private static boolean clickedBack = false;
 
     private static boolean savingGame = false;
-    public static boolean boardAlreadySolved = false;
     private static long savedTimeLoaded ;
 
     private static long preSaveLoadUserTime;
@@ -81,6 +80,12 @@ public class SudokuApp implements Initializable, ActionListener
     private TextField boxSizeField; // menu
     @FXML
     private Text boardSizeValidationField; // menu
+    @FXML
+    private CheckBox solvableOnlyCheckBox; // menu
+    private static boolean solvableOnly; // menu
+    @FXML
+    private CheckBox unlimitedHintsCheckBox; // menu
+    private static boolean unlimitedHints; // menu
     @FXML
     private ComboBox comboBox; // menu
     @FXML
@@ -151,14 +156,14 @@ public class SudokuApp implements Initializable, ActionListener
         if(boardView == boardViewState.UnsolvedBoardShown) // PuzzleScene
         {
             savingGame = false;
+
             if(!board.getSolver().getSolverHasRun() && !gameSavedLoaded) // needed to solve custom boards
             {
                 board.solve();
             }
 
-            if (gameSavedLoaded) {
-                boardAlreadySolved = true;
-            } else {
+            if(!gameSavedLoaded)
+            {
                 valueInsertHistorySaved = new ArrayList<>();
                 hintInsertHistorySaved = new ArrayList<>();
             }
@@ -171,7 +176,6 @@ public class SudokuApp implements Initializable, ActionListener
             userSolveTimer.start();
 
             feedbackField.setText("");
-
             
             updateSoundIcon();
 
@@ -207,7 +211,7 @@ public class SudokuApp implements Initializable, ActionListener
         }
         else if(boardView == boardViewState.SolvedBoardShown) // SolverScene
         {
-            if(!board.getSolver().getSolverHasRun() && !boardAlreadySolved) // needed to solve custom boards
+            if(!board.getSolver().getSolverHasRun()) // needed to solve custom boards
             {
                 board.solve();
             }
@@ -235,7 +239,6 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 userSolveTimer.stop();
             }
-            boardAlreadySolved = false;
         }
         else if(boardView == boardViewState.NoBoardShownSaveLoad) // SaveLoadScene
         {
@@ -272,6 +275,12 @@ public class SudokuApp implements Initializable, ActionListener
             comboBox.getItems().addAll("Timed Mode", "Death Mode", "Hardcore Mode");
 
             savingGame = false;
+
+            if(solvableOnly)
+            {
+                solvableOnlyCheckBox.setSelected(true);
+            }
+
             if(userSolveTimer.isRunning())
             {
                 userSolveTimer.stop();
@@ -291,7 +300,9 @@ public class SudokuApp implements Initializable, ActionListener
 
             if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, requirement for being valid
             {
-                board = new Board(boardSizeBoxes, boxSizeRowsColumns, false);
+                solvableOnly = solvableOnlyCheckBox.isSelected();
+
+                board = new Board(boardSizeBoxes, boxSizeRowsColumns, solvableOnly, false);
 
                 goToPuzzleScene();
             }
@@ -328,7 +339,7 @@ public class SudokuApp implements Initializable, ActionListener
 
             if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, where k and n > 0, requirement for being valid
             {
-                board = new Board(boardSizeBoxes, boxSizeRowsColumns, true);
+                board = new Board(boardSizeBoxes, boxSizeRowsColumns, false, true); // can't force solvable on custom boards
 
                 goToCustomScene();
             }
@@ -379,6 +390,7 @@ public class SudokuApp implements Initializable, ActionListener
 
                 temp.setOnMouseClicked(event -> updateActiveTextField(temp)); // needed to know the currently active text field
                 temp.setOnMouseDragged(event -> updateActiveTextField(temp));
+                temp.setOnMouseMoved(event -> isLastInsertion()); // needed to auto insert last insertion
 
                 // Fill cell
                 if(boardToShow[row][column] == 0)
@@ -438,7 +450,7 @@ public class SudokuApp implements Initializable, ActionListener
     /**
      * @author Danny, Abinav & Yahya
      */
-    public void drawBoardLines(boolean processingRows) // borders are done in SceneBuilder
+    public void drawBoardLines(boolean processingRows) // board borders are done in SceneBuilder
     {
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
@@ -589,7 +601,7 @@ public class SudokuApp implements Initializable, ActionListener
      */
     public void isLastInsertion()
     {
-        if((board.getFilledCells() == board.getAvailableCells() - 1) && !activeTextField.getText().isEmpty())
+        if((board.getFilledCells() == board.getAvailableCells() - 1) && activeTextField != null && !activeTextField.getText().isEmpty())
         {
             int row = GridPane.getRowIndex(activeTextField);
             int column = GridPane.getColumnIndex(activeTextField);
@@ -1027,7 +1039,7 @@ public class SudokuApp implements Initializable, ActionListener
                         }
                         hintInsertHistorySaved = hintValuesOnBoardSaved;
                     }
-                    board = new Board(boardSizeBoxesSaved, boxSizeRowsColumnSaved, false);
+                    board = new Board(boardSizeBoxesSaved, boxSizeRowsColumnSaved, false, false);
                     convertJsonArrayIntoArray(boardArraySaved ,true);
                     board.setFilledCells(filledCellsSaved);
                     if(solvedBoardArraySaved != null){

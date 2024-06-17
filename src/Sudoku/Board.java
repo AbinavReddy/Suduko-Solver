@@ -22,7 +22,7 @@ public class Board
     /**
      * @author Danny, Abinav & Yahya
      */
-    public Board(int boardSizeBoxes, int boxSizeRowsColumns, boolean isCustomBoard)
+    public Board(int boardSizeBoxes, int boxSizeRowsColumns, boolean solvableOnly, boolean isCustomBoard)
     {
         this.boardSizeBoxes = boardSizeBoxes;
         boardBoxes = boardSizeBoxes * boardSizeBoxes;
@@ -36,8 +36,7 @@ public class Board
 
         if(!isCustomBoard)
         {
-            Random chooseSolvable = new Random();
-            createSolvableBoard = boardSizeBoxes == 1 || boxSizeRowsColumns == 1 || isSolverCandidate && (0 < chooseSolvable.nextInt(1, 5));  // 0 = unsolvable (~20% chance), 1-4 = solvable (~80% chance)
+            createSolvableBoard = boardSizeBoxes == 1 || boxSizeRowsColumns == 1 || (isSolverCandidate && (solvableOnly || (0 < new Random().nextInt(0, 11)))); // 0 = unsolvable (10% chance), 1-10 = solvable (90% chance)
         }
 
         do
@@ -47,7 +46,7 @@ public class Board
             Board boardForSolving = new Board(this);
             solver = new Solver(boardForSolving);
         }
-        while(!isCustomBoard && ((isSolverCandidate && (createSolvableBoard && !solve() || !createSolvableBoard && solve()))) || !solver.possibleValuesInCells());
+        while(!isCustomBoard && ((createSolvableBoard && !solve()) || (!createSolvableBoard && solve())));
     }
 
     /**
