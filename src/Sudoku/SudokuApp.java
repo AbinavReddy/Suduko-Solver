@@ -111,6 +111,9 @@ public class SudokuApp implements Initializable, ActionListener
     private Text gamePausedField; // puzzle
 
     @FXML
+    private Text livesRemainingField; // puzzle
+
+    @FXML
     private Text saveLoadSceneSubtitle; // saveload
 
     @FXML
@@ -185,6 +188,8 @@ public class SudokuApp implements Initializable, ActionListener
             feedbackField.setText("");
 
             intializeGameModeSettings();
+
+            userSolveTimer.start();
 
             updateSoundIcon();
 
@@ -292,7 +297,7 @@ public class SudokuApp implements Initializable, ActionListener
 
             comboBox.getItems().addAll("Timed Mode", "Death Mode", "Hardcore Mode");
 
-            comboBox.setOnAction( event -> {
+            comboBox.setOnMouseClicked( event -> {
                 try {
                     handleModeSelected();
                 } catch (IOException e) {
@@ -332,11 +337,11 @@ public class SudokuApp implements Initializable, ActionListener
 
                 boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
 
-                Platform.runLater(() -> {
+                   /* Platform.runLater(() -> {
                     comboBox.getSelectionModel().clearSelection();
-
-                });
-
+                comboBox.setPromptText("Game Mode");
+            });*/
+                comboBox.setPromptText("Game Mode");
                 playSoundEffect(errorSound, 0.2);
             }
         }
@@ -348,9 +353,11 @@ public class SudokuApp implements Initializable, ActionListener
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
 
 
-            Platform.runLater(() -> {
+           /* Platform.runLater(() -> {
                     comboBox.getSelectionModel().clearSelection();
-            });
+                comboBox.setPromptText("Game Mode");
+            });*/
+            comboBox.setPromptText("Game Mode");
             playSoundEffect(errorSound, 0.2);
         }
     }
@@ -393,7 +400,7 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
-     * @author  Abinav
+     * @author  Abinav, Danny & Yahya
      */
     private void intializeGameModeSettings() {
 
@@ -407,18 +414,17 @@ public class SudokuApp implements Initializable, ActionListener
             feedbackField.setText("Welcome to Hardcore Mode!");
             pauseTransition.setOnFinished(e ->  feedbackField.setText(""));
             pauseTransition.play();
+            livesRemainingField.setVisible(true);
 
         } else if(deathMode) { // Mode allowing 0 or limited mistakes based on board size
 
-            lives = (board.getAvailableCells()-board.getFilledCells()) / 7; // 1 life per 7 empty cells
+
+          int lives = (int)  (Math.ceil(((board.getBoardSizeRowsColumns() / 2.0)) * ((1-((double) board.getFilledCells() / board.getAvailableCells()))/0.63)));
             userSolvingTime = 0;
-            if(lives > 0){
-                feedbackField.setText("Welcome to Death Mode! You have " + lives + " lives left.");
-            } else {
-                feedbackField.setText("Welcome to Death Mode! No mistakes allowed!");
-            }
+            livesRemainingField.setText("Lives: " + lives);
             pauseTransition.setOnFinished(e ->  feedbackField.setText(""));
             pauseTransition.play();
+            livesRemainingField.setVisible(true);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
 
@@ -434,7 +440,7 @@ public class SudokuApp implements Initializable, ActionListener
         } else {
             userSolvingTime = clickedBack ? preSaveLoadUserTime : (gameSavedLoaded ? savedTimeLoaded : 0);
         }
-        userSolveTimer.start();
+
     }
 
     /**
@@ -644,7 +650,7 @@ public class SudokuApp implements Initializable, ActionListener
                     resetButton.setDisable(true);
                 }
 
-                playSoundEffect(removeSound, 0.02);
+                playSoundEffect(removeSound, 0.03);
             }
 
             updateFilledCells();
@@ -752,14 +758,13 @@ public class SudokuApp implements Initializable, ActionListener
                     boardGridCells[row][column].clear(); // reset cell
                     feedbackField.setText(board.getErrorMessage());
                     playSoundEffect(errorSound, 0.2);
-                }
 
-                if(!board.getErrorMessage().isEmpty())
                     if(timedMode) {
                         userSolvingTime -= 500L;
                     } else {
                         checkAndUpdateLivesRemaining();
                     }
+                }
 
                 updateFilledCells();
             }
@@ -790,9 +795,7 @@ public class SudokuApp implements Initializable, ActionListener
 
         if (lives > 0 && deathMode) {
             lives--;
-            feedbackField.setText("Lives remaining"+lives);
-            pauseTransition.setOnFinished(e -> feedbackField.setText(""));
-            pauseTransition.play();
+            livesRemainingField.setText("Lives: " + lives);
         }
         if (lives == 0 && (deathMode || hardcoreMode)) {
             userSolveTimer.stop();
@@ -1315,7 +1318,7 @@ public class SudokuApp implements Initializable, ActionListener
             feedbackField.setText("Game Over!Time's up!");
             playSoundEffect(loseSound, 0.5);
 
-        } else if (timedMode ) {
+        } else if (timedMode || hardcoreMode ) {
             userSolvingTime -= 100;
         } else {
         userSolvingTime += 100;

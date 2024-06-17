@@ -91,7 +91,7 @@
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button layoutX="609.0" layoutY="1076.0" mnemonicParsing="false" onAction="#onClickedSave" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Save">
+      <Button fx:id="saveButton" layoutX="609.0" layoutY="1076.0" mnemonicParsing="false" onAction="#onClickedSave" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Save">
          <font>
             <Font name="System Bold" size="12.0" />
          </font></Button>
@@ -143,6 +143,11 @@
       <Text fx:id="gamePausedField" disable="true" fill="WHITE" layoutX="387.0" layoutY="617.0" opacity="0.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Game paused!" textAlignment="CENTER">
          <font>
             <Font name="System Bold" size="64.0" />
+         </font>
+      </Text>
+      <Text fx:id="livesRemainingField" disable="true" fill="WHITE" layoutX="757.0" layoutY="155.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Lives: 0" visible="false" wrappingWidth="65.0">
+         <font>
+            <Font name="System Bold" size="18.0" />
          </font>
       </Text>
     </children>
