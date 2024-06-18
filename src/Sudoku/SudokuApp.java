@@ -1151,7 +1151,6 @@ public  class SudokuApp implements Initializable, ActionListener
         if (slotNo >=0 && slotNo < 5)  arrayNode.set(slotNo,gameStateAsJson);
 
         // saving the json obj in specified slot
-        System.out.println("game saved");
         objectMapper.writeValue(jsonFile, arrayNode);
     }
 
@@ -1405,17 +1404,12 @@ public  class SudokuApp implements Initializable, ActionListener
     public void actionPerformed(ActionEvent actionEvent) // updates solving timer every second
     {
         if(userSolvingTime == 0 && (timedMode || hardcoreMode)){
-            System.out.println();
             handleTimeOut();
         } else if (timedMode || hardcoreMode ) {
             userSolvingTime -= 100;
         } else {
         userSolvingTime += 100;
         }
-
-      if(userSolvingTime == 0){
-          System.out.println(timedMode + " " + hardcoreMode);
-      }
 
         // Display the time used by the Solver to solve the puzzle
         int totalSeconds = (int) (userSolvingTime / 1000);
@@ -1428,6 +1422,9 @@ public  class SudokuApp implements Initializable, ActionListener
         timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
     }
 
+    /**
+     * @author Abinav
+     */
     private void handleTimeOut() {
 
         playSoundEffect(loseSound, 0.5);
