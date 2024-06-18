@@ -26,9 +26,10 @@ public class Main extends Application
             sceneLoader.load(); // Set FXML as root
 
             // Controller setup
-            SudokuApp controller = sceneLoader.getController();
-            controller.setAppStage(appStage);
-            controller.goToMenuScene();
+            SceneController sceneController = sceneLoader.getController();
+            sceneController.setGameController(new GameController());
+            sceneController.setAppStage(appStage);
+            sceneController.goToMenuScene();
         }
         catch(Exception e)
         {

@@ -10,17 +10,11 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -32,11 +26,8 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-import javafx.scene.transform.Scale;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -51,37 +42,39 @@ import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class SudokuApp implements Initializable, ActionListener
+public class GameController implements Initializable, ActionListener
 {
     private static Board board;
+    private static SceneController sceneController;
+    private BoardViewState boardView;
+
+    // Game data
+    private static boolean deathMode;
+    private static boolean timedMode;
+    private static boolean hardcoreMode;
+    private  long userSolvingTime; // puzzle
+    private static int lives;
+    private static boolean solvableOnly; // menu
+    private static boolean unlimitedHints; // menu
+    private static boolean savingGame = false;
+    private static boolean gameSavedLoaded = false;
+    private static long savedTimeLoaded;
+    private static long preSaveLoadUserTime;
+    private static boolean clickedBack = false;
+    private boolean gamePaused;
+    private static boolean soundMuted = false;
     private static List<Node> valueInsertHistory;
     private static List<Node> hintInsertHistory;
     private static List<String> valueInsertHistorySaved;
     private static List<String> hintInsertHistorySaved;
-    private static boolean gameSavedLoaded = false;
-    private static boolean clickedBack = false;
+    List<String> list = new ArrayList<>(List.of("Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5"));
 
-    private static boolean savingGame = false;
-    private static long savedTimeLoaded ;
-
-    private static int lives;
-
-    private static boolean deathMode;
-
-    private static boolean timedMode;
-
-    private static boolean hardcoreMode;
-
-    private static long preSaveLoadUserTime;
-
-    // JavaFX related
-    private static Stage appStage;
-    private static Scene currentScene;
-    private static BoardViewState boardView = BoardViewState.NoBoardShown;
-
+    // UI elements
     @FXML
-    private GridPane boardGrid; // puzzle, solver
-    private TextField[][] boardGridCells; // puzzle, solver
+    private GridPane boardGrid; // puzzle, custom, solver
+    @FXML
+    private TextField[][] boardGridCells; // puzzle, custom, solver
+    @FXML
     private TextField activeTextField; // puzzle
     @FXML
     private TextField boardSizeField; // menu
@@ -90,72 +83,61 @@ public class SudokuApp implements Initializable, ActionListener
     @FXML
     private Text boardSizeValidationField; // menu
     @FXML
-    private CheckBox solvableOnlyCheckBox; // menu
-    private static boolean solvableOnly; // menu
-    @FXML
-    private CheckBox unlimitedHintsCheckBox; // menu
-    private static boolean unlimitedHints; // menu
-    @FXML
-    private Button loadMenuButton; // saveload
-    @FXML
-    private ComboBox<String> comboBox; // menu
-    @FXML
     private Text timeSolvingField; // puzzle
-    private final Timer userSolveTimer = new Timer(100, this); // puzzle
-    private  long userSolvingTime; // puzzle
     @FXML
     private Text filledCellsField; // puzzle, solver, custom
     @FXML
     private Text feedbackField; // puzzle, custom, solver
     @FXML
-    private Button pauseResumeButton; // puzzle
-    @FXML
-    private Rectangle gamePausedOverlay; // puzzle
-    @FXML
     private Text gamePausedField; // puzzle
-
     @FXML
     private Text livesRemainingField; // puzzle
-
     @FXML
-    private Text saveLoadSceneSubtitle; // saveload
-
+    private Text saveLoadSceneSubtitle; // save load
     @FXML
-    private Label saveLoadSceneTitle; // saveload
-
+    private Label saveLoadSceneTitle; // save load
     @FXML
-    private Button backButton; // saveload
-
+    private Button undoButton; // puzzle, custom
     @FXML
-    private Button saveLoadButton; // saveload
-
-    @FXML
-    private ListView saveLoadSlotList; // saveload
-
-    PauseTransition pauseTransition = new PauseTransition(Duration.seconds(3));
-
-    private boolean gamePaused;
-
-    @FXML
-    private Button undoButton; // puzzle
-    @FXML
-    private Button hintButton; // puzzle
+    private Button resetButton; // puzzle, custom
     @FXML
     private Button saveButton; // puzzle
     @FXML
-    private Button resetButton; // puzzle, custom
-    private static boolean soundMuted = false;
+    private Button hintButton; // puzzle
     @FXML
-    private ImageView soundButtonImage;
+    private Button pauseResumeButton; // puzzle
+    @FXML
+    private Button backButton; // save load
+    @FXML
+    private Button loadMenuButton; // save load
+    @FXML
+    private Button saveLoadButton; // save load
+    @FXML
+    private ListView saveLoadSlotList; // save load
+    @FXML
+    private ComboBox<String> comboBox; // menu
+    @FXML
+    private CheckBox solvableOnlyCheckBox; // menu
+    @FXML
+    private CheckBox unlimitedHintsCheckBox; // menu
+    @FXML
+    private Rectangle gamePausedOverlay; // puzzle
+    @FXML
+    private ImageView soundButtonImage; // all
+
+    // Sound
     private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/click sound.wav")).toExternalForm());
     private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/insert sound.wav")).toExternalForm());
     private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/remove sound.wav")).toExternalForm());
     private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/error sound.wav")).toExternalForm());
     private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/win sound.wav")).toExternalForm());
     private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/lose sound.wav")).toExternalForm());
+
+    // Other
+    private final Timer userSolveTimer = new Timer(100, this);
+    private PauseTransition pauseTransition = new PauseTransition(Duration.seconds(3));
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    List<String> list = new ArrayList<>(List.of("Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5"));
-    
+
     /**
      * @author Danny, Abinav & Yahya
      */
@@ -263,13 +245,13 @@ public class SudokuApp implements Initializable, ActionListener
             updateSoundIcon();
 
             if(savingGame) {
-                backButton.setOnAction((event -> {try {clickedBack = true; goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
+                backButton.setOnAction((event -> {try {clickedBack = true; sceneController.goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
 
                 saveLoadSceneTitle.setText("Save");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
                 saveLoadButton.setText("Save");
             } else {
-                backButton.setOnAction((event -> {try { goToMenuScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
+                backButton.setOnAction((event -> {try { sceneController.goToMenuScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
             }
 
             saveLoadSlotList.getItems().addAll(list);
@@ -331,7 +313,7 @@ public class SudokuApp implements Initializable, ActionListener
 
                 board = new Board(boardSizeBoxes, boxSizeRowsColumns, solvableOnly, false);
 
-                goToPuzzleScene();
+                sceneController.goToPuzzleScene();
             }
             else
             {
@@ -368,7 +350,7 @@ public class SudokuApp implements Initializable, ActionListener
             {
                 board = new Board(boardSizeBoxes, boxSizeRowsColumns, false, true); // can't force solvable on custom boards
 
-                goToCustomScene();
+                sceneController.goToCustomScene();
             }
             else
             {
@@ -388,6 +370,54 @@ public class SudokuApp implements Initializable, ActionListener
             boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
 
             playSoundEffect(errorSound, 0.2);
+        }
+    }
+
+    /**
+     * @author  Abinav
+     */
+    private void handleModeSelected() throws IOException {
+        String selectedItem = comboBox.getSelectionModel().getSelectedItem();
+        if(selectedItem != null) {
+            switch (selectedItem) {
+                case "Timed Mode" ->
+                {
+                    timedMode = true;
+                    loadMenuButton.setDisable(true);
+                    unlimitedHintsCheckBox.setDisable(true);
+                    deathMode = false;
+                    hardcoreMode = false;
+                }
+
+                case "Death Mode" ->
+                {
+                    deathMode = true;
+                    loadMenuButton.setDisable(true);
+                    unlimitedHintsCheckBox.setDisable(true);
+                    timedMode = false;
+                    hardcoreMode = false;
+                }
+
+
+                case "Hardcore Mode" ->
+                {
+                    hardcoreMode = true;
+                    loadMenuButton.setDisable(true);
+                    unlimitedHintsCheckBox.setDisable(true);
+                    timedMode = false;
+                    deathMode = false;
+                }
+
+                default ->
+                {
+                    loadMenuButton.setDisable(false);
+                    unlimitedHintsCheckBox.setVisible(false);
+                    timedMode = false;
+                    hardcoreMode = false;
+                    deathMode = false;
+                }
+
+            }
         }
     }
 
@@ -435,9 +465,78 @@ public class SudokuApp implements Initializable, ActionListener
             userSolvingTime = clickedBack ? preSaveLoadUserTime : (gameSavedLoaded ? savedTimeLoaded : 0);
             livesRemainingField.setVisible(false);
         }
+    }
+
+    /**
+     * @author  Danny, Abinav & Yahya
+     */
+    private static long calculateUserSolvingTime() {
+        return board.getBoardSizeRowsColumns() != 1 ? (long) ((Math.ceil(((board.getBoardSizeRowsColumns() * board.getBoardSizeRowsColumns()) / 81.0) * 10.0)) * 60000) : 10000;
+    }
+
+    /**
+     * @author  Danny, Abinav & Yahya
+     */
+    private static int calculateLivesBasedOnBoardSize() {
+        return (int) (Math.ceil(((board.getBoardSizeRowsColumns() / 2.0)) * ((1 - ((double) board.getFilledCells() / board.getAvailableCells())) / 0.63)));
+    }
+
+    /**
+     * @author Abinav
+     */
+    public void checkAndUpdateLivesRemaining(){
+
+        if (lives > 0 && (deathMode || hardcoreMode)) {
+            lives--;
+            livesRemainingField.setText("Lives: " + lives);
+            livesRemainingField.setStyle("-fx-fill: red;");
+            pauseTransition.setDuration(Duration.seconds(2));
+            pauseTransition.setOnFinished(e -> {
+                if(lives > 0) livesRemainingField.setStyle("-fx-fill: white;");
+            }) ;
+            pauseTransition.play();
+            pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
+        }
+        if (lives == 0 && (deathMode || hardcoreMode)) {
+            userSolveTimer.stop();
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
+            resetButton.setDisable(false);
+            pauseResumeButton.setDisable(true);
+            livesRemainingField.setStyle("-fx-fill: red;");
+            boardGrid.setDisable(true);
+            feedbackField.setText("Game Over! You have run out of lives!");
+            playSoundEffect(loseSound, 0.5);
+        }
 
     }
 
+    /**
+     * @author Abinav
+     */
+    private void updateTimeOnInsert(boolean shouldIncrement) {
+        if(timedMode || hardcoreMode) {
+            if (shouldIncrement) {
+                userSolvingTime += 10000;
+                timeSolvingField.setStyle("-fx-fill: green;");
+                pauseTransition.setDuration(Duration.seconds(2));
+                pauseTransition.setOnFinished(e ->  timeSolvingField.setStyle("-fx-fill: white;"));
+                pauseTransition.play();
+                pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
+            } else  {
+                if(userSolvingTime < 10000){
+                    userSolvingTime = 0;
+                } else {
+                    userSolvingTime -= 10000;
+                    timeSolvingField.setStyle("-fx-fill: red;");
+                    pauseTransition.setDuration(Duration.seconds(2));
+                    pauseTransition.setOnFinished(e -> timeSolvingField.setStyle("-fx-fill: white;"));
+                    pauseTransition.play();
+                    pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
+                }
+            }
+        }
+    }
 
     /**
      * @author Danny & Abinav
@@ -481,14 +580,14 @@ public class SudokuApp implements Initializable, ActionListener
                         temp.setDisable(false);
                         temp.setEditable(true);
                         temp.setStyle("-fx-border-width: 0px; "
-                                        + "-fx-padding: 1px;"
-                                        + "-fx-border-color: #000000; "
-                                        + "-fx-background-color: #ffffff;"
-                                        + "-fx-font-size: " + cellTextSize + "px; "
-                                        + "-fx-font-family: 'Arial'; "
-                                        + "-fx-control-inner-background:#FF0000;"
-                                        + "-fx-text-fill: #960000;"
-                                        + "-fx-opacity: 1;");
+                            + "-fx-padding: 1px;"
+                            + "-fx-border-color: #000000; "
+                            + "-fx-background-color: #ffffff;"
+                            + "-fx-font-size: " + cellTextSize + "px; "
+                            + "-fx-font-family: 'Arial'; "
+                            + "-fx-control-inner-background:#FF0000;"
+                            + "-fx-text-fill: #960000;"
+                            + "-fx-opacity: 1;");
 
                     } else {
                         temp.setDisable(true);
@@ -751,68 +850,6 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
-     * @author  Danny, Abinav & Yahya
-     */
-    private static long calculateUserSolvingTime() {
-        return board.getBoardSizeRowsColumns() != 1 ? (long) ((Math.ceil(((board.getBoardSizeRowsColumns() * board.getBoardSizeRowsColumns()) / 81.0) * 10.0)) * 60000) : 10000;
-    }
-
-    /**
-     * @author  Danny, Abinav & Yahya
-     */
-    private static int calculateLivesBasedOnBoardSize() {
-        return (int) (Math.ceil(((board.getBoardSizeRowsColumns() / 2.0)) * ((1 - ((double) board.getFilledCells() / board.getAvailableCells())) / 0.63)));
-    }
-
-    /**
-     * @author  Abinav
-     */
-    private void handleModeSelected() throws IOException {
-        String selectedItem = comboBox.getSelectionModel().getSelectedItem();
-        if(selectedItem != null) {
-            switch (selectedItem) {
-                case "Timed Mode" ->
-                {
-                    timedMode = true;
-                    loadMenuButton.setDisable(true);
-                    unlimitedHintsCheckBox.setDisable(true);
-                    deathMode = false;
-                    hardcoreMode = false;
-                }
-
-                case "Death Mode" ->
-                {
-                    deathMode = true;
-                    loadMenuButton.setDisable(true);
-                    unlimitedHintsCheckBox.setDisable(true);
-                    timedMode = false;
-                    hardcoreMode = false;
-                }
-
-
-                case "Hardcore Mode" ->
-                {
-                    hardcoreMode = true;
-                    loadMenuButton.setDisable(true);
-                    unlimitedHintsCheckBox.setDisable(true);
-                    timedMode = false;
-                    deathMode = false;
-                }
-
-                default ->
-                {
-                    loadMenuButton.setDisable(false);
-                    unlimitedHintsCheckBox.setVisible(false);
-                    timedMode = false;
-                    hardcoreMode = false;
-                    deathMode = false;
-                }
-
-                }
-        }
-    }
-
-    /**
      * @author Danny & Abinav
      */
     public void updateFilledCells()
@@ -822,63 +859,6 @@ public class SudokuApp implements Initializable, ActionListener
         if(board.isGameFinished() && boardView != BoardViewState.CustomBoardShown)
         {
             puzzleHasBeenSolved();
-        }
-    }
-
-    /**
-     * @author Abinav
-     */
-    public void checkAndUpdateLivesRemaining(){
-
-        if (lives > 0 && (deathMode || hardcoreMode)) {
-            lives--;
-            livesRemainingField.setText("Lives: " + lives);
-            livesRemainingField.setStyle("-fx-fill: red;");
-            pauseTransition.setDuration(Duration.seconds(2));
-            pauseTransition.setOnFinished(e -> {
-                if(lives > 0) livesRemainingField.setStyle("-fx-fill: white;");
-            }) ;
-            pauseTransition.play();
-            pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
-        }
-        if (lives == 0 && (deathMode || hardcoreMode)) {
-            userSolveTimer.stop();
-            undoButton.setDisable(true);
-            hintButton.setDisable(true);
-            resetButton.setDisable(false);
-            pauseResumeButton.setDisable(true);
-            livesRemainingField.setStyle("-fx-fill: red;");
-            boardGrid.setDisable(true);
-            feedbackField.setText("Game Over! You have run out of lives!");
-            playSoundEffect(loseSound, 0.5);
-        }
-
-    }
-
-    /**
-     * @author Abinav
-     */
-    private void updateTimeOnInsert(boolean shouldIncrement) {
-        if(timedMode || hardcoreMode) {
-            if (shouldIncrement) {
-                userSolvingTime += 10000;
-                timeSolvingField.setStyle("-fx-fill: green;");
-                pauseTransition.setDuration(Duration.seconds(2));
-                pauseTransition.setOnFinished(e ->  timeSolvingField.setStyle("-fx-fill: white;"));
-                pauseTransition.play();
-                pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
-            } else  {
-                if(userSolvingTime < 10000){
-                   userSolvingTime = 0;
-                } else {
-                    userSolvingTime -= 10000;
-                    timeSolvingField.setStyle("-fx-fill: red;");
-                    pauseTransition.setDuration(Duration.seconds(2));
-                    pauseTransition.setOnFinished(e -> timeSolvingField.setStyle("-fx-fill: white;"));
-                    pauseTransition.play();
-                    pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
-                }
-            }
         }
     }
 
@@ -1059,6 +1039,51 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * @author Danny, Abinav & Yahya
+     */
+    public void pauseResumeGame()
+    {
+        feedbackField.setText("");
+
+        if(!gamePaused)
+        {
+            userSolveTimer.stop();
+
+            boardGrid.requestFocus(); // un-focus all cells
+
+            gamePausedOverlay.setOpacity(0.8);
+            gamePausedField.setOpacity(1.0);
+
+            gamePaused = true;
+
+            pauseResumeButton.setText("Resume");
+
+            // Disable buttons
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
+        }
+        else
+        {
+            userSolveTimer.start();
+
+            gamePausedOverlay.setOpacity(0);
+            gamePausedField.setOpacity(0);
+
+            gamePaused = false;
+
+            pauseResumeButton.setText("Pause");
+
+            // Enable buttons
+            if(!valueInsertHistory.isEmpty())
+            {
+                undoButton.setDisable(false);
+            }
+
+            hintButton.setDisable(false);
+        }
+    }
+
+    /**
      * @author Abinav
      */
     private ArrayNode convertArrayToJsonArray(ObjectMapper objectMapper, int[][] array){
@@ -1076,7 +1101,7 @@ public class SudokuApp implements Initializable, ActionListener
     /**
      * @author Abinav
      */
-    public ObjectNode convertDataIntoJson( ObjectMapper objectMapper) {
+    public ObjectNode convertDataIntoJson(ObjectMapper objectMapper) {
 
         ObjectNode jsonNode = objectMapper.createObjectNode();
         ArrayNode solvedBoardNode = null;
@@ -1216,7 +1241,7 @@ public class SudokuApp implements Initializable, ActionListener
             } else if (!saveLoadSlotList.getItems().get(selectedSlot).equals("Slot " + loadSelectedSlot)) {
                 loadGame(selectedSlot);
             } else if(saveLoadSlotList.getItems().get(selectedSlot).equals("Slot " + loadSelectedSlot)) {
-                  saveLoadSceneSubtitle.setText("Choose a saved board to load!");
+                saveLoadSceneSubtitle.setText("Choose a saved board to load!");
             }
         }
     }
@@ -1265,7 +1290,7 @@ public class SudokuApp implements Initializable, ActionListener
                     }
                     savedTimeLoaded = userSolvingTimeSaved;
                     gameSavedLoaded = true;
-                    goToPuzzleScene();
+                    sceneController.goToPuzzleScene();
 
                 }
             }
@@ -1295,99 +1320,7 @@ public class SudokuApp implements Initializable, ActionListener
     public void onClickedSave() throws IOException {
         savingGame = true;
         preSaveLoadUserTime = userSolvingTime;
-        goToSaveLoadScene();
-    }
-
-    /**
-     * @author Danny
-     */
-    public void muteUnmuteSound()
-    {
-        soundMuted = !soundMuted;
-
-        updateSoundIcon();
-    }
-
-    /**
-     * @author Danny
-     */
-    public void updateSoundIcon()
-    {
-        if(soundMuted)
-        {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound off icon.png")).toExternalForm()));
-        }
-        else
-        {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound on icon.png")).toExternalForm()));
-        }
-    }
-
-    /**
-     * @author Danny
-     */
-    public void playSoundEffect(Media soundToPlay, double volume)
-    {
-        if(!soundMuted)
-        {
-            MediaPlayer soundPlayer = new MediaPlayer(soundToPlay);
-            soundPlayer.setVolume(volume);
-
-            soundPlayer.play();
-        }
-    }
-
-    /**
-     * @author Danny
-     */
-    public void playButtonClickSound()
-    {
-        playSoundEffect(clickSound, 0.15);
-    }
-
-    /**
-     * @author Danny, Abinav & Yahya
-     */
-    public void pauseResumeGame()
-    {
-        feedbackField.setText("");
-
-        if(!gamePaused)
-        {
-            userSolveTimer.stop();
-
-            boardGrid.requestFocus(); // un-focus all cells
-
-            gamePausedOverlay.setOpacity(0.8);
-            gamePausedField.setOpacity(1.0);
-
-            gamePaused = true;
-
-            pauseResumeButton.setText("Resume");
-
-            // Disable buttons
-            undoButton.setDisable(true);
-            hintButton.setDisable(true);
-        }
-        else
-        {
-            userSolveTimer.start();
-
-            gamePausedOverlay.setOpacity(0);
-            gamePausedField.setOpacity(0);
-
-            gamePaused = false;
-
-            pauseResumeButton.setText("Pause");
-
-            // Enable buttons
-            if(!valueInsertHistory.isEmpty())
-            {
-                undoButton.setDisable(false);
-            }
-
-            hintButton.setDisable(false);
-        }
+        sceneController.goToSaveLoadScene();
     }
 
     /**
@@ -1404,12 +1337,12 @@ public class SudokuApp implements Initializable, ActionListener
             boardGrid.setDisable(true);
             feedbackField.setText("Game Over! Time's up!");
             timeSolvingField.setStyle("-fx-fill: red;");
-           playSoundEffect(loseSound, 0.5);
+            playSoundEffect(loseSound, 0.5);
 
         } else if (timedMode || hardcoreMode ) {
             userSolvingTime -= 100;
         } else {
-        userSolvingTime += 100;
+            userSolvingTime += 100;
         }
 
         // Display the time used by the Solver to solve the puzzle
@@ -1479,120 +1412,64 @@ public class SudokuApp implements Initializable, ActionListener
     /**
      * @author Danny
      */
-    public void goToMenuScene() throws IOException
+    public void playSoundEffect(Media soundToPlay, double volume)
     {
-        boardView = BoardViewState.NoBoardShown;
-        setActiveScene("MenuScene");
-    }
-
-    /**
-     * @author Abinav
-     */
-    public void goToSaveLoadScene() throws IOException
-    {
-        boardView = BoardViewState.NoBoardShownSaveLoad;
-        setActiveScene("SaveLoadScene");
-    }
-
-    /**
-     * @author Danny
-     */
-    public void goToPuzzleScene() throws IOException
-    {
-        boardView = BoardViewState.UnsolvedBoardShown;
-        setActiveScene("PuzzleScene");
-    }
-
-    /**
-     * @author Danny
-     */
-    public void goToCustomScene() throws IOException
-    {
-        boardView = BoardViewState.CustomBoardShown;
-        setActiveScene("CustomScene");
-    }
-
-    /**
-     * @author Danny
-     */
-    public void goToSolverScene() throws IOException
-    {
-        boardView = BoardViewState.SolvedBoardShown;
-        setActiveScene("SolverScene");
-    }
-
-    /**
-     * @author Danny, Abinav & Yahya
-     */
-    private static void scaleScreen()
-    {
-        double width = currentScene.getWidth();
-        double height = currentScene.getHeight();
-
-        if(!(Double.isNaN(width) || Double.isNaN(height)))
+        if(!soundMuted)
         {
-            double scaleFactor = Math.min(width / 1200.0, height / 1200.0); // standard app resolution is 1200x1200
+            MediaPlayer soundPlayer = new MediaPlayer(soundToPlay);
+            soundPlayer.setVolume(volume);
 
-            if(!Double.isNaN(scaleFactor))
-            {
-                Scale scale = new Scale(scaleFactor, scaleFactor);
-                scale.setPivotX(0);
-                scale.setPivotY(0);
-
-                currentScene.getRoot().getTransforms().setAll(scale);
-                currentScene.getRoot().setTranslateX(Math.max(0, (width - scaleFactor*(1200)) / 2.0));
-                currentScene.getRoot().setTranslateY(Math.max(0, (height - scaleFactor*(1200)) / 2.0));
-                currentScene.setFill(Color.BLACK);
-                currentScene.getRoot().setStyle("-fx-background-color: #000000;");
-            }
+            soundPlayer.play();
         }
     }
 
     /**
-     * @author Danny & Abinav
+     * @author Danny
      */
-    public void setAppStage(Stage stage)
+    public void playButtonClickSound()
     {
-        appStage = stage;
-
-        GraphicsDevice screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        int screenResolutionY = screen.getDisplayMode().getHeight(); // smallest, therefore the one used
-
-        if(screenResolutionY != 1440) // default size
-        {
-            double adaptedAppSize = 1200 * (screenResolutionY / (double) (1200 + 240));
-
-            appStage = stage;
-            appStage.setWidth(adaptedAppSize - 23); // for some reason, stage width has to be -23 to render correctly
-            appStage.setHeight(adaptedAppSize);
-        }
+        playSoundEffect(clickSound, 0.15);
     }
 
     /**
-     * @author Danny, Abinav & Yahya
+     * @author Danny
      */
-    public void setActiveScene(String sceneName) throws IOException
-    {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("UI/" + sceneName + ".fxml")));
 
-        if(currentScene != null)
+    public void muteUnmuteSound()
+    {
+        soundMuted = !soundMuted;
+
+        updateSoundIcon();
+    }
+
+    /**
+     * @author Danny
+     */
+    public void updateSoundIcon()
+    {
+        if(soundMuted)
         {
-            currentScene.setRoot(root);
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound off icon.png")).toExternalForm()));
         }
         else
         {
-            currentScene = new Scene(root);
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound on icon.png")).toExternalForm()));
         }
+    }
 
-        currentScene.widthProperty().addListener((observable) -> scaleScreen()); // used for resizing UI
-        currentScene.heightProperty().addListener((observable) -> scaleScreen());
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public void setSceneController(SceneController sceneController)
+    {
+        GameController.sceneController = sceneController;
+    }
 
-        scaleScreen();
-
-        appStage.setScene(currentScene); // construct scene
-        appStage.setTitle("Sudoku (Group 5)"); // window title
-        appStage.setResizable(true); // disable resizable window
-        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("UI/Media/sudoku icon.png")))); // add app icon to stage
-        appStage.show(); // show window
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public void setBoardView(BoardViewState boardView)
+    {
+        this.boardView = boardView;
     }
 }
