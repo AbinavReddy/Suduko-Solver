@@ -1294,7 +1294,6 @@ public class Solver
         if(!relatedKeys.isEmpty()) {
         }
         return relatedKeys;
-
     }
 
     /**
@@ -1450,7 +1449,7 @@ public class Solver
                     }
                 }
             }
-            handleSFCandidates( pairOrTriple, substituteA,number, processingRows,  processForSF);
+            handleSFCandidates( pairOrTriple, number, processingRows,  processForSF);
 
         }
     }
@@ -1458,19 +1457,17 @@ public class Solver
     /**
      * @author Abinav
      */
-    private void handleSFCandidates( int pairOrTriple,int substituteA,int number,boolean processingRows, List<List<int[]>> processForSF) {
+    private void handleSFCandidates(int pairOrTriple, int number, boolean processingRows, List<List<int[]>> processForSF) {
         if (processForSF.size() >= 3) // enough candidates found
         {
-            substituteA = processingRows ? 1 : 0; // 0 = row index, 1 = column index
+            int rowOrColumnIndex = processingRows ? 1 : 0; // 0 = row index, 1 = column index
             for (int j = 0; j < processForSF.size() - 2; j++) {
                 for (int k = j + 1; k < processForSF.size() - 1; k++) {
                     for (int n = k + 1; n < processForSF.size(); n++) {
 
-
                         Set<Integer> uniqueCOR = new HashSet<>();
                         List<Integer> emptyList = new ArrayList<>();
                         List<String> candidates = new ArrayList<>();
-
 
                         int windowSize = pairOrTriple; // pairs or triples in rows/columns
 
@@ -1482,8 +1479,8 @@ public class Solver
                             // For list j
                             for (int w = i; w < i + windowSize && w < processForSF.get(j).size(); w++) {
                                 int[] coord = processForSF.get(j).get(w);
-                                uniqueCOR.add(coord[substituteA]);
-                                emptyList.add(coord[substituteA]);
+                                uniqueCOR.add(coord[rowOrColumnIndex]);
+                                emptyList.add(coord[rowOrColumnIndex]);
                                 String key = coord[0] + "," + coord[1];
                                 candidates.add(key);
                             }
@@ -1491,8 +1488,8 @@ public class Solver
                             // For list k
                             for (int w = i; w < i + windowSize && w < processForSF.get(k).size(); w++) {
                                 int[] coord = processForSF.get(k).get(w);
-                                uniqueCOR.add(coord[substituteA]);
-                                emptyList.add(coord[substituteA]);
+                                uniqueCOR.add(coord[rowOrColumnIndex]);
+                                emptyList.add(coord[rowOrColumnIndex]);
                                 String key = coord[0] + "," + coord[1];
                                 candidates.add(key);
                             }
@@ -1500,8 +1497,8 @@ public class Solver
                             // For list n
                             for (int w = i; w < i + windowSize && w < processForSF.get(n).size(); w++) {
                                 int[] coord = processForSF.get(n).get(w);
-                                uniqueCOR.add(coord[substituteA]);
-                                emptyList.add(coord[substituteA]);
+                                uniqueCOR.add(coord[rowOrColumnIndex]);
+                                emptyList.add(coord[rowOrColumnIndex]);
                                 String key = coord[0] + "," + coord[1];
                                 candidates.add(key);
                             }
@@ -1568,6 +1565,7 @@ public class Solver
             }
             frequency.put(number,count);
         }
+
         for(Integer count : frequency.values()){
             if(count !=2) {
                 validSFC = false;
@@ -1644,6 +1642,7 @@ public class Solver
                     }
                 }
             }
+
             for (int number = 1; number <= maxPuzzleValue; number++) {
 
                 if (valuePossibleCountSubBoards[number][index] == 1) {
