@@ -193,7 +193,7 @@ public class SudokuApp implements Initializable, ActionListener
             if(gameSavedLoaded) {
                 undoButton.setDisable(false);
                 resetButton.setDisable(false);
-            } else if (timedMode) {
+            } else if (timedMode || deathMode) {
                 undoButton.setDisable(true);
                 resetButton.setDisable(false);
             } else
@@ -835,7 +835,9 @@ public class SudokuApp implements Initializable, ActionListener
             livesRemainingField.setText("Lives: " + lives);
             livesRemainingField.setStyle("-fx-fill: red;");
             pauseTransition.setDuration(Duration.seconds(2));
-            pauseTransition.setOnFinished(e ->  livesRemainingField.setStyle("-fx-fill: white;"));
+            pauseTransition.setOnFinished(e -> {
+                if(lives > 0) livesRemainingField.setStyle("-fx-fill: white;");
+            }) ;
             pauseTransition.play();
             pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
         }
@@ -844,6 +846,7 @@ public class SudokuApp implements Initializable, ActionListener
             undoButton.setDisable(true);
             hintButton.setDisable(true);
             pauseResumeButton.setDisable(true);
+            livesRemainingField.setStyle("-fx-fill: red;");
             boardGrid.setDisable(true);
             feedbackField.setText("Game Over! You have run out of lives!");
             //playSoundEffect(loseSound, 0.5);
@@ -1023,7 +1026,10 @@ public class SudokuApp implements Initializable, ActionListener
             userSolvingTime = timedMode || hardcoreMode? calculateUserSolvingTime(): 0;
             userSolveTimer.start();
 
-            if(deathMode || hardcoreMode) lives = calculateLivesBasedOnBoardSize();
+            if(deathMode || hardcoreMode){
+                lives = calculateLivesBasedOnBoardSize();
+                livesRemainingField.setText("Lives: "+lives);
+            }
 
             if(boardGrid.isDisable())
             {
