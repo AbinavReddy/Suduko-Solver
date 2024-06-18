@@ -862,8 +862,13 @@ public  class SudokuApp implements Initializable, ActionListener
     private void updateTimeOnInsert(boolean shouldIncrement) {
         if(timedMode || hardcoreMode) {
             if (shouldIncrement) {
-                userSolvingTime += 10000;
-                timeSolvingField.setStyle("-fx-fill: green;");
+
+                if (board.getBoardSizeRowsColumns() != 1){
+                    userSolvingTime += 15000;
+                } else {
+                    userSolvingTime += 10000;
+                }
+                timeSolvingField.setStyle("-fx-fill: lightgreen");
                 pauseTransition.setDuration(Duration.seconds(1.5));
                 pauseTransition.setOnFinished(e ->  timeSolvingField.setStyle("-fx-fill: white;"));
                 pauseTransition.play();
@@ -872,8 +877,12 @@ public  class SudokuApp implements Initializable, ActionListener
                 if(userSolvingTime < 10000){
                    userSolvingTime = 0;
                 } else {
-                    userSolvingTime -= 10000;
-                    timeSolvingField.setStyle("-fx-fill: red;");
+                    if (board.getBoardSizeRowsColumns() != 1){
+                        userSolvingTime -= 15000;
+                    } else {
+                        userSolvingTime -= 10000;
+                    }
+                    timeSolvingField.setStyle("-fx-fill: red");
                     pauseTransition.setDuration(Duration.seconds(1.5));
                     pauseTransition.setOnFinished(e -> timeSolvingField.setStyle("-fx-fill: white;"));
                     pauseTransition.play();
