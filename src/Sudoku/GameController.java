@@ -1,5 +1,7 @@
 package Sudoku;
 
+import Sudoku.Enums.BoardViewStates;
+import Sudoku.Enums.GameModes;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -46,9 +48,12 @@ public class GameController implements Initializable, ActionListener
 {
     private static Board board;
     private static SceneController sceneController;
-    private BoardViewState boardView;
+    private static BoardViewStates boardView;
+    private static GameModes gameMode;
 
     // Game data
+    private TextField[][] boardGridCells; // puzzle, custom, solver
+    private TextField activeTextField; // puzzle
     private static boolean deathMode;
     private static boolean timedMode;
     private static boolean hardcoreMode;
@@ -72,10 +77,6 @@ public class GameController implements Initializable, ActionListener
     // UI elements
     @FXML
     private GridPane boardGrid; // puzzle, custom, solver
-    @FXML
-    private TextField[][] boardGridCells; // puzzle, custom, solver
-    @FXML
-    private TextField activeTextField; // puzzle
     @FXML
     private TextField boardSizeField; // menu
     @FXML
@@ -143,7 +144,7 @@ public class GameController implements Initializable, ActionListener
      */
     public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and is also needed to inject some JavaFX fields
     {
-        if(boardView == BoardViewState.UnsolvedBoardShown) // PuzzleScene
+        if(boardView == BoardViewStates.UnsolvedBoardShown) // PuzzleScene
         {
             savingGame = false;
 
@@ -189,7 +190,7 @@ public class GameController implements Initializable, ActionListener
 
             updateFilledCells();
         }
-        else if(boardView == BoardViewState.CustomBoardShown) // CustomScene
+        else if(boardView == BoardViewStates.CustomBoardShown) // CustomScene
         {
             showBoardValues(true);
 
@@ -204,7 +205,7 @@ public class GameController implements Initializable, ActionListener
 
             updateFilledCells();
         }
-        else if(boardView == BoardViewState.SolvedBoardShown) // SolverScene
+        else if(boardView == BoardViewStates.SolvedBoardShown) // SolverScene
         {
             if(!board.getSolver().getSolverHasRun()) // needed to solve custom boards
             {
@@ -238,7 +239,7 @@ public class GameController implements Initializable, ActionListener
             deathMode = false;
             timedMode = false;
         }
-        else if(boardView == BoardViewState.NoBoardShownSaveLoad) // SaveLoadScene
+        else if(boardView == BoardViewStates.NoBoardShownSaveLoad) // SaveLoadScene
         {
             gameSavedLoaded = true;
 
@@ -803,7 +804,7 @@ public class GameController implements Initializable, ActionListener
 
                 if(board.placeValueInCell(row, column, value))
                 {
-                    if(!valueInsertHistory.contains(activeTextField) && boardView != BoardViewState.CustomBoardShown)
+                    if(!valueInsertHistory.contains(activeTextField) && boardView != BoardViewStates.CustomBoardShown)
                     {
                         valueInsertHistory.add(activeTextField);
                         valueInsertHistorySaved.add(row+","+column);
@@ -821,7 +822,7 @@ public class GameController implements Initializable, ActionListener
                         resetButton.setDisable(false);
                     }
 
-                    if(!board.isGameFinished() || boardView == BoardViewState.CustomBoardShown)
+                    if(!board.isGameFinished() || boardView == BoardViewStates.CustomBoardShown)
                     {
                         playSoundEffect(insertSound, 0.43);
                     }
@@ -856,7 +857,7 @@ public class GameController implements Initializable, ActionListener
     {
         filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
 
-        if(board.isGameFinished() && boardView != BoardViewState.CustomBoardShown)
+        if(board.isGameFinished() && boardView != BoardViewStates.CustomBoardShown)
         {
             puzzleHasBeenSolved();
         }
@@ -1002,7 +1003,7 @@ public class GameController implements Initializable, ActionListener
             undoHintInsertion();
         }
 
-        if(boardView == BoardViewState.UnsolvedBoardShown)
+        if(boardView == BoardViewStates.UnsolvedBoardShown)
         {
             userSolvingTime = timedMode || hardcoreMode? calculateUserSolvingTime(): 0;
             userSolveTimer.start();
@@ -1468,7 +1469,7 @@ public class GameController implements Initializable, ActionListener
     /**
      * @author Danny, Abinav & Yahya
      */
-    public void setBoardView(BoardViewState boardView)
+    public void setBoardView(BoardViewStates boardView)
     {
         this.boardView = boardView;
     }

@@ -1,6 +1,6 @@
-package Sudoku;
+package Sudoku.Enums;
 
-public enum BoardViewState
+public enum BoardViewStates
 {
     NoBoardShown,
     NoBoardShownSaveLoad,

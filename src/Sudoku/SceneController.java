@@ -1,5 +1,6 @@
 package Sudoku;
 
+import Sudoku.Enums.BoardViewStates;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -97,7 +98,7 @@ public class SceneController extends GameController
      */
     public void goToMenuScene() throws IOException
     {
-        gameController.setBoardView(BoardViewState.NoBoardShown);
+        gameController.setBoardView(BoardViewStates.NoBoardShown);
         setActiveScene("MenuScene");
     }
 
@@ -106,7 +107,7 @@ public class SceneController extends GameController
      */
     public void goToSaveLoadScene() throws IOException
     {
-        gameController.setBoardView(BoardViewState.NoBoardShownSaveLoad);
+        gameController.setBoardView(BoardViewStates.NoBoardShownSaveLoad);
         setActiveScene("SaveLoadScene");
     }
 
@@ -115,7 +116,7 @@ public class SceneController extends GameController
      */
     public void goToPuzzleScene() throws IOException
     {
-        gameController.setBoardView(BoardViewState.UnsolvedBoardShown);
+        gameController.setBoardView(BoardViewStates.UnsolvedBoardShown);
         setActiveScene("PuzzleScene");
     }
 
@@ -124,7 +125,7 @@ public class SceneController extends GameController
      */
     public void goToCustomScene() throws IOException
     {
-        gameController.setBoardView(BoardViewState.CustomBoardShown);
+        gameController.setBoardView(BoardViewStates.CustomBoardShown);
         setActiveScene("CustomScene");
     }
 
@@ -133,7 +134,7 @@ public class SceneController extends GameController
      */
     public void goToSolverScene() throws IOException
     {
-        gameController.setBoardView(BoardViewState.SolvedBoardShown);
+        gameController.setBoardView(BoardViewStates.SolvedBoardShown);
         setActiveScene("SolverScene");
     }
 
