@@ -3,7 +3,7 @@ package Sudoku.Enums;
 public enum GameModes
 {
     NormalMode,
-    TimerMode,
+    TimedMode,
     DeathMode,
     HardcoreMode
 }

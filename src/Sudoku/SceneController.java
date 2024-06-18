@@ -143,7 +143,7 @@ public class SceneController extends GameController
      */
     public void setGameController(GameController gameController)
     {
-        this.gameController = gameController;
+        SceneController.gameController = gameController;
 
         gameController.setSceneController(this);
     }

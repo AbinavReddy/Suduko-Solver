@@ -54,9 +54,6 @@ public class GameController implements Initializable, ActionListener
     // Game data
     private TextField[][] boardGridCells; // puzzle, custom, solver
     private TextField activeTextField; // puzzle
-    private static boolean deathMode;
-    private static boolean timedMode;
-    private static boolean hardcoreMode;
     private  long userSolvingTime; // puzzle
     private static int lives;
     private static boolean solvableOnly; // menu
@@ -176,7 +173,7 @@ public class GameController implements Initializable, ActionListener
             if(gameSavedLoaded) {
                 undoButton.setDisable(false);
                 resetButton.setDisable(false);
-            } else if (timedMode || deathMode) {
+            } else if (gameMode == GameModes.TimedMode || gameMode == GameModes.DeathMode) {
                 undoButton.setDisable(true);
                 resetButton.setDisable(false);
             } else
@@ -235,9 +232,6 @@ public class GameController implements Initializable, ActionListener
             {
                 userSolveTimer.stop();
             }
-            hardcoreMode = false;
-            deathMode = false;
-            timedMode = false;
         }
         else if(boardView == BoardViewStates.NoBoardShownSaveLoad) // SaveLoadScene
         {
@@ -265,9 +259,6 @@ public class GameController implements Initializable, ActionListener
         else // MenuScene
         {
             gameSavedLoaded = false;
-            timedMode = false;
-            deathMode = false;
-            hardcoreMode = false;
 
             valueInsertHistory = new ArrayList<>();
             hintInsertHistory = new ArrayList<>();
@@ -375,7 +366,7 @@ public class GameController implements Initializable, ActionListener
     }
 
     /**
-     * @author  Abinav
+     * @author  Abinav & Danny
      */
     private void handleModeSelected() throws IOException {
         String selectedItem = comboBox.getSelectionModel().getSelectedItem();
@@ -383,41 +374,32 @@ public class GameController implements Initializable, ActionListener
             switch (selectedItem) {
                 case "Timed Mode" ->
                 {
-                    timedMode = true;
+                    gameMode = GameModes.TimedMode;
                     loadMenuButton.setDisable(true);
                     unlimitedHintsCheckBox.setDisable(true);
-                    deathMode = false;
-                    hardcoreMode = false;
                 }
 
                 case "Death Mode" ->
                 {
-                    deathMode = true;
+                    gameMode = GameModes.DeathMode;
                     loadMenuButton.setDisable(true);
                     unlimitedHintsCheckBox.setDisable(true);
-                    timedMode = false;
-                    hardcoreMode = false;
                 }
 
 
                 case "Hardcore Mode" ->
                 {
-                    hardcoreMode = true;
+                    gameMode = GameModes.HardcoreMode;
                     loadMenuButton.setDisable(true);
                     unlimitedHintsCheckBox.setDisable(true);
-                    timedMode = false;
-                    deathMode = false;
                 }
 
                 default ->
                 {
+                    gameMode = GameModes.NormalMode;
                     loadMenuButton.setDisable(false);
                     unlimitedHintsCheckBox.setVisible(false);
-                    timedMode = false;
-                    hardcoreMode = false;
-                    deathMode = false;
                 }
-
             }
         }
     }
@@ -427,7 +409,7 @@ public class GameController implements Initializable, ActionListener
      */
     private void intializeGameModeSettings() {
 
-        if(hardcoreMode) { // Timer countdown mode
+        if(gameMode == GameModes.HardcoreMode) { // Timer countdown mode + mode allowing limited mistakes based on board size
 
             hintButton.setDisable(true);
             undoButton.setDisable(true);
@@ -440,7 +422,7 @@ public class GameController implements Initializable, ActionListener
             pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before time, lives, or both run out!"));
             pauseTransition.play();
 
-        } else if(deathMode) { // Mode allowing limited mistakes based on board size
+        } else if(gameMode == GameModes.DeathMode) { // Mode allowing limited mistakes based on board size
 
             lives = calculateLivesBasedOnBoardSize();
             livesRemainingField.setVisible(true);
@@ -452,7 +434,7 @@ public class GameController implements Initializable, ActionListener
             pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before incorrect placement depletes lives!"));
             pauseTransition.play();
 
-        } else if ( timedMode) { // Timer countdown mode
+        } else if (gameMode == GameModes.TimedMode) { // Timer countdown mode
 
             userSolvingTime = calculateUserSolvingTime();
             livesRemainingField.setVisible(false);
@@ -487,18 +469,18 @@ public class GameController implements Initializable, ActionListener
      */
     public void checkAndUpdateLivesRemaining(){
 
-        if (lives > 0 && (deathMode || hardcoreMode)) {
+        if (lives > 0 && (gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode)) {
             lives--;
             livesRemainingField.setText("Lives: " + lives);
             livesRemainingField.setStyle("-fx-fill: red;");
-            pauseTransition.setDuration(Duration.seconds(2));
+            pauseTransition.setDuration(Duration.seconds(1));
             pauseTransition.setOnFinished(e -> {
                 if(lives > 0) livesRemainingField.setStyle("-fx-fill: white;");
             }) ;
             pauseTransition.play();
             pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
         }
-        if (lives == 0 && (deathMode || hardcoreMode)) {
+        if (lives == 0 && (gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode)) {
             userSolveTimer.stop();
             undoButton.setDisable(true);
             hintButton.setDisable(true);
@@ -509,18 +491,17 @@ public class GameController implements Initializable, ActionListener
             feedbackField.setText("Game Over! You have run out of lives!");
             playSoundEffect(loseSound, 0.5);
         }
-
     }
 
     /**
      * @author Abinav
      */
     private void updateTimeOnInsert(boolean shouldIncrement) {
-        if(timedMode || hardcoreMode) {
+        if(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode) {
             if (shouldIncrement) {
                 userSolvingTime += 10000;
                 timeSolvingField.setStyle("-fx-fill: green;");
-                pauseTransition.setDuration(Duration.seconds(2));
+                pauseTransition.setDuration(Duration.seconds(1));
                 pauseTransition.setOnFinished(e ->  timeSolvingField.setStyle("-fx-fill: white;"));
                 pauseTransition.play();
                 pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
@@ -530,7 +511,7 @@ public class GameController implements Initializable, ActionListener
                 } else {
                     userSolvingTime -= 10000;
                     timeSolvingField.setStyle("-fx-fill: red;");
-                    pauseTransition.setDuration(Duration.seconds(2));
+                    pauseTransition.setDuration(Duration.seconds(1));
                     pauseTransition.setOnFinished(e -> timeSolvingField.setStyle("-fx-fill: white;"));
                     pauseTransition.play();
                     pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
@@ -812,7 +793,7 @@ public class GameController implements Initializable, ActionListener
 
                     feedbackField.setText("");
 
-                    if(undoButton.isDisable() && !hardcoreMode)
+                    if(undoButton.isDisable() && gameMode != GameModes.HardcoreMode)
                     {
                         undoButton.setDisable(false);
                     }
@@ -1005,10 +986,10 @@ public class GameController implements Initializable, ActionListener
 
         if(boardView == BoardViewStates.UnsolvedBoardShown)
         {
-            userSolvingTime = timedMode || hardcoreMode? calculateUserSolvingTime(): 0;
+            userSolvingTime = gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? calculateUserSolvingTime(): 0;
             userSolveTimer.start();
 
-            if(deathMode || hardcoreMode){
+            if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode){
                 lives = calculateLivesBasedOnBoardSize();
                 livesRemainingField.setText("Lives: "+lives);
             }
@@ -1018,7 +999,7 @@ public class GameController implements Initializable, ActionListener
                 boardGrid.setDisable(false);
             }
 
-            if(deathMode || hardcoreMode || timedMode) {
+            if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode || gameMode == GameModes.TimedMode) {
                 timeSolvingField.setStyle("-fx-fill: white;");
                 livesRemainingField.setStyle("-fx-fill: white;");
                 hintButton.setDisable(true);
@@ -1330,7 +1311,7 @@ public class GameController implements Initializable, ActionListener
     @Override
     public void actionPerformed(ActionEvent actionEvent) // updates solving timer every second
     {
-        if(userSolvingTime <= 0 && (timedMode || hardcoreMode)){
+        if(userSolvingTime <= 0 && (gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode)){
             userSolveTimer.stop();
             undoButton.setDisable(true);
             hintButton.setDisable(true);
@@ -1340,7 +1321,7 @@ public class GameController implements Initializable, ActionListener
             timeSolvingField.setStyle("-fx-fill: red;");
             playSoundEffect(loseSound, 0.5);
 
-        } else if (timedMode || hardcoreMode ) {
+        } else if (gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode) {
             userSolvingTime -= 100;
         } else {
             userSolvingTime += 100;
@@ -1471,6 +1452,6 @@ public class GameController implements Initializable, ActionListener
      */
     public void setBoardView(BoardViewStates boardView)
     {
-        this.boardView = boardView;
+        GameController.boardView = boardView;
     }
 }
