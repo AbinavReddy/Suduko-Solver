@@ -712,7 +712,7 @@ public class SudokuApp implements Initializable, ActionListener
 
                     feedbackField.setText("");
 
-                    if(undoButton.isDisable())
+                    if(undoButton.isDisable() && !hardcoreMode)
                     {
                         undoButton.setDisable(false);
                     }
@@ -845,11 +845,12 @@ public class SudokuApp implements Initializable, ActionListener
             userSolveTimer.stop();
             undoButton.setDisable(true);
             hintButton.setDisable(true);
+            resetButton.setDisable(false);
             pauseResumeButton.setDisable(true);
             livesRemainingField.setStyle("-fx-fill: red;");
             boardGrid.setDisable(true);
             feedbackField.setText("Game Over! You have run out of lives!");
-            //playSoundEffect(loseSound, 0.5);
+            playSoundEffect(loseSound, 0.5);
         }
 
     }
@@ -1403,7 +1404,7 @@ public class SudokuApp implements Initializable, ActionListener
             boardGrid.setDisable(true);
             feedbackField.setText("Game Over! Time's up!");
             timeSolvingField.setStyle("-fx-fill: red;");
-           //playSoundEffect(loseSound, 0.5);
+           playSoundEffect(loseSound, 0.5);
 
         } else if (timedMode || hardcoreMode ) {
             userSolvingTime -= 100;
