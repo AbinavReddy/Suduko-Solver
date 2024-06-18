@@ -863,7 +863,7 @@ public class SudokuApp implements Initializable, ActionListener
             if (shouldIncrement) {
                 userSolvingTime += 10000;
                 timeSolvingField.setStyle("-fx-fill: green;");
-                pauseTransition.setDuration(Duration.seconds(1));
+                pauseTransition.setDuration(Duration.seconds(1.5));
                 pauseTransition.setOnFinished(e ->  timeSolvingField.setStyle("-fx-fill: white;"));
                 pauseTransition.play();
                 pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
@@ -873,7 +873,7 @@ public class SudokuApp implements Initializable, ActionListener
                 } else {
                     userSolvingTime -= 10000;
                     timeSolvingField.setStyle("-fx-fill: red;");
-                    pauseTransition.setDuration(Duration.seconds(1));
+                    pauseTransition.setDuration(Duration.seconds(1.5));
                     pauseTransition.setOnFinished(e -> timeSolvingField.setStyle("-fx-fill: white;"));
                     pauseTransition.play();
                     pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
