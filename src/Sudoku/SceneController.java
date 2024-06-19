@@ -43,7 +43,7 @@ public class SceneController extends GameController
      */
     public void setActiveScene(String sceneName) throws IOException
     {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("UI/" + sceneName + ".fxml")));
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("UI/Scenes/" + sceneName + ".fxml")));
 
         if(currentScene != null)
         {

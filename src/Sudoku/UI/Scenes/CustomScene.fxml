@@ -12,7 +12,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="1200.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Sudoku.SceneController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1200.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Sudoku.SceneController">
    <children>
       <GridPane fx:id="boardGrid" alignment="CENTER" layoutX="175.0" layoutY="175.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onKeyPressed="#userPressedKeyboard" pickOnBounds="false" prefHeight="850.0" prefWidth="850.0">
          <columnConstraints>
@@ -40,15 +40,15 @@
       </GridPane>
       <ImageView fitHeight="858.0" fitWidth="858.0" layoutX="171.0" layoutY="171.0" preserveRatio="true">
          <image>
-            <Image url="@Media/board%20frame.png" />
+            <Image url="@../Media/board%20frame.png" />
          </image>
       </ImageView>
       <ImageView fitHeight="1200.0" fitWidth="1200.0">
          <image>
-            <Image url="@Media/puzzle%20background.png" />
+            <Image url="@../Media/puzzle%20background.png" />
          </image>
       </ImageView>
-      <Label focusTraversable="false" layoutX="494.0" layoutY="77.0" pickOnBounds="false" text="Solver" textAlignment="CENTER" textFill="WHITE">
+      <Label focusTraversable="false" layoutX="471.0" layoutY="77.0" pickOnBounds="false" text="Custom" textAlignment="CENTER" textFill="WHITE">
          <font>
             <Font name="System Bold" size="72.0" />
          </font>
@@ -58,7 +58,7 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
-      <Text fx:id="timeSolvingField" fill="WHITE" layoutX="248.0" layoutY="156.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Time: 00:00:00.0" wrappingWidth="200.0">
+      <Text fill="WHITE" layoutX="248.0" layoutY="156.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Time: 00:00:00.0" wrappingWidth="200.0">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
@@ -68,9 +68,41 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Text>
+      <Button fx:id="resetButton" focusTraversable="false" layoutX="527.0" layoutY="1076.0" mnemonicParsing="false" onAction="#resetBoard" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Reset">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <Button fx:id="undoButton" focusTraversable="false" layoutX="444.0" layoutY="1076.0" mnemonicParsing="false" onAction="#undoValueInsertion" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Undo">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <Button focusTraversable="false" layoutX="693.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToSolverScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Solver">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <Button focusTraversable="false" layoutX="610.0" layoutY="1076.0" mnemonicParsing="false" onAction="#goToPuzzleScene" onMouseClicked="#playButtonClickSound" prefHeight="28.0" prefWidth="65.0" text="Puzzle">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
       <ImageView fitHeight="31.0" fitWidth="31.0" layoutX="54.0" layoutY="46.0" onMouseClicked="#playButtonClickSound" pickOnBounds="true" preserveRatio="true">
          <image>
-            <Image url="@Media/menu%20icon.png" />
+            <Image url="@../Media/menu%20icon.png" />
          </image>
       </ImageView>
       <Button focusTraversable="false" layoutX="54.0" layoutY="46.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playButtonClickSound" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Menu">
@@ -83,7 +115,7 @@
       </Button>
       <ImageView fx:id="soundButtonImage" fitHeight="31.0" fitWidth="31.0" layoutX="1115.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
          <image>
-            <Image url="@Media/sound%20on%20icon.png" />
+            <Image url="@../Media/sound%20on%20icon.png" />
          </image>
       </ImageView>
       <Button focusTraversable="false" layoutX="1115.0" layoutY="46.0" mnemonicParsing="false" onAction="#muteUnmuteSound" onMouseClicked="#playButtonClickSound" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Sound">

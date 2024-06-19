@@ -17,7 +17,7 @@
    <children>
       <ImageView fitHeight="1200.0" fitWidth="1200.0">
          <image>
-            <Image url="@Media/menu%20background.png" />
+            <Image url="@../Media/menu%20background.png" />
          </image>
       </ImageView>
       <TextField fx:id="boardSizeField" alignment="CENTER" focusTraversable="false" layoutX="410.0" layoutY="402.0" prefHeight="30.0" prefWidth="170.0" promptText="board size (boxes)">
@@ -52,7 +52,7 @@
       <Rectangle arcHeight="5.0" arcWidth="5.0" disable="true" fill="#2b2b2b" height="32.0" layoutX="421.0" layoutY="1067.0" stroke="BLACK" strokeType="INSIDE" width="358.0" />
       <ImageView fx:id="soundButtonImage" fitHeight="31.0" fitWidth="31.0" layoutX="1115.0" layoutY="46.0" pickOnBounds="true" preserveRatio="true">
          <image>
-            <Image url="@Media/sound%20on%20icon.png" />
+            <Image url="@../Media/sound%20on%20icon.png" />
          </image>
       </ImageView>
       <Button focusTraversable="false" layoutX="1115.0" layoutY="46.0" mnemonicParsing="false" onAction="#muteUnmuteSound" onMouseClicked="#playButtonClickSound" opacity="0.0" prefHeight="31.0" prefWidth="31.0" text="Sound">
