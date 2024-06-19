@@ -1,5 +1,7 @@
 package Sudoku;
 
+import Sudoku.Controller.GameController;
+import Sudoku.Controller.SceneController;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;

@@ -1,4 +1,4 @@
-package Sudoku;
+package Sudoku.Controller;
 
 import Sudoku.Enums.BoardViewStates;
 import Sudoku.Enums.GameModes;
@@ -125,12 +125,12 @@ public class GameController implements Initializable, ActionListener
     private ImageView soundButtonImage; // all
 
     // Sound
-    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/click sound.wav")).toExternalForm());
-    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/insert sound.wav")).toExternalForm());
-    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/remove sound.wav")).toExternalForm());
-    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/error sound.wav")).toExternalForm());
-    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/win sound.wav")).toExternalForm());
-    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/lose sound.wav")).toExternalForm());
+    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/click sound.wav")).toExternalForm());
+    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/insert sound.wav")).toExternalForm());
+    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/remove sound.wav")).toExternalForm());
+    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/error sound.wav")).toExternalForm());
+    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/win sound.wav")).toExternalForm());
+    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/lose sound.wav")).toExternalForm());
 
     // Other
     private final Timer userSolveTimer = new Timer(100, this);
@@ -1432,11 +1432,11 @@ public class GameController implements Initializable, ActionListener
     {
         if(soundMuted)
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound off icon.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/sound off icon.png")).toExternalForm()));
         }
         else
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound on icon.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/sound on icon.png")).toExternalForm()));
         }
     }
 
