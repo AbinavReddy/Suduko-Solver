@@ -36,7 +36,7 @@ public class Board
 
         if(!isCustomBoard)
         {
-            createSolvableBoard = boardSizeBoxes == 1 || boxSizeRowsColumns == 1 || (isSolverCandidate && (solvableOnly || (0 < new Random().nextInt(0, 10)))); // 0 = unsolvable (10% chance), 1-9 = solvable (90% chance)
+            createSolvableBoard = boardSizeBoxes == 1 || boxSizeRowsColumns == 1 || (isSolverCandidate && (solvableOnly || (0 < new Random().nextInt(0, 2)))); // 0 = unsolvable (10% chance), 1-9 = solvable (90% chance)
         }
 
         do

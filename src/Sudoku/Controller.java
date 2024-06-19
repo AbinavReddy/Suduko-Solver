@@ -260,6 +260,11 @@ public class Controller implements Initializable, ActionListener
                 solvableOnlyCheckBox.setSelected(true);
             }
 
+            if(gameModel.getUnlimitedHints())
+            {
+                unlimitedHintsCheckBox.setSelected(true);
+            }
+
             gameModel.setValueInsertHistory(new ArrayList<>());
             gameModel.setHintInsertHistory(new ArrayList<>());
 
@@ -358,8 +363,19 @@ public class Controller implements Initializable, ActionListener
 
         } else {
             gameModel.setUserSolveTime(gameModel.getClickedBack() ? gameModel.getPreSaveLoadUserTime() : (gameModel.getGameSavedLoaded() ? gameModel.getSavedTimeLoaded() : 0));
+            gameModel.setHintsAvailable(calculateHintsAvailable());
             livesRemainingField.setVisible(false);
         }
+    }
+
+    /**
+     * @author  Danny
+     */
+    private int calculateHintsAvailable()
+    {
+        Board board = gameModel.getBoard();
+
+        return !gameModel.getUnlimitedHints() ? (int) (Math.ceil((board.getAvailableCells() - board.getFilledCells()) * 0.13)) : 0;
     }
 
     /**
@@ -454,6 +470,9 @@ public class Controller implements Initializable, ActionListener
 
             if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, requirement for being valid
             {
+                gameModel.setSolvableOnly(solvableOnlyCheckBox.isSelected());
+                gameModel.setUnlimitedHints(unlimitedHintsCheckBox.isSelected());
+
                 gameModel.setBoard(new Board(boardSizeBoxes, boxSizeRowsColumns, gameModel.getSolvableOnly(), false));
 
                 goToPuzzleScene();
@@ -491,6 +510,8 @@ public class Controller implements Initializable, ActionListener
 
             if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, where k and n > 0, requirement for being valid
             {
+                gameModel.setUnlimitedHints(unlimitedHintsCheckBox.isSelected());
+
                 gameModel.setBoard(new Board(boardSizeBoxes, boxSizeRowsColumns, false, true)); // can't force solvable on custom boards
 
                 goToCustomScene();
@@ -973,48 +994,66 @@ public class Controller implements Initializable, ActionListener
      */
     public void showHint()
     {
-        if(activeTextField != null)
+        int hintsAvailable = gameModel.getHintsAvailable();
+
+        if(hintsAvailable > 0 || gameModel.getUnlimitedHints())
         {
-            Board board = gameModel.getBoard();
-            List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
-            List<String> hintInsertHistorySaved = gameModel.getValueInsertHistorySaved();
-
-            int row = GridPane.getRowIndex(activeTextField);
-            int column = GridPane.getColumnIndex(activeTextField);
-            int value = board.getSolver().getSolvedBoard().getBoard()[row][column];
-
-            if(board.placeValueInCell(row, column, value))
+            if(activeTextField != null)
             {
-                if(!boardGridCells[row][column].isDisable())
+                Board board = gameModel.getBoard();
+                List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
+                List<String> hintInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+
+                int row = GridPane.getRowIndex(activeTextField);
+                int column = GridPane.getColumnIndex(activeTextField);
+                int value = board.getSolver().getSolvedBoard().getBoard()[row][column];
+
+                if(board.placeValueInCell(row, column, value))
                 {
-                    activeTextField.clear();
-                    activeTextField.setPromptText(String.valueOf(value));
+                    if(!boardGridCells[row][column].isDisable())
+                    {
+                        activeTextField.clear();
+                        activeTextField.setPromptText(String.valueOf(value));
 
-                    hintInsertHistory.add(activeTextField);
-                    hintInsertHistorySaved.add(row+","+column);
+                        hintInsertHistory.add(activeTextField);
+                        hintInsertHistorySaved.add(row+","+column);
 
-                    boardGridCells[row][column].setDisable(true);
+                        boardGridCells[row][column].setDisable(true);
 
-                    boardGrid.requestFocus(); // un-focus all cells
+                        updateFilledCells();
 
-                    feedbackField.setText("Solution for cell (" + (row + 1) + "," + (column + 1) + ") revealed!");
+                        gameModel.setHintsAvailable(hintsAvailable - 1);
 
-                    updateFilledCells();
+                        feedbackField.setText("Solution for cell (" + (row + 1) + "," + (column + 1) + ") revealed!");
 
-                    activeTextField = null;
+                        if(!gameModel.getUnlimitedHints())
+                        {
+                            pauseTransition.setDuration(Duration.seconds(3));
+                            pauseTransition.setOnFinished(e ->  feedbackField.setText(gameModel.getHintsAvailable() + " hints left!"));
+                            pauseTransition.play();
+                        }
+
+                        activeTextField = null;
+                    }
+                }
+                else
+                {
+                    feedbackField.setText("Cannot provide hint due to a wrongly inserted value!");
+
+                    playSoundEffect(errorSound, 0.2);
                 }
             }
             else
             {
-                feedbackField.setText("Cannot provide hint due to a wrongly inserted value!");
-
-                playSoundEffect(errorSound, 0.2);
+                feedbackField.setText("Select a cell to show hint for!");
             }
         }
         else
         {
-            feedbackField.setText("Select a cell to show hint for!");
+            feedbackField.setText("No more hints available!");
         }
+
+        boardGrid.requestFocus(); // un-focus all cells
     }
 
     /**
@@ -1072,6 +1111,8 @@ public class Controller implements Initializable, ActionListener
 
             gameModel.setUserSolveTime(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? calculateUserSolvingTime(): 0);
             userSolveTimer.start();
+
+            gameModel.setHintsAvailable(calculateHintsAvailable());
 
             if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode){
                 gameModel.setLives(calculateLivesBasedOnBoardSize());

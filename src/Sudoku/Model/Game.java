@@ -14,6 +14,7 @@ public class Game
     private List<String> hintInsertHistorySaved;
     private boolean solvableOnly; // menu
     private boolean unlimitedHints; // menu
+    private int hintsAvailable;
     private long userSolveTime; // puzzle
     private int lives;
     private long preSaveLoadUserTime;
@@ -72,6 +73,30 @@ public class Game
     /**
      * @author Danny
      */
+    public void setSolvableOnly(boolean solvableOnly)
+    {
+        this.solvableOnly = solvableOnly;
+    }
+
+    /**
+     * @author Danny
+     */
+    public void setUnlimitedHints(boolean unlimitedHints)
+    {
+        this.unlimitedHints = unlimitedHints;
+    }
+
+    /**
+     * @author Danny
+     */
+    public void setHintsAvailable(int hintsAvailable)
+    {
+        this.hintsAvailable = hintsAvailable;
+    }
+
+    /**
+     * @author Danny
+     */
     public void setUserSolveTime(long userSolveTime)
     {
         this.userSolveTime = userSolveTime;
@@ -83,14 +108,6 @@ public class Game
     public void setLives(int lives)
     {
         this.lives = lives;
-    }
-
-    /**
-     * @author Danny
-     */
-    public void setSolvableOnly(boolean solvableOnly)
-    {
-        this.solvableOnly = solvableOnly;
     }
 
     /**
@@ -216,6 +233,30 @@ public class Game
     /**
      * @author Danny
      */
+    public boolean getSolvableOnly()
+    {
+        return solvableOnly;
+    }
+
+    /**
+     * @author Danny
+     */
+    public boolean getUnlimitedHints()
+    {
+        return unlimitedHints;
+    }
+
+    /**
+     * @author Danny
+     */
+    public int getHintsAvailable()
+    {
+        return hintsAvailable;
+    }
+
+    /**
+     * @author Danny
+     */
     public long getUserSolveTime()
     {
         return userSolveTime;
@@ -227,14 +268,6 @@ public class Game
     public int getLives()
     {
         return lives;
-    }
-
-    /**
-     * @author Danny
-     */
-    public boolean getSolvableOnly()
-    {
-        return solvableOnly;
     }
 
     /**
