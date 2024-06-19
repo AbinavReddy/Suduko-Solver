@@ -43,7 +43,7 @@ public class SceneController extends GameController
      */
     public void setActiveScene(String sceneName) throws IOException
     {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("UI/Scenes/" + sceneName + ".fxml")));
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("View/Scenes/" + sceneName + ".fxml")));
 
         if(currentScene != null)
         {
@@ -54,7 +54,7 @@ public class SceneController extends GameController
             currentScene = new Scene(root);
         }
 
-        currentScene.widthProperty().addListener((observable) -> scaleScreen()); // used for resizing UI
+        currentScene.widthProperty().addListener((observable) -> scaleScreen()); // used for resizing View
         currentScene.heightProperty().addListener((observable) -> scaleScreen());
 
         scaleScreen();
@@ -62,7 +62,7 @@ public class SceneController extends GameController
         appStage.setScene(currentScene); // construct scene
         appStage.setTitle("Sudoku (Group 5)"); // window title
         appStage.setResizable(true); // disable resizable window
-        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("UI/Media/sudoku icon.png")))); // add app icon to stage
+        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("View/Media/sudoku icon.png")))); // add app icon to stage
         appStage.show(); // show window
     }
 

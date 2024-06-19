@@ -2,6 +2,7 @@ package Sudoku;
 
 import Sudoku.Enums.BoardViewStates;
 import Sudoku.Enums.GameModes;
+import Sudoku.Model.Board;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -71,7 +72,7 @@ public class GameController implements Initializable, ActionListener
     private static List<String> hintInsertHistorySaved;
     List<String> list = new ArrayList<>(List.of("Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5"));
 
-    // UI elements
+    // View elements
     @FXML
     private GridPane boardGrid; // puzzle, custom, solver
     @FXML
@@ -124,12 +125,12 @@ public class GameController implements Initializable, ActionListener
     private ImageView soundButtonImage; // all
 
     // Sound
-    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/click sound.wav")).toExternalForm());
-    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/insert sound.wav")).toExternalForm());
-    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/remove sound.wav")).toExternalForm());
-    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/error sound.wav")).toExternalForm());
-    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/win sound.wav")).toExternalForm());
-    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("UI/Media/lose sound.wav")).toExternalForm());
+    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/click sound.wav")).toExternalForm());
+    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/insert sound.wav")).toExternalForm());
+    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/remove sound.wav")).toExternalForm());
+    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/error sound.wav")).toExternalForm());
+    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/win sound.wav")).toExternalForm());
+    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/lose sound.wav")).toExternalForm());
 
     // Other
     private final Timer userSolveTimer = new Timer(100, this);
@@ -527,7 +528,7 @@ public class GameController implements Initializable, ActionListener
     {
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
-        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
+        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the View board (in pixels)
 
         boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
         int cellTextSize = (int) (cellSize / 2);
@@ -610,7 +611,7 @@ public class GameController implements Initializable, ActionListener
     {
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
-        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the UI board (in pixels)
+        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the View board (in pixels)
         double lengthOfLine;
         double widthOfLine;
 
@@ -1199,7 +1200,7 @@ public class GameController implements Initializable, ActionListener
         saveLoadSlotList.setStyle("-fx-border-width: 3px; "
             +"-fx-border-color: ffe767; "
             + "-fx-font-size: 18px; "
-            + "-fx-font-family: 'Segoe UI'; "
+            + "-fx-font-family: 'Segoe View'; "
             + "-fx-control-inner-background:#000000;");
         saveLoadSlotList.setFocusTraversable(false);
     }
@@ -1431,11 +1432,11 @@ public class GameController implements Initializable, ActionListener
     {
         if(soundMuted)
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound off icon.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound off icon.png")).toExternalForm()));
         }
         else
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("UI/Media/sound on icon.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound on icon.png")).toExternalForm()));
         }
     }
 
