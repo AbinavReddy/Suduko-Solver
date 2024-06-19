@@ -107,13 +107,7 @@ public class Board
      */
     public boolean placeValueInCell(int row, int column, int value)
     {
-        if((row < 0 || row > boardSizeRowsColumns - 1) || (column < 0 || column > boardSizeRowsColumns - 1))
-        {
-            errorMessage = "Only indices from 1-" + boardSizeRowsColumns + " are valid!";
-
-            return false;
-        }
-        else if(value < 1 || value > maxPuzzleValue)
+        if(value < 1 || value > maxPuzzleValue)
         {
             errorMessage = "Only values from 1-" + maxPuzzleValue + " are valid!";
 

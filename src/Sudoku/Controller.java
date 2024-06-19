@@ -63,7 +63,7 @@ public class Controller implements Initializable, ActionListener
     private static final Game gameModel = new Game();
     private TextField[][] boardGridCells; // puzzle, custom, solver
     private TextField activeTextField; // puzzle
-    List<String> list = new ArrayList<>(List.of("Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5"));
+    private static final List<String> saveLoadList = new ArrayList<>(List.of("Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5"));
 
     // JavaFX elements
     @FXML
@@ -81,7 +81,9 @@ public class Controller implements Initializable, ActionListener
     @FXML
     private Text feedbackField; // puzzle, custom, solver
     @FXML
-    private Text gamePausedField; // puzzle
+    private Text pausedField; // puzzle
+    @FXML
+    private Text gameOverField; // puzzle
     @FXML
     private Text livesRemainingField; // puzzle
     @FXML
@@ -90,8 +92,6 @@ public class Controller implements Initializable, ActionListener
     private Label saveLoadSceneTitle; // save load
     @FXML
     private Button undoButton; // puzzle, custom
-    @FXML
-    private Button resetButton; // puzzle, custom
     @FXML
     private Button saveButton; // puzzle
     @FXML
@@ -115,7 +115,7 @@ public class Controller implements Initializable, ActionListener
     @FXML
     private ImageView soundButtonImage; // all
     @FXML
-    private Rectangle gamePausedOverlay; // puzzle
+    private Rectangle gameOverPausedOverlay; // puzzle
 
     // Sound
     private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/click sound.wav")).toExternalForm());
@@ -126,9 +126,9 @@ public class Controller implements Initializable, ActionListener
     private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/lose sound.wav")).toExternalForm());
 
     // Tools
-    private final Timer userSolveTimer = new Timer(100, this);
-    private PauseTransition pauseTransition = new PauseTransition(Duration.seconds(3));
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private static final Timer userSolveTimer = new Timer(100, null);
+    private static final PauseTransition pauseTransition = new PauseTransition(Duration.seconds(3));
+    private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     /**
      * @author Danny, Abinav & Yahya
@@ -147,13 +147,9 @@ public class Controller implements Initializable, ActionListener
 
             showBoardValues(true);
 
-            gameModel.setValueInsertHistory(new ArrayList<>());
-            gameModel.setHintInsertHistory(new ArrayList<>());
-
             if(gameSavedLoaded)
             {
                 undoButton.setDisable(false);
-                resetButton.setDisable(false);
             }
             else
             {
@@ -167,16 +163,24 @@ public class Controller implements Initializable, ActionListener
             gameModel.setSavingGame(false);
             gameModel.setClickedBack(false);
 
+            feedbackField.setText("");
+
             initializeGameModeSettings();
 
             updateSoundIcon();
             updateFilledCells();
-            feedbackField.setText("");
             boardGrid.requestFocus();
+
+            if(userSolveTimer.getActionListeners().length == 1) // timer has an old listener, remove
+            {
+                userSolveTimer.removeActionListener(userSolveTimer.getActionListeners()[0]);
+            }
+
+            userSolveTimer.addActionListener(this);
 
             userSolveTimer.start();
         }
-        if(gameModel.getGameScene() == GameScenes.CustomScene)
+        else if(gameModel.getGameScene() == GameScenes.CustomScene)
         {
             showBoardValues(true);
 
@@ -188,7 +192,7 @@ public class Controller implements Initializable, ActionListener
             feedbackField.setText("");
             boardGrid.requestFocus();
         }
-        if(gameModel.getGameScene() == GameScenes.SolverScene)
+        else if(gameModel.getGameScene() == GameScenes.SolverScene)
         {
             if(!board.getSolver().getSolverHasRun() && !gameSavedLoaded) // needed to solve custom boards
             {
@@ -205,30 +209,68 @@ public class Controller implements Initializable, ActionListener
             filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
             feedbackField.setText(createSolverFeedbackMessage());
         }
-        if(gameModel.getGameScene() == GameScenes.SaveLoadScene)
+        else if(gameModel.getGameScene() == GameScenes.SaveLoadScene)
         {
+            if(gameModel.getSavingGame())
+            {
+                backButton.setOnAction((event -> {try {gameModel.setClickedBack(true); goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e);}}));
 
+                saveLoadSceneTitle.setText("Save");
+                saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
+                saveLoadButton.setText("Save");
+            }
+            else
+            {
+                backButton.setOnAction((event -> {try {goToMenuScene(); } catch (IOException e) { throw new RuntimeException(e);}}));
+            }
+
+            saveLoadSlotList.getItems().addAll(saveLoadList);
+            try {saveLoadGameSlotView(); } catch (IOException e) {throw new RuntimeException(e);}
+
+            gameModel.setGameSavedLoaded(true);
+
+            updateSoundIcon();
         }
         else // MenuScene
         {
-            comboBox.getItems().addAll("Normal Mode", "Timed Mode", "Death Mode", "Hardcore Mode");
+            GameModes gameMode = gameModel.getGameMode();
 
-            comboBox.setOnAction( event -> {
-                try {
-                    handleModeSelected();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            if(gameMode == GameModes.NormalMode)
+            {
+                comboBox.setPromptText("Normal Mode");
+            }
+            else if(gameMode == GameModes.TimedMode)
+            {
+                comboBox.setPromptText("Timed Mode");
+            }
+            else if(gameMode == GameModes.DeathMode)
+            {
+                comboBox.setPromptText("Death Mode");
+            }
+            else
+            {
+                comboBox.setPromptText("Hardcore Mode");
+            }
+
+            comboBox.getItems().addAll("Normal Mode", "Timed Mode", "Death Mode", "Hardcore Mode");
+            comboBox.setOnAction( event -> {try {handleModeSelected(); } catch (IOException e) {throw new RuntimeException(e);}});
 
             if(gameModel.getSolvableOnly())
             {
                 solvableOnlyCheckBox.setSelected(true);
             }
 
+            gameModel.setValueInsertHistory(new ArrayList<>());
+            gameModel.setHintInsertHistory(new ArrayList<>());
+
             gameModel.setGameSavedLoaded(false);
             gameModel.setSavingGame(false);
             gameModel.setClickedBack(false);
+
+            if(userSolveTimer.isRunning())
+            {
+                userSolveTimer.stop();
+            }
 
             updateSoundIcon();
         }
@@ -267,7 +309,7 @@ public class Controller implements Initializable, ActionListener
                 {
                     gameModel.setGameMode(GameModes.NormalMode);
                     loadMenuButton.setDisable(false);
-                    unlimitedHintsCheckBox.setVisible(false);
+                    unlimitedHintsCheckBox.setDisable(false);
                 }
             }
         }
@@ -289,7 +331,7 @@ public class Controller implements Initializable, ActionListener
             livesRemainingField.setText("Lives: " + gameModel.getLives());
             gameModel.setUserSolveTime(calculateUserSolvingTime());
             feedbackField.setText("Welcome to Hardcore Mode!");
-            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before time, lives, or both run out!"));
+            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve the puzzle before time and/or lives are depleted!"));
             pauseTransition.play();
 
         } else if(gameMode == GameModes.DeathMode) { // Mode allowing limited mistakes based on board size
@@ -301,7 +343,7 @@ public class Controller implements Initializable, ActionListener
             hintButton.setDisable(true);
             saveButton.setDisable(true);
             feedbackField.setText("Welcome to Death Mode!");
-            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before incorrect placement depletes lives!"));
+            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve the puzzle before running out of lives!"));
             pauseTransition.play();
 
         } else if (gameMode == GameModes.TimedMode) { // Timer countdown mode
@@ -311,7 +353,7 @@ public class Controller implements Initializable, ActionListener
             hintButton.setDisable(true);
             saveButton.setDisable(true);
             feedbackField.setText("Welcome to Timed Mode!");
-            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before time runs out!"));
+            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve the puzzle before time runs out!"));
             pauseTransition.play();
 
         } else {
@@ -346,8 +388,8 @@ public class Controller implements Initializable, ActionListener
         GameModes gameMode = gameModel.getGameMode();
 
         if (lives > 0 && (gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode)) {
-            lives--;
-            livesRemainingField.setText("Lives: " + lives);
+            gameModel.setLives(lives - 1);
+            livesRemainingField.setText("Lives: " + gameModel.getLives());
             livesRemainingField.setStyle("-fx-fill: red;");
             pauseTransition.setDuration(Duration.seconds(1));
             pauseTransition.setOnFinished(e -> {
@@ -356,15 +398,25 @@ public class Controller implements Initializable, ActionListener
             pauseTransition.play();
             pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
         }
-        if (lives == 0 && (gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode)) {
+        if (gameModel.getLives() == 0 && (gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode)) {
             userSolveTimer.stop();
             undoButton.setDisable(true);
             hintButton.setDisable(true);
-            resetButton.setDisable(false);
             pauseResumeButton.setDisable(true);
+            livesRemainingField.setText("Lives: " + gameModel.getLives());
             livesRemainingField.setStyle("-fx-fill: red;");
             boardGrid.setDisable(true);
-            feedbackField.setText("Game Over! You have run out of lives!");
+            gameOverState(true);
+
+            if(gameMode == GameModes.DeathMode || gameModel.getUserSolveTime() != 0)
+            {
+                feedbackField.setText("You have run out of lives!");
+            }
+            else
+            {
+                feedbackField.setText("You have run out of time and lives!" );
+            }
+
             playSoundEffect(loseSound, 0.5);
         }
     }
@@ -372,28 +424,20 @@ public class Controller implements Initializable, ActionListener
     /**
      * @author Abinav
      */
-    private void updateTimeOnInsert(boolean shouldIncrement) {
+    private void updateTimeOnInsert() {
+        long userSolveTime = gameModel.getUserSolveTime();
         GameModes gameMode = gameModel.getGameMode();
 
         if(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode) {
-            if (shouldIncrement) {
-                gameModel.setUserSolveTime(15000);
-                timeSolvingField.setStyle("-fx-fill: green;");
+            if(userSolveTime < 15000){
+                gameModel.setUserSolveTime(0);
+            } else {
+                gameModel.setUserSolveTime(userSolveTime - 15000);
+                timeSolvingField.setStyle("-fx-fill: red;");
                 pauseTransition.setDuration(Duration.seconds(1));
-                pauseTransition.setOnFinished(e ->  timeSolvingField.setStyle("-fx-fill: white;"));
+                pauseTransition.setOnFinished(e -> timeSolvingField.setStyle("-fx-fill: white;"));
                 pauseTransition.play();
                 pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
-            } else  {
-                if(gameModel.getUserSolveTime() < 15000){
-                    gameModel.setUserSolveTime(0);
-                } else {
-                    gameModel.setUserSolveTime(-15000);
-                    timeSolvingField.setStyle("-fx-fill: red;");
-                    pauseTransition.setDuration(Duration.seconds(1));
-                    pauseTransition.setOnFinished(e -> timeSolvingField.setStyle("-fx-fill: white;"));
-                    pauseTransition.play();
-                    pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
-                }
             }
         }
     }
@@ -519,13 +563,13 @@ public class Controller implements Initializable, ActionListener
                     if(gameModel.getGameSavedLoaded() && valueInsertHistorySaved != null && valueInsertHistorySaved.contains(row+","+column) ){
                         temp.setDisable(false);
                         temp.setEditable(true);
-                        temp.setStyle("-fx-border-width: 0px; "
+                        temp.setStyle("-fx-border-width: 1px; "
                             + "-fx-padding: 1px;"
-                            + "-fx-border-color: #000000; "
+                            + "-fx-border-color: #ffffff; "
                             + "-fx-background-color: #ffffff;"
                             + "-fx-font-size: " + cellTextSize + "px; "
                             + "-fx-font-family: 'Arial'; "
-                            + "-fx-control-inner-background:#FF0000;"
+                            + "-fx-control-inner-background:#d30202;"
                             + "-fx-text-fill: #960000;"
                             + "-fx-opacity: 1;");
 
@@ -648,31 +692,50 @@ public class Controller implements Initializable, ActionListener
         int row = GridPane.getRowIndex(activeTextField);
         int column = GridPane.getColumnIndex(activeTextField);
 
-        if(!activeTextField.getText().isEmpty())
+        try
         {
-            int value = Integer.parseInt(boardGridCells[row][column].getText());
-
-            insertBoardValue(row, column, value);
-        }
-        else
-        {
-            if(board.getBoard()[row][column] != 0)
+            if(!activeTextField.getText().isEmpty())
             {
-                board.setBoardValue(row, column, 0);
+                int value = Integer.parseInt(boardGridCells[row][column].getText());
 
-                valueInsertHistory.remove(activeTextField);
-                valueInsertHistorySaved.removeIf(string -> string.equals(row + "," + column));
-
-                if(valueInsertHistorySaved.isEmpty())
+                if(value == 0)
                 {
-                    undoButton.setDisable(true);
-                    resetButton.setDisable(true);
+                    throw new IllegalArgumentException();
                 }
 
-                playSoundEffect(removeSound, 0.03);
+                insertBoardValue(row, column, value);
             }
+            else
+            {
+                if(board.getBoard()[row][column] != 0)
+                {
+                    board.setBoardValue(row, column, 0);
 
-            updateFilledCells();
+                    valueInsertHistory.remove(activeTextField);
+                    valueInsertHistorySaved.removeIf(string -> string.equals(row + "," + column));
+
+                    if(valueInsertHistorySaved.isEmpty())
+                    {
+                        undoButton.setDisable(true);
+                    }
+
+                    playSoundEffect(removeSound, 0.03);
+                }
+
+                updateFilledCells();
+            }
+        }
+        catch(NumberFormatException e)
+        {
+            boardGridCells[row][column].clear(); // reset cell
+            feedbackField.setText("Non-numeric characters are illegal!");
+            playSoundEffect(errorSound, 0.2);
+        }
+        catch(IllegalArgumentException e)
+        {
+            boardGridCells[row][column].clear(); // reset cell
+            feedbackField.setText("Only values from 1-" + gameModel.getBoard().getMaxPuzzleValue() + " are valid!");
+            playSoundEffect(errorSound, 0.2);
         }
     }
 
@@ -692,29 +755,48 @@ public class Controller implements Initializable, ActionListener
                 int row = GridPane.getRowIndex(activeTextField);
                 int column = GridPane.getColumnIndex(activeTextField);
 
-                if(!activeTextField.getText().isEmpty())
+                try
                 {
-                    int value = Integer.parseInt(boardGridCells[row][column].getText());
-
-                    insertBoardValue(row, column, value);
-
-                    boardGrid.requestFocus(); // un-focus cell
-                }
-                else if(board.getBoard()[row][column] != 0)
-                {
-                    board.setBoardValue(row, column, 0);
-                    updateFilledCells();
-
-                    valueInsertHistory.remove(activeTextField);
-                    valueInsertHistorySaved.removeIf(string -> string.equals(row + "," + column));
-
-                    if(valueInsertHistorySaved.isEmpty())
+                    if(!activeTextField.getText().isEmpty())
                     {
-                        undoButton.setDisable(true);
-                        resetButton.setDisable(true);
-                    }
+                        int value = Integer.parseInt(boardGridCells[row][column].getText());
 
-                    playSoundEffect(removeSound, 0.03);
+                        if(value == 0)
+                        {
+                            throw new IllegalArgumentException();
+                        }
+
+                        insertBoardValue(row, column, value);
+
+                        boardGrid.requestFocus(); // un-focus cell
+                    }
+                    else if(board.getBoard()[row][column] != 0)
+                    {
+                        board.setBoardValue(row, column, 0);
+                        updateFilledCells();
+
+                        valueInsertHistory.remove(activeTextField);
+                        valueInsertHistorySaved.removeIf(string -> string.equals(row + "," + column));
+
+                        if(valueInsertHistorySaved.isEmpty())
+                        {
+                            undoButton.setDisable(true);
+                        }
+
+                        playSoundEffect(removeSound, 0.03);
+                    }
+                }
+                catch(NumberFormatException e)
+                {
+                    boardGridCells[row][column].clear(); // reset cell
+                    feedbackField.setText("Non-numeric characters are illegal!");
+                    playSoundEffect(errorSound, 0.2);
+                }
+                catch(IllegalArgumentException e)
+                {
+                    boardGridCells[row][column].clear(); // reset cell
+                    feedbackField.setText("Only values from 1-" + gameModel.getBoard().getMaxPuzzleValue() + " are valid!");
+                    playSoundEffect(errorSound, 0.2);
                 }
             }
         }
@@ -731,11 +813,32 @@ public class Controller implements Initializable, ActionListener
         {
             int row = GridPane.getRowIndex(activeTextField);
             int column = GridPane.getColumnIndex(activeTextField);
-            int value = Integer.parseInt(boardGridCells[row][column].getText());
 
-            insertBoardValue(row, column, value);
+            try
+            {
+                int value = Integer.parseInt(boardGridCells[row][column].getText());
 
-            boardGrid.requestFocus(); // un-focus cell
+                if(value == 0)
+                {
+                    throw new IllegalArgumentException();
+                }
+
+                insertBoardValue(row, column, value);
+
+                boardGrid.requestFocus(); // un-focus cell
+            }
+            catch(NumberFormatException e)
+            {
+                boardGridCells[row][column].clear(); // reset cell
+                feedbackField.setText("Non-numeric characters are illegal!");
+                playSoundEffect(errorSound, 0.2);
+            }
+            catch(IllegalArgumentException e)
+            {
+                boardGridCells[row][column].clear(); // reset cell
+                feedbackField.setText("Only values from 1-" + gameModel.getBoard().getMaxPuzzleValue() + " are valid!");
+                playSoundEffect(errorSound, 0.2);
+            }
         }
     }
 
@@ -752,59 +855,42 @@ public class Controller implements Initializable, ActionListener
 
         if(board.getBoard()[row][column] != value) // if already inserted, skip
         {
-            try
+            if(board.getBoard()[row][column] != 0)
             {
-                if(board.getBoard()[row][column] != 0)
-                {
-                    board.setBoardValue(row, column, 0);
-                }
-
-                if(board.placeValueInCell(row, column, value))
-                {
-                    if(!valueInsertHistory.contains(activeTextField) && boardView != GameScenes.CustomScene)
-                    {
-                        valueInsertHistory.add(activeTextField);
-                        valueInsertHistorySaved.add(row+","+column);
-                    }
-
-                    feedbackField.setText("");
-
-                    if(undoButton.isDisable() && gameMode != GameModes.HardcoreMode)
-                    {
-                        undoButton.setDisable(false);
-                    }
-
-                    if(resetButton.isDisable())
-                    {
-                        resetButton.setDisable(false);
-                    }
-
-                    if(!board.isGameFinished() || boardView == GameScenes.CustomScene)
-                    {
-                        playSoundEffect(insertSound, 0.43);
-                    }
-
-                    updateTimeOnInsert(true);
-                }
-                else
-                {
-                    boardGridCells[row][column].clear(); // reset cell
-                    feedbackField.setText(board.getErrorMessage());
-                    checkAndUpdateLivesRemaining();
-                    updateTimeOnInsert(false);
-                    playSoundEffect(errorSound, 0.2);
-
-                }
-
-                updateFilledCells();
+                board.setBoardValue(row, column, 0);
             }
-            catch(NumberFormatException exception)
+
+            if(board.placeValueInCell(row, column, value))
             {
-                feedbackField.setText("Only values from 1-" + board.getMaxPuzzleValue() + " are valid!");
+                if(!valueInsertHistory.contains(activeTextField) && boardView != GameScenes.CustomScene)
+                {
+                    valueInsertHistory.add(activeTextField);
+                    valueInsertHistorySaved.add(row+","+column);
+                }
+
+                feedbackField.setText("");
+
+                if(undoButton.isDisable() && gameMode != GameModes.HardcoreMode)
+                {
+                    undoButton.setDisable(false);
+                }
+
+                if(!board.isGameFinished() || boardView == GameScenes.CustomScene)
+                {
+                    playSoundEffect(insertSound, 0.43);
+                }
+            }
+            else
+            {
+                boardGridCells[row][column].clear(); // reset cell
+                feedbackField.setText(board.getErrorMessage());
                 checkAndUpdateLivesRemaining();
-                updateTimeOnInsert(false);
+                updateTimeOnInsert();
                 playSoundEffect(errorSound, 0.2);
+
             }
+
+            updateFilledCells();
         }
     }
 
@@ -876,7 +962,6 @@ public class Controller implements Initializable, ActionListener
             if(valueInsertHistory.isEmpty())
             {
                 undoButton.setDisable(true);
-                resetButton.setDisable(true);
             }
 
             feedbackField.setText("Value insertion undone in cell (" + (row + 1) + ", " + (column + 1) + ")");
@@ -917,11 +1002,6 @@ public class Controller implements Initializable, ActionListener
                     updateFilledCells();
 
                     activeTextField = null;
-
-                    if(resetButton.isDisable())
-                    {
-                        resetButton.setDisable(false);
-                    }
                 }
             }
             else
@@ -985,6 +1065,11 @@ public class Controller implements Initializable, ActionListener
 
         if(boardView == GameScenes.PuzzleScene)
         {
+            if(gameModel.getGameOver())
+            {
+                gameOverState(false);
+            }
+
             gameModel.setUserSolveTime(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? calculateUserSolvingTime(): 0);
             userSolveTimer.start();
 
@@ -1011,7 +1096,6 @@ public class Controller implements Initializable, ActionListener
         feedbackField.setText("The puzzle has been reset!");
 
         undoButton.setDisable(true);
-        resetButton.setDisable(true);
 
         if(gameModel.getGamePaused())
         {
@@ -1081,14 +1165,15 @@ public class Controller implements Initializable, ActionListener
             hintButton.setDisable(true);
             pauseResumeButton.setDisable(true);
             boardGrid.setDisable(true);
-            feedbackField.setText("Game Over! Time's up!");
+            gameOverState(true);
+            feedbackField.setText("You have run out of time!");
             timeSolvingField.setStyle("-fx-fill: red;");
             playSoundEffect(loseSound, 0.5);
 
         } else if (gameModel.getGameMode() == GameModes.TimedMode || gameModel.getGameMode() == GameModes.HardcoreMode) {
-            gameModel.setUserSolveTime(-100);
+            gameModel.setUserSolveTime(userSolveTime - 100);
         } else {
-            gameModel.setUserSolveTime(100);
+            gameModel.setUserSolveTime(userSolveTime + 100);
         }
 
         // Display the time used by the Solver to solve the puzzle
@@ -1127,8 +1212,8 @@ public class Controller implements Initializable, ActionListener
 
             boardGrid.requestFocus(); // un-focus all cells
 
-            gamePausedOverlay.setOpacity(0.8);
-            gamePausedField.setOpacity(1.0);
+            gameOverPausedOverlay.setOpacity(0.8);
+            pausedField.setOpacity(1.0);
 
             gameModel.setGamePaused(true);
 
@@ -1142,8 +1227,8 @@ public class Controller implements Initializable, ActionListener
         {
             userSolveTimer.start();
 
-            gamePausedOverlay.setOpacity(0);
-            gamePausedField.setOpacity(0);
+            gameOverPausedOverlay.setOpacity(0);
+            pausedField.setOpacity(0);
 
             gameModel.setGamePaused(false);
 
@@ -1157,6 +1242,25 @@ public class Controller implements Initializable, ActionListener
 
             hintButton.setDisable(false);
         }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void gameOverState(boolean isGameOver)
+    {
+        if(isGameOver)
+        {
+            gameOverPausedOverlay.setOpacity(0.8);
+            gameOverField.setOpacity(1.0);
+        }
+        else
+        {
+            gameOverPausedOverlay.setOpacity(0.0);
+            gameOverField.setOpacity(0.0);
+        }
+
+        gameModel.setGameOver(isGameOver);
     }
 
     /**
@@ -1247,7 +1351,6 @@ public class Controller implements Initializable, ActionListener
         if (slotNo >=0 && slotNo < 5)  arrayNode.set(slotNo,gameStateAsJson);
 
         // saving the json obj in specified slot
-        System.out.println("game saved");
         objectMapper.writeValue(jsonFile, arrayNode);
     }
 

@@ -1,8 +1,8 @@
 package Sudoku.Model;
 
-import Sudoku.Enums.*;
 import javafx.scene.Node;
 import java.util.List;
+import Sudoku.Enums.*;
 
 public class Game
 {
@@ -23,10 +23,11 @@ public class Game
     private boolean clickedBack = false;
     private boolean soundMuted = false;
     private boolean gamePaused;
+    private boolean gameOver;
 
     // States
-    private GameScenes gameScene;
-    private GameModes gameMode;
+    private GameScenes gameScene = GameScenes.MenuScene;
+    private GameModes gameMode = GameModes.NormalMode;
 
     /**
      * @author Danny
@@ -71,20 +72,9 @@ public class Game
     /**
      * @author Danny
      */
-    public void setUserSolveTime(long incrementDecrement)
+    public void setUserSolveTime(long userSolveTime)
     {
-        if(incrementDecrement < 0)
-        {
-            this.userSolveTime -= incrementDecrement;
-        }
-        else if(incrementDecrement > 0)
-        {
-            this.userSolveTime += incrementDecrement;
-        }
-        else
-        {
-            this.userSolveTime = 0;
-        }
+        this.userSolveTime = userSolveTime;
     }
 
     /**
@@ -157,6 +147,14 @@ public class Game
     public void setGamePaused(boolean gamePaused)
     {
         this.gamePaused = gamePaused;
+    }
+
+    /**
+     * @author Danny
+     */
+    public void setGameOver(boolean gameOver)
+    {
+        this.gameOver = gameOver;
     }
 
     /**
@@ -293,6 +291,14 @@ public class Game
     public boolean getGamePaused()
     {
         return gamePaused;
+    }
+
+    /**
+     * @author Danny
+     */
+    public boolean getGameOver()
+    {
+        return gameOver;
     }
 
     /**
