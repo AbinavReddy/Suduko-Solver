@@ -832,6 +832,7 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * Converts the array into json arry
      * @author Abinav
      */
     private ArrayNode convertArrayToJsonArray(ObjectMapper objectMapper, int[][] array){
@@ -847,6 +848,7 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * Converts the data into json object
      * @author Abinav
      */
     public ObjectNode convertDataIntoJson( ObjectMapper objectMapper) {
@@ -888,6 +890,7 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * Writes the saved gamed state in json file
      * @author Abinav
      */
     public void saveGame(int slotNo) throws IOException {
@@ -921,6 +924,7 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * Shows the boards and date on which they were saved in saveLoad scene
      * @author Abinav
      */
     public void saveLoadGameSlotView() throws IOException {
@@ -993,6 +997,7 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * Retrieves the data stored in json file and sets the current game state to loaded game
      * @author Abinav
      */
     public void loadGame(int slotNo){
@@ -1046,6 +1051,7 @@ public class SudokuApp implements Initializable, ActionListener
     }
 
     /**
+     * Converts the stored json array into 2d array
      * @author Abinav
      */
     private  void  convertJsonArrayIntoArray(int[][] boardArraySaved, boolean unsolvedBoard) {
