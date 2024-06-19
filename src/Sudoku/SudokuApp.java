@@ -1,7 +1,5 @@
 package Sudoku;
 
-import Sudoku.Controller.GameController;
-import Sudoku.Controller.SceneController;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
@@ -28,10 +26,9 @@ public class SudokuApp extends Application
             sceneLoader.load(); // Set FXML as root
 
             // Controller setup
-            SceneController sceneController = sceneLoader.getController();
-            sceneController.setGameController(new GameController());
-            sceneController.setAppStage(appStage);
-            sceneController.goToMenuScene();
+            Controller controller = sceneLoader.getController();
+            controller.setAppStage(appStage);
+            controller.goToMenuScene();
         }
         catch(Exception e)
         {

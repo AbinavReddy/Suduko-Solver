@@ -1,8 +1,8 @@
-package Sudoku.Controller;
+package Sudoku;
 
 import Sudoku.Enums.BoardViewStates;
 import Sudoku.Enums.GameModes;
-import Sudoku.Model.Board;
+import Sudoku.Model.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -13,24 +13,17 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.GridPane;
-import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
-import javafx.util.Duration;
-import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -44,35 +37,36 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
+import javafx.scene.media.Media;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+import javafx.scene.transform.Scale;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+import javax.swing.*;
 
-public class GameController implements Initializable, ActionListener
+public class Controller implements Initializable, ActionListener
 {
-    private static Board board;
-    private static SceneController sceneController;
-    private static BoardViewStates boardView;
-    private static GameModes gameMode;
+    // App
+    private static Stage appStage;
+    private static Scene currentScene;
 
     // Game data
+    private final Game gameModel = new Game();
     private TextField[][] boardGridCells; // puzzle, custom, solver
     private TextField activeTextField; // puzzle
-    private  long userSolvingTime; // puzzle
-    private static int lives;
-    private static boolean solvableOnly; // menu
-    private static boolean unlimitedHints; // menu
-    private static boolean savingGame = false;
-    private static boolean gameSavedLoaded = false;
-    private static long savedTimeLoaded;
-    private static long preSaveLoadUserTime;
-    private static boolean clickedBack = false;
-    private boolean gamePaused;
-    private static boolean soundMuted = false;
-    private static List<Node> valueInsertHistory;
-    private static List<Node> hintInsertHistory;
-    private static List<String> valueInsertHistorySaved;
-    private static List<String> hintInsertHistorySaved;
     List<String> list = new ArrayList<>(List.of("Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5"));
 
-    // View elements
+    // JavaFX elements
     @FXML
     private GridPane boardGrid; // puzzle, custom, solver
     @FXML
@@ -120,19 +114,19 @@ public class GameController implements Initializable, ActionListener
     @FXML
     private CheckBox unlimitedHintsCheckBox; // menu
     @FXML
-    private Rectangle gamePausedOverlay; // puzzle
-    @FXML
     private ImageView soundButtonImage; // all
+    @FXML
+    private Rectangle gamePausedOverlay; // puzzle
 
     // Sound
-    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/click sound.wav")).toExternalForm());
-    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/insert sound.wav")).toExternalForm());
-    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/remove sound.wav")).toExternalForm());
-    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/error sound.wav")).toExternalForm());
-    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/win sound.wav")).toExternalForm());
-    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/lose sound.wav")).toExternalForm());
+    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/click sound.wav")).toExternalForm());
+    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/insert sound.wav")).toExternalForm());
+    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/remove sound.wav")).toExternalForm());
+    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/error sound.wav")).toExternalForm());
+    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/win sound.wav")).toExternalForm());
+    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/lose sound.wav")).toExternalForm());
 
-    // Other
+    // Tools
     private final Timer userSolveTimer = new Timer(100, this);
     private PauseTransition pauseTransition = new PauseTransition(Duration.seconds(3));
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -142,152 +136,7 @@ public class GameController implements Initializable, ActionListener
      */
     public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and is also needed to inject some JavaFX fields
     {
-        if(boardView == BoardViewStates.UnsolvedBoardShown) // PuzzleScene
-        {
-            savingGame = false;
 
-            if(!board.getSolver().getSolverHasRun() && !gameSavedLoaded) // needed to solve custom boards
-            {
-                board.solve();
-            }
-
-            if(!gameSavedLoaded)
-            {
-                valueInsertHistorySaved = new ArrayList<>();
-                hintInsertHistorySaved = new ArrayList<>();
-            }
-
-            showBoardValues(true);
-
-            boardGrid.requestFocus();
-
-            feedbackField.setText("");
-
-            intializeGameModeSettings();
-
-            userSolveTimer.start();
-
-            feedbackField.setText("");
-
-            updateSoundIcon();
-
-            if(gameSavedLoaded) {
-                undoButton.setDisable(false);
-                resetButton.setDisable(false);
-            } else if (gameMode == GameModes.TimedMode || gameMode == GameModes.DeathMode) {
-                undoButton.setDisable(true);
-                resetButton.setDisable(false);
-            } else
-            {
-                undoButton.setDisable(true);
-                resetButton.setDisable(true);
-            }
-
-            clickedBack = false;
-            gameSavedLoaded = false;
-
-            updateFilledCells();
-        }
-        else if(boardView == BoardViewStates.CustomBoardShown) // CustomScene
-        {
-            showBoardValues(true);
-
-            feedbackField.setText("");
-
-            updateSoundIcon();
-
-            undoButton.setDisable(true);
-            resetButton.setDisable(true);
-
-            valueInsertHistory = new ArrayList<>();
-
-            updateFilledCells();
-        }
-        else if(boardView == BoardViewStates.SolvedBoardShown) // SolverScene
-        {
-            if(!board.getSolver().getSolverHasRun()) // needed to solve custom boards
-            {
-                board.solve();
-            }
-
-            showBoardValues(false);
-
-            boardGrid.setDisable(true); // if there are empty cells, the user should not be able to edit them
-
-            // Display the time used by the Solver to solve the puzzle
-            long solvingTime = board.getSolver().getSolvingTime();
-            int totalSeconds = (int) solvingTime / 1000;
-            int seconds = totalSeconds % 60;
-            int minutes = (totalSeconds / 60) % 60;
-            int hours = ((totalSeconds / 60) / 60) % 60;
-            String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + String.valueOf((long) (((solvingTime / 1000.0) - Math.floor(solvingTime / 1000.0)) * 1000)).charAt(0);
-            String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
-            String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
-            timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
-
-            filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
-
-            feedbackField.setText(createSolverFeedbackMessage());
-
-            if(userSolveTimer.isRunning())
-            {
-                userSolveTimer.stop();
-            }
-        }
-        else if(boardView == BoardViewStates.NoBoardShownSaveLoad) // SaveLoadScene
-        {
-            gameSavedLoaded = true;
-
-            updateSoundIcon();
-
-            if(savingGame) {
-                backButton.setOnAction((event -> {try {clickedBack = true; sceneController.goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
-
-                saveLoadSceneTitle.setText("Save");
-                saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
-                saveLoadButton.setText("Save");
-            } else {
-                backButton.setOnAction((event -> {try { sceneController.goToMenuScene(); } catch (IOException e) { throw new RuntimeException(e); }}));
-            }
-
-            saveLoadSlotList.getItems().addAll(list);
-            try {
-                saveLoadGameSlotView();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        else // MenuScene
-        {
-            gameSavedLoaded = false;
-
-            valueInsertHistory = new ArrayList<>();
-            hintInsertHistory = new ArrayList<>();
-
-            updateSoundIcon();
-
-            comboBox.getItems().addAll("Normal Mode","Timed Mode", "Death Mode", "Hardcore Mode");
-
-            comboBox.setOnAction( event -> {
-                try {
-                    handleModeSelected();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-
-            savingGame = false;
-
-            if(solvableOnly)
-            {
-                solvableOnlyCheckBox.setSelected(true);
-            }
-
-            if(userSolveTimer.isRunning())
-            {
-                userSolveTimer.stop();
-            }
-        }
     }
 
     /**
@@ -302,11 +151,9 @@ public class GameController implements Initializable, ActionListener
 
             if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, requirement for being valid
             {
-                solvableOnly = solvableOnlyCheckBox.isSelected();
+                gameModel.setBoard(new Board(boardSizeBoxes, boxSizeRowsColumns, gameModel.getSolvableOnly(), false));
 
-                board = new Board(boardSizeBoxes, boxSizeRowsColumns, solvableOnly, false);
-
-                sceneController.goToPuzzleScene();
+                goToPuzzleScene();
             }
             else
             {
@@ -341,9 +188,9 @@ public class GameController implements Initializable, ActionListener
 
             if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, where k and n > 0, requirement for being valid
             {
-                board = new Board(boardSizeBoxes, boxSizeRowsColumns, false, true); // can't force solvable on custom boards
+                gameModel.setBoard(new Board(boardSizeBoxes, boxSizeRowsColumns, false, true)); // can't force solvable on custom boards
 
-                sceneController.goToCustomScene();
+                goToCustomScene();
             }
             else
             {
@@ -375,14 +222,14 @@ public class GameController implements Initializable, ActionListener
             switch (selectedItem) {
                 case "Timed Mode" ->
                 {
-                    gameMode = GameModes.TimedMode;
+                    gameModel.setGameMode(GameModes.TimedMode);
                     loadMenuButton.setDisable(true);
                     unlimitedHintsCheckBox.setDisable(true);
                 }
 
                 case "Death Mode" ->
                 {
-                    gameMode = GameModes.DeathMode;
+                    gameModel.setGameMode(GameModes.DeathMode);
                     loadMenuButton.setDisable(true);
                     unlimitedHintsCheckBox.setDisable(true);
                 }
@@ -390,14 +237,14 @@ public class GameController implements Initializable, ActionListener
 
                 case "Hardcore Mode" ->
                 {
-                    gameMode = GameModes.HardcoreMode;
+                    gameModel.setGameMode(GameModes.HardcoreMode);
                     loadMenuButton.setDisable(true);
                     unlimitedHintsCheckBox.setDisable(true);
                 }
 
                 default ->
                 {
-                    gameMode = GameModes.NormalMode;
+                    gameModel.setGameMode(GameModes.NormalMode);
                     loadMenuButton.setDisable(false);
                     unlimitedHintsCheckBox.setVisible(false);
                 }
@@ -408,27 +255,30 @@ public class GameController implements Initializable, ActionListener
     /**
      * @author  Abinav, Danny & Yahya
      */
-    private void intializeGameModeSettings() {
+    private void initializeGameModeSettings() {
+        Board board = gameModel.getBoard();
+
+        GameModes gameMode = gameModel.getGameMode();
 
         if(gameMode == GameModes.HardcoreMode) { // Timer countdown mode + mode allowing limited mistakes based on board size
 
             hintButton.setDisable(true);
             undoButton.setDisable(true);
             saveButton.setDisable(true);
-            lives = calculateLivesBasedOnBoardSize();
+            gameModel.setLives(calculateLivesBasedOnBoardSize());
             livesRemainingField.setVisible(true);
-            livesRemainingField.setText("Lives: " + lives);
-            userSolvingTime = calculateUserSolvingTime();
+            livesRemainingField.setText("Lives: " + gameModel.getLives());
+            gameModel.setUserSolveTime(calculateUserSolvingTime());
             feedbackField.setText("Welcome to Hardcore Mode!");
             pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve board before time, lives, or both run out!"));
             pauseTransition.play();
 
         } else if(gameMode == GameModes.DeathMode) { // Mode allowing limited mistakes based on board size
 
-            lives = calculateLivesBasedOnBoardSize();
+            gameModel.setLives(calculateLivesBasedOnBoardSize());
             livesRemainingField.setVisible(true);
-            livesRemainingField.setText("Lives: " + lives);
-            userSolvingTime = 0;
+            livesRemainingField.setText("Lives: " + gameModel.getLives());
+            gameModel.setUserSolveTime(0);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
             feedbackField.setText("Welcome to Death Mode!");
@@ -437,7 +287,7 @@ public class GameController implements Initializable, ActionListener
 
         } else if (gameMode == GameModes.TimedMode) { // Timer countdown mode
 
-            userSolvingTime = calculateUserSolvingTime();
+            gameModel.setUserSolveTime(calculateUserSolvingTime());
             livesRemainingField.setVisible(false);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
@@ -446,7 +296,7 @@ public class GameController implements Initializable, ActionListener
             pauseTransition.play();
 
         } else {
-            userSolvingTime = clickedBack ? preSaveLoadUserTime : (gameSavedLoaded ? savedTimeLoaded : 0);
+            gameModel.setUserSolveTime(gameModel.getClickedBack() ? gameModel.getPreSaveLoadUserTime() : (gameModel.getGameSavedLoaded() ? gameModel.getSavedTimeLoaded() : 0));
             livesRemainingField.setVisible(false);
         }
     }
@@ -454,14 +304,18 @@ public class GameController implements Initializable, ActionListener
     /**
      * @author  Danny, Abinav & Yahya
      */
-    private static long calculateUserSolvingTime() {
+    private long calculateUserSolvingTime() {
+        Board board = gameModel.getBoard();
+
         return board.getBoardSizeRowsColumns() != 1 ? (long) ((Math.ceil(((board.getBoardSizeRowsColumns() * board.getBoardSizeRowsColumns()) / 81.0) * 10.0)) * 60000) : 10000;
     }
 
     /**
      * @author  Danny, Abinav & Yahya
      */
-    private static int calculateLivesBasedOnBoardSize() {
+    private int calculateLivesBasedOnBoardSize() {
+        Board board = gameModel.getBoard();
+
         return (int) (Math.ceil(((board.getBoardSizeRowsColumns() / 2.0)) * ((1 - ((double) board.getFilledCells() / board.getAvailableCells())) / 0.63)));
     }
 
@@ -469,6 +323,8 @@ public class GameController implements Initializable, ActionListener
      * @author Abinav
      */
     public void checkAndUpdateLivesRemaining(){
+        int lives = gameModel.getLives();
+        GameModes gameMode = gameModel.getGameMode();
 
         if (lives > 0 && (gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode)) {
             lives--;
@@ -476,7 +332,7 @@ public class GameController implements Initializable, ActionListener
             livesRemainingField.setStyle("-fx-fill: red;");
             pauseTransition.setDuration(Duration.seconds(1));
             pauseTransition.setOnFinished(e -> {
-                if(lives > 0) livesRemainingField.setStyle("-fx-fill: white;");
+                if(gameModel.getLives() > 0) livesRemainingField.setStyle("-fx-fill: white;"); // need to get lives again since lambda needs final variable
             }) ;
             pauseTransition.play();
             pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
@@ -498,19 +354,21 @@ public class GameController implements Initializable, ActionListener
      * @author Abinav
      */
     private void updateTimeOnInsert(boolean shouldIncrement) {
+        GameModes gameMode = gameModel.getGameMode();
+
         if(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode) {
             if (shouldIncrement) {
-                userSolvingTime += 10000;
+                gameModel.setUserSolveTime(15000);
                 timeSolvingField.setStyle("-fx-fill: green;");
                 pauseTransition.setDuration(Duration.seconds(1));
                 pauseTransition.setOnFinished(e ->  timeSolvingField.setStyle("-fx-fill: white;"));
                 pauseTransition.play();
                 pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
             } else  {
-                if(userSolvingTime < 10000){
-                    userSolvingTime = 0;
+                if(gameModel.getUserSolveTime() < 15000){
+                    gameModel.setUserSolveTime(0);
                 } else {
-                    userSolvingTime -= 10000;
+                    gameModel.setUserSolveTime(-15000);
                     timeSolvingField.setStyle("-fx-fill: red;");
                     pauseTransition.setDuration(Duration.seconds(1));
                     pauseTransition.setOnFinished(e -> timeSolvingField.setStyle("-fx-fill: white;"));
@@ -526,6 +384,12 @@ public class GameController implements Initializable, ActionListener
      */
     public void showBoardValues(boolean unsolved)
     {
+        Board board = gameModel.getBoard();
+        List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
+        List<Node> hintInsertHistory = gameModel.getHintInsertHistory();
+        List<String> valueInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+        List<String> hintInsertHistorySaved = gameModel.getHintInsertHistorySaved();
+
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the View board (in pixels)
@@ -559,7 +423,7 @@ public class GameController implements Initializable, ActionListener
                 {
                     temp.setPromptText(String.valueOf(boardToShow[row][column]));
 
-                    if(gameSavedLoaded && valueInsertHistorySaved != null && valueInsertHistorySaved.contains(row+","+column) ){
+                    if(gameModel.getGameSavedLoaded() && valueInsertHistorySaved != null && valueInsertHistorySaved.contains(row+","+column) ){
                         temp.setDisable(false);
                         temp.setEditable(true);
                         temp.setStyle("-fx-border-width: 0px; "
@@ -582,20 +446,20 @@ public class GameController implements Initializable, ActionListener
 
         }
 
-        if(gameSavedLoaded) {
+        if(gameModel.getGameSavedLoaded()) {
             if (valueInsertHistorySaved != null) {
                 for (String cell : valueInsertHistorySaved) {
                     String[] cellRowColumn = cell.split(",");
                     int cellsRow = Integer.parseInt(cellRowColumn[0]);
                     int cellsColumn = Integer.parseInt(cellRowColumn[1]);
-                    valueInsertHistory.add((Node) boardGridCells[cellsRow][cellsColumn]);
+                    valueInsertHistory.add(boardGridCells[cellsRow][cellsColumn]);
                 }
             }  if (hintInsertHistorySaved != null) {
                 for (String cell : hintInsertHistorySaved) {
                     String[] cellRowColumn = cell.split(",");
                     int cellsRow = Integer.parseInt(cellRowColumn[0]);
                     int cellsColumn = Integer.parseInt(cellRowColumn[1]);
-                    hintInsertHistory.add((Node) boardGridCells[cellsRow][cellsColumn]);
+                    hintInsertHistory.add(boardGridCells[cellsRow][cellsColumn]);
                 }
             }
         }
@@ -609,6 +473,8 @@ public class GameController implements Initializable, ActionListener
      */
     public void drawBoardLines(boolean processingRows) // board borders are done in SceneBuilder
     {
+        Board board = gameModel.getBoard();
+
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
         double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the View board (in pixels)
@@ -682,6 +548,10 @@ public class GameController implements Initializable, ActionListener
      */
     public void userClickedOnNewCell()
     {
+        Board board = gameModel.getBoard();
+        List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
+        List<String> valueInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+
         int row = GridPane.getRowIndex(activeTextField);
         int column = GridPane.getColumnIndex(activeTextField);
 
@@ -722,6 +592,10 @@ public class GameController implements Initializable, ActionListener
         {
             if(activeTextField == event.getTarget())
             {
+                Board board = gameModel.getBoard();
+                List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
+                List<String> valueInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+
                 int row = GridPane.getRowIndex(activeTextField);
                 int column = GridPane.getColumnIndex(activeTextField);
 
@@ -758,6 +632,8 @@ public class GameController implements Initializable, ActionListener
      */
     public void isLastInsertion()
     {
+        Board board = gameModel.getBoard();
+
         if((board.getFilledCells() == board.getAvailableCells() - 1) && activeTextField != null && !activeTextField.getText().isEmpty())
         {
             int row = GridPane.getRowIndex(activeTextField);
@@ -775,6 +651,12 @@ public class GameController implements Initializable, ActionListener
      */
     public void insertBoardValue(int row, int column, int value)
     {
+        Board board = gameModel.getBoard();
+        List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
+        List<String> valueInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+        BoardViewStates boardView = gameModel.getBoardView();
+        GameModes gameMode = gameModel.getGameMode();
+
         if(board.getBoard()[row][column] != value) // if already inserted, skip
         {
             try
@@ -808,6 +690,7 @@ public class GameController implements Initializable, ActionListener
                     {
                         playSoundEffect(insertSound, 0.43);
                     }
+
                     updateTimeOnInsert(true);
                 }
                 else
@@ -837,6 +720,9 @@ public class GameController implements Initializable, ActionListener
      */
     public void updateFilledCells()
     {
+        Board board = gameModel.getBoard();
+        BoardViewStates boardView = gameModel.getBoardView();
+
         filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
 
         if(board.isGameFinished() && boardView != BoardViewStates.CustomBoardShown)
@@ -850,6 +736,8 @@ public class GameController implements Initializable, ActionListener
      */
     public void puzzleHasBeenSolved()
     {
+        List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
+
         userSolveTimer.stop();
 
         if(!valueInsertHistory.isEmpty())
@@ -873,6 +761,10 @@ public class GameController implements Initializable, ActionListener
      */
     public void undoValueInsertion()
     {
+        Board board = gameModel.getBoard();
+        List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
+        List<String> valueInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+
         if(!valueInsertHistory.isEmpty())
         {
             int row = GridPane.getRowIndex(valueInsertHistory.get(valueInsertHistory.size() - 1));
@@ -905,6 +797,10 @@ public class GameController implements Initializable, ActionListener
     {
         if(activeTextField != null)
         {
+            Board board = gameModel.getBoard();
+            List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
+            List<String> hintInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+
             int row = GridPane.getRowIndex(activeTextField);
             int column = GridPane.getColumnIndex(activeTextField);
             int value = board.getSolver().getSolvedBoard().getBoard()[row][column];
@@ -953,6 +849,10 @@ public class GameController implements Initializable, ActionListener
      */
     public void undoHintInsertion()
     {
+        Board board = gameModel.getBoard();
+        List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
+        List<String> hintInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+
         if(!hintInsertHistory.isEmpty())
         {
             int row = GridPane.getRowIndex(hintInsertHistory.get(hintInsertHistory.size() - 1));
@@ -975,6 +875,11 @@ public class GameController implements Initializable, ActionListener
      */
     public void resetBoard()
     {
+        List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
+        List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
+        BoardViewStates boardView = gameModel.getBoardView();
+        GameModes gameMode = gameModel.getGameMode();
+
         while(!valueInsertHistory.isEmpty())
         {
             undoValueInsertion();
@@ -987,12 +892,12 @@ public class GameController implements Initializable, ActionListener
 
         if(boardView == BoardViewStates.UnsolvedBoardShown)
         {
-            userSolvingTime = gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? calculateUserSolvingTime(): 0;
+            gameModel.setUserSolveTime(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? calculateUserSolvingTime(): 0);
             userSolveTimer.start();
 
             if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode){
-                lives = calculateLivesBasedOnBoardSize();
-                livesRemainingField.setText("Lives: "+lives);
+                gameModel.setLives(calculateLivesBasedOnBoardSize());
+                livesRemainingField.setText("Lives: "+ gameModel.getLives());
             }
 
             if(boardGrid.isDisable())
@@ -1015,10 +920,93 @@ public class GameController implements Initializable, ActionListener
         undoButton.setDisable(true);
         resetButton.setDisable(true);
 
-        if(gamePaused)
+        if(gameModel.getGamePaused())
         {
             pauseResumeGame();
         }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void playSoundEffect(Media soundToPlay, double volume)
+    {
+        if(!gameModel.getSoundMuted())
+        {
+            MediaPlayer soundPlayer = new MediaPlayer(soundToPlay);
+            soundPlayer.setVolume(volume);
+
+            soundPlayer.play();
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void playButtonClickSound()
+    {
+        playSoundEffect(clickSound, 0.15);
+    }
+
+    /**
+     * @author Danny
+     */
+
+    public void muteUnmuteSound()
+    {
+        gameModel.setSoundMuted(!gameModel.getSoundMuted());
+
+        updateSoundIcon();
+    }
+
+    /**
+     * @author Danny
+     */
+    public void updateSoundIcon()
+    {
+        if(gameModel.getSoundMuted())
+        {
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound off icon.png")).toExternalForm()));
+        }
+        else
+        {
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound on icon.png")).toExternalForm()));
+        }
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    @Override
+    public void actionPerformed(ActionEvent actionEvent) // updates user solving timer every 100 milliseconds
+    {
+        long userSolveTime = gameModel.getUserSolveTime();
+
+        if(userSolveTime <= 0 && (gameModel.getGameMode() == GameModes.TimedMode || gameModel.getGameMode() == GameModes.HardcoreMode)){
+            userSolveTimer.stop();
+            undoButton.setDisable(true);
+            hintButton.setDisable(true);
+            pauseResumeButton.setDisable(true);
+            boardGrid.setDisable(true);
+            feedbackField.setText("Game Over! Time's up!");
+            timeSolvingField.setStyle("-fx-fill: red;");
+            playSoundEffect(loseSound, 0.5);
+
+        } else if (gameModel.getGameMode() == GameModes.TimedMode || gameModel.getGameMode() == GameModes.HardcoreMode) {
+            gameModel.setUserSolveTime(-100);
+        } else {
+            gameModel.setUserSolveTime(100);
+        }
+
+        // Display the time used by the Solver to solve the puzzle
+        int totalSeconds = (int) (userSolveTime / 1000);
+        int seconds = totalSeconds % 60;
+        int minutes = (totalSeconds / 60) % 60;
+        int hours = ((totalSeconds / 60) / 60) % 60;
+        String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + (String.valueOf((long) (((userSolveTime / 1000.0) - Math.floor(userSolveTime / 1000.0)) * 1000)).charAt(0));
+        String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
+        String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
+        timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
     }
 
     /**
@@ -1026,6 +1014,9 @@ public class GameController implements Initializable, ActionListener
      */
     public void pauseResumeGame()
     {
+        List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
+        boolean gamePaused = gameModel.getGamePaused();
+
         feedbackField.setText("");
 
         if(!gamePaused)
@@ -1037,7 +1028,7 @@ public class GameController implements Initializable, ActionListener
             gamePausedOverlay.setOpacity(0.8);
             gamePausedField.setOpacity(1.0);
 
-            gamePaused = true;
+            gameModel.setGamePaused(true);
 
             pauseResumeButton.setText("Resume");
 
@@ -1052,7 +1043,7 @@ public class GameController implements Initializable, ActionListener
             gamePausedOverlay.setOpacity(0);
             gamePausedField.setOpacity(0);
 
-            gamePaused = false;
+            gameModel.setGamePaused(false);
 
             pauseResumeButton.setText("Pause");
 
@@ -1085,6 +1076,9 @@ public class GameController implements Initializable, ActionListener
      * @author Abinav
      */
     public ObjectNode convertDataIntoJson(ObjectMapper objectMapper) {
+        Board board = gameModel.getBoard();
+        List<String> valueInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+        List<String> hintInsertHistorySaved = gameModel.getHintInsertHistorySaved();
 
         ObjectNode jsonNode = objectMapper.createObjectNode();
         ArrayNode solvedBoardNode = null;
@@ -1117,7 +1111,7 @@ public class GameController implements Initializable, ActionListener
             jsonNode.set("HintHistory",null);
         }
         jsonNode.set("filledcells",objectMapper.convertValue(board.getFilledCells(), JsonNode.class));
-        jsonNode.put("userTime", userSolvingTime);
+        jsonNode.put("userTime", gameModel.getUserSolveTime());
 
         return jsonNode;
     }
@@ -1215,7 +1209,7 @@ public class GameController implements Initializable, ActionListener
         int loadSelectedSlot = selectedSlot + 1;
 
         if (selectedSlot != -1){
-            if (savingGame) {
+            if (gameModel.getSavingGame()) {
                 saveGame(selectedSlot);
                 saveLoadGameSlotView();
                 saveLoadSceneSubtitle.setText("Game saved in slot " +loadSelectedSlot);
@@ -1255,25 +1249,28 @@ public class GameController implements Initializable, ActionListener
                         for (JsonNode node : jsonNode.get("userInsertedValues")) {
                             insertedValuesOnBoardSaved.add(node.asText());
                         }
-                        valueInsertHistorySaved = insertedValuesOnBoardSaved;
+                        gameModel.setValueInsertHistorySaved(insertedValuesOnBoardSaved);
                     }
                     if(!jsonNode.get("HintHistory").isNull() && jsonNode.get("HintHistory").isArray()) {
                         List<String> hintValuesOnBoardSaved = new ArrayList<>();
                         for (JsonNode node : jsonNode.get("HintHistory")) {
                             hintValuesOnBoardSaved.add(node.asText());
                         }
-                        hintInsertHistorySaved = hintValuesOnBoardSaved;
+                        gameModel.setHintInsertHistorySaved(hintValuesOnBoardSaved);
                     }
-                    board = new Board(boardSizeBoxesSaved, boxSizeRowsColumnSaved, false, false);
+                    gameModel.setBoard(new Board(boardSizeBoxesSaved, boxSizeRowsColumnSaved, false, false));
                     convertJsonArrayIntoArray(boardArraySaved ,true);
+
+                    Board board = gameModel.getBoard();
                     board.setFilledCells(filledCellsSaved);
                     if(solvedBoardArraySaved != null){
                         convertJsonArrayIntoArray(solvedBoardArraySaved,false);
                         board.getSolver().getSolvedBoard().setFilledCells(board.getAvailableCells());
                     }
-                    savedTimeLoaded = userSolvingTimeSaved;
-                    gameSavedLoaded = true;
-                    sceneController.goToPuzzleScene();
+                    gameModel.setSavedTimeLoaded(userSolvingTimeSaved);
+                    gameModel.setGameSavedLoaded(true);
+
+                    goToPuzzleScene();
 
                 }
             }
@@ -1286,6 +1283,8 @@ public class GameController implements Initializable, ActionListener
      * @author Abinav
      */
     private  void  convertJsonArrayIntoArray(int[][] boardArraySaved, boolean unsolvedBoard) {
+        Board board = gameModel.getBoard();
+
         for (int row = 0; row < boardArraySaved.length; row++) {
             for (int column = 0; column < boardArraySaved[row].length; column++) {
                 if(unsolvedBoard) {
@@ -1301,42 +1300,10 @@ public class GameController implements Initializable, ActionListener
      * @author Abinav
      */
     public void onClickedSave() throws IOException {
-        savingGame = true;
-        preSaveLoadUserTime = userSolvingTime;
-        sceneController.goToSaveLoadScene();
-    }
+        gameModel.setSavingGame(true);
+        gameModel.setPreSaveLoadUserTime(gameModel.getUserSolveTime());
 
-    /**
-     * @author Danny, Abinav & Yahya
-     */
-    @Override
-    public void actionPerformed(ActionEvent actionEvent) // updates solving timer every second
-    {
-        if(userSolvingTime <= 0 && (gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode)){
-            userSolveTimer.stop();
-            undoButton.setDisable(true);
-            hintButton.setDisable(true);
-            pauseResumeButton.setDisable(true);
-            boardGrid.setDisable(true);
-            feedbackField.setText("Game Over! Time's up!");
-            timeSolvingField.setStyle("-fx-fill: red;");
-            playSoundEffect(loseSound, 0.5);
-
-        } else if (gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode) {
-            userSolvingTime -= 100;
-        } else {
-            userSolvingTime += 100;
-        }
-
-        // Display the time used by the Solver to solve the puzzle
-        int totalSeconds = (int) (userSolvingTime / 1000);
-        int seconds = totalSeconds % 60;
-        int minutes = (totalSeconds / 60) % 60;
-        int hours = ((totalSeconds / 60) / 60) % 60;
-        String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + (String.valueOf((long) (((userSolvingTime / 1000.0) - Math.floor(userSolvingTime / 1000.0)) * 1000)).charAt(0));
-        String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
-        String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
-        timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
+        goToSaveLoadScene();
     }
 
     /**
@@ -1344,6 +1311,8 @@ public class GameController implements Initializable, ActionListener
      */
     public String createSolverFeedbackMessage()
     {
+        Board board = gameModel.getBoard();
+
         if(board.getSolver().getSolvedBoard().isGameFinished())
         {
             if(board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
@@ -1395,64 +1364,120 @@ public class GameController implements Initializable, ActionListener
     /**
      * @author Danny
      */
-    public void playSoundEffect(Media soundToPlay, double volume)
+    public void goToMenuScene() throws IOException
     {
-        if(!soundMuted)
-        {
-            MediaPlayer soundPlayer = new MediaPlayer(soundToPlay);
-            soundPlayer.setVolume(volume);
+        gameModel.setBoardView(BoardViewStates.NoBoardShown);
+        setActiveScene("MenuScene");
+    }
 
-            soundPlayer.play();
+    /**
+     * @author Danny
+     */
+    public void goToPuzzleScene() throws IOException
+    {
+        gameModel.setBoardView(BoardViewStates.UnsolvedBoardShown);
+        setActiveScene("PuzzleScene");
+    }
+
+    /**
+     * @author Danny
+     */
+    public void goToCustomScene() throws IOException
+    {
+        gameModel.setBoardView(BoardViewStates.CustomBoardShown);
+        setActiveScene("CustomScene");
+    }
+
+    /**
+     * @author Danny
+     */
+    public void goToSolverScene() throws IOException
+    {
+        gameModel.setBoardView(BoardViewStates.SolvedBoardShown);
+        setActiveScene("SolverScene");
+    }
+
+    /**
+     * @author Abinav
+     */
+    public void goToSaveLoadScene() throws IOException
+    {
+        gameModel.setBoardView(BoardViewStates.NoBoardShownSaveLoad);
+        setActiveScene("SaveLoadScene");
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    private void scaleScreen()
+    {
+        double width = currentScene.getWidth();
+        double height = currentScene.getHeight();
+
+        if(!(Double.isNaN(width) || Double.isNaN(height)))
+        {
+            double scaleFactor = Math.min(width / 1200.0, height / 1200.0); // standard app resolution is 1200x1200
+
+            if(!Double.isNaN(scaleFactor))
+            {
+                Scale scale = new Scale(scaleFactor, scaleFactor);
+                scale.setPivotX(0);
+                scale.setPivotY(0);
+
+                currentScene.getRoot().getTransforms().setAll(scale);
+                currentScene.getRoot().setTranslateX(Math.max(0, (width - scaleFactor*(1200)) / 2.0));
+                currentScene.getRoot().setTranslateY(Math.max(0, (height - scaleFactor*(1200)) / 2.0));
+                currentScene.setFill(Color.BLACK);
+                currentScene.getRoot().setStyle("-fx-background-color: #000000;");
+            }
         }
     }
 
     /**
-     * @author Danny
+     * @author Danny & Abinav
      */
-    public void playButtonClickSound()
+    public void setAppStage(Stage stage)
     {
-        playSoundEffect(clickSound, 0.15);
-    }
+        appStage = stage;
 
-    /**
-     * @author Danny
-     */
+        GraphicsDevice screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int screenResolutionY = screen.getDisplayMode().getHeight(); // smallest, therefore the one used
 
-    public void muteUnmuteSound()
-    {
-        soundMuted = !soundMuted;
-
-        updateSoundIcon();
-    }
-
-    /**
-     * @author Danny
-     */
-    public void updateSoundIcon()
-    {
-        if(soundMuted)
+        if(screenResolutionY != 1440) // default size
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/sound off icon.png")).toExternalForm()));
+            double adaptedAppSize = 1200 * (screenResolutionY / (double) (1200 + 240));
+
+            appStage = stage;
+            appStage.setWidth(adaptedAppSize - 23); // for some reason, stage width has to be -23 to render correctly
+            appStage.setHeight(adaptedAppSize);
+        }
+    }
+
+    /**
+     * @author Danny, Abinav & Yahya
+     */
+    public void setActiveScene(String sceneName) throws IOException
+    {
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("View/Scenes/" + sceneName + ".fxml")));
+
+        if(currentScene != null)
+        {
+            currentScene.setRoot(root);
         }
         else
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("/Sudoku/View/Media/sound on icon.png")).toExternalForm()));
+            currentScene = new Scene(root);
         }
-    }
 
-    /**
-     * @author Danny, Abinav & Yahya
-     */
-    public void setSceneController(SceneController sceneController)
-    {
-        GameController.sceneController = sceneController;
-    }
+        currentScene.widthProperty().addListener((observable) -> scaleScreen()); // used for resizing View
+        currentScene.heightProperty().addListener((observable) -> scaleScreen());
 
-    /**
-     * @author Danny, Abinav & Yahya
-     */
-    public void setBoardView(BoardViewStates boardView)
-    {
-        GameController.boardView = boardView;
+        scaleScreen();
+
+        appStage.setScene(currentScene); // construct scene
+        appStage.setTitle("Sudoku (Group 5)"); // window title
+        appStage.setResizable(true); // disable resizable window
+        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("View/Media/sudoku icon.png")))); // add app icon to stage
+        appStage.show(); // show window
     }
 }
