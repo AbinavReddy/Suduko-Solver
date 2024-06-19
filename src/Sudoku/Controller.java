@@ -1,7 +1,6 @@
 package Sudoku;
 
-import Sudoku.Enums.BoardViewStates;
-import Sudoku.Enums.GameModes;
+import Sudoku.Enums.*;
 import Sudoku.Model.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -134,9 +133,28 @@ public class Controller implements Initializable, ActionListener
     /**
      * @author Danny, Abinav & Yahya
      */
-    public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and is also needed to inject some JavaFX fields
+    public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and injects JavaFX fields
     {
+        if(gameModel.getGameScene() == GameScenes.PuzzleScene)
+        {
 
+        }
+        if(gameModel.getGameScene() == GameScenes.CustomScene)
+        {
+
+        }
+        if(gameModel.getGameScene() == GameScenes.SolverScene)
+        {
+
+        }
+        if(gameModel.getGameScene() == GameScenes.SaveLoadScene)
+        {
+
+        }
+        else // MenuScene
+        {
+
+        }
     }
 
     /**
@@ -654,7 +672,7 @@ public class Controller implements Initializable, ActionListener
         Board board = gameModel.getBoard();
         List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
         List<String> valueInsertHistorySaved = gameModel.getValueInsertHistorySaved();
-        BoardViewStates boardView = gameModel.getBoardView();
+        GameScenes boardView = gameModel.getGameScene();
         GameModes gameMode = gameModel.getGameMode();
 
         if(board.getBoard()[row][column] != value) // if already inserted, skip
@@ -668,7 +686,7 @@ public class Controller implements Initializable, ActionListener
 
                 if(board.placeValueInCell(row, column, value))
                 {
-                    if(!valueInsertHistory.contains(activeTextField) && boardView != BoardViewStates.CustomBoardShown)
+                    if(!valueInsertHistory.contains(activeTextField) && boardView != GameScenes.CustomScene)
                     {
                         valueInsertHistory.add(activeTextField);
                         valueInsertHistorySaved.add(row+","+column);
@@ -686,7 +704,7 @@ public class Controller implements Initializable, ActionListener
                         resetButton.setDisable(false);
                     }
 
-                    if(!board.isGameFinished() || boardView == BoardViewStates.CustomBoardShown)
+                    if(!board.isGameFinished() || boardView == GameScenes.CustomScene)
                     {
                         playSoundEffect(insertSound, 0.43);
                     }
@@ -721,11 +739,11 @@ public class Controller implements Initializable, ActionListener
     public void updateFilledCells()
     {
         Board board = gameModel.getBoard();
-        BoardViewStates boardView = gameModel.getBoardView();
+        GameScenes boardView = gameModel.getGameScene();
 
         filledCellsField.setText("Filled: " + board.getFilledCells() + "/" + board.getAvailableCells());
 
-        if(board.isGameFinished() && boardView != BoardViewStates.CustomBoardShown)
+        if(board.isGameFinished() && boardView != GameScenes.CustomScene)
         {
             puzzleHasBeenSolved();
         }
@@ -877,7 +895,7 @@ public class Controller implements Initializable, ActionListener
     {
         List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
         List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
-        BoardViewStates boardView = gameModel.getBoardView();
+        GameScenes boardView = gameModel.getGameScene();
         GameModes gameMode = gameModel.getGameMode();
 
         while(!valueInsertHistory.isEmpty())
@@ -890,7 +908,7 @@ public class Controller implements Initializable, ActionListener
             undoHintInsertion();
         }
 
-        if(boardView == BoardViewStates.UnsolvedBoardShown)
+        if(boardView == GameScenes.PuzzleScene)
         {
             gameModel.setUserSolveTime(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? calculateUserSolvingTime(): 0);
             userSolveTimer.start();
@@ -1366,7 +1384,7 @@ public class Controller implements Initializable, ActionListener
      */
     public void goToMenuScene() throws IOException
     {
-        gameModel.setBoardView(BoardViewStates.NoBoardShown);
+        gameModel.setGameScene(GameScenes.MenuScene);
         setActiveScene("MenuScene");
     }
 
@@ -1375,7 +1393,7 @@ public class Controller implements Initializable, ActionListener
      */
     public void goToPuzzleScene() throws IOException
     {
-        gameModel.setBoardView(BoardViewStates.UnsolvedBoardShown);
+        gameModel.setGameScene(GameScenes.PuzzleScene);
         setActiveScene("PuzzleScene");
     }
 
@@ -1384,7 +1402,7 @@ public class Controller implements Initializable, ActionListener
      */
     public void goToCustomScene() throws IOException
     {
-        gameModel.setBoardView(BoardViewStates.CustomBoardShown);
+        gameModel.setGameScene(GameScenes.CustomScene);
         setActiveScene("CustomScene");
     }
 
@@ -1393,7 +1411,7 @@ public class Controller implements Initializable, ActionListener
      */
     public void goToSolverScene() throws IOException
     {
-        gameModel.setBoardView(BoardViewStates.SolvedBoardShown);
+        gameModel.setGameScene(GameScenes.SolverScene);
         setActiveScene("SolverScene");
     }
 
@@ -1402,7 +1420,7 @@ public class Controller implements Initializable, ActionListener
      */
     public void goToSaveLoadScene() throws IOException
     {
-        gameModel.setBoardView(BoardViewStates.NoBoardShownSaveLoad);
+        gameModel.setGameScene(GameScenes.SaveLoadScene);
         setActiveScene("SaveLoadScene");
     }
 

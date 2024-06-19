@@ -25,8 +25,8 @@ public class Game
     private boolean gamePaused;
 
     // States
+    private GameScenes gameScene;
     private GameModes gameMode;
-    private BoardViewStates boardView;
 
     /**
      * @author Danny
@@ -146,9 +146,9 @@ public class Game
     /**
      * @author Danny
      */
-    public void setBoardView(BoardViewStates boardView)
+    public void setGameScene(GameScenes gameScene)
     {
-        this.boardView = boardView;
+        this.gameScene = gameScene;
     }
 
     /**
@@ -282,16 +282,16 @@ public class Game
     /**
      * @author Danny
      */
-    public GameModes getGameMode()
+    public GameScenes getGameScene()
     {
-        return gameMode;
+        return gameScene;
     }
 
     /**
      * @author Danny
      */
-    public BoardViewStates getBoardView()
+    public GameModes getGameMode()
     {
-        return boardView;
+        return gameMode;
     }
 }
