@@ -1656,75 +1656,41 @@ public class Solver
     }
 
     /**
+     * This method identifies and processes hidden singles in rows, columns, and sub-boards.
+     * It a helper methods to handle hidden singles in each specific section.
+     *
      * @author Yahya
      */
-    public void hiddenSingles(){
-
-        // hidden singles in rows
+    public void hiddenSingles() {
+        // Hidden singles in rows, columns & SubBoard
         hiddenSinglesForRowAndCol(true);
-
-        // hidden singles in columns
         hiddenSinglesForRowAndCol(false);
-
-        // hidden singles in subboard
         hiddenSinglesForSubBoard();
     }
 
     /**
+     * This method identifies and processes hidden singles in either rows or columns.
+     *
+     * @param processingRows a boolean indicating whether to process rows (true) or columns (false)
+     *
      * @author Yahya
      */
-    private void hiddenSinglesForRowAndCol(boolean proccingrows) {
-
+    private void hiddenSinglesForRowAndCol(boolean processingRows) {
         for (int index = 0; index < boardSizeRowsColumns; index++) {
             List<String> cellKeys = new ArrayList<>();
             for (int rows = 0; rows < boardSizeRowsColumns; rows++) {
                 for (int columns = 0; columns < boardSizeRowsColumns; columns++) {
                     String key = rows + "," + columns;
-                    int rowcolumn = proccingrows ? rows : columns;
+                    int rowcolumn = processingRows ? rows : columns;
                     if (possibleNumbers.get(key) != null && index == rowcolumn) {
                         cellKeys.add(key);
-
-                    }
-                }
-            }
-
-            for(int number = 1; number <= maxPuzzleValue; number++) {
-                int count = proccingrows ? valuePossibleCountRows[number][index] : valuePossibleCountColumns[number][index];
-                if (count == 1 ) {
-                    for(String key : cellKeys) {
-                        if(possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size()>1){
-                            List<Integer> keyValues = new ArrayList<>(possibleNumbers.get(key));
-                            keyValues.remove((Integer) number);
-                            updatePossibleNumbersAndCounts(key, null, keyValues, false);
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
-    /**
-     * @author Yahya
-     */
-    private void hiddenSinglesForSubBoard() {
-
-        for (int index = 0; index < boardSizeRowsColumns; index++) {
-            List<String> cellKeys = new ArrayList<>();
-            for (int rows = 0; rows < boardSizeRowsColumns; rows++) {
-                for (int columns = 0; columns < boardSizeRowsColumns; columns++) {
-                    String key = rows + "," + columns;
-                    int subBoardsNumber = solvedBoard.findSubBoardNumber(rows,columns);
-                    if (possibleNumbers.get(key) != null && index == subBoardsNumber) {
-                        cellKeys.add(key);
-
                     }
                 }
             }
 
             for (int number = 1; number <= maxPuzzleValue; number++) {
-
-                if (valuePossibleCountSubBoards[number][index] == 1) {
+                int count = processingRows ? valuePossibleCountRows[number][index] : valuePossibleCountColumns[number][index];
+                if (count == 1) {
                     for (String key : cellKeys) {
                         if (possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size() > 1) {
                             List<Integer> keyValues = new ArrayList<>(possibleNumbers.get(key));
@@ -1738,6 +1704,42 @@ public class Solver
     }
 
     /**
+     * This method processes hidden singles in the sub-boards.
+     *
+     * @author Yahya
+     */
+    private void hiddenSinglesForSubBoard() {
+        for (int index = 0; index < boardSizeRowsColumns; index++) {
+            List<String> cellKeys = new ArrayList<>();
+            for (int rows = 0; rows < boardSizeRowsColumns; rows++) {
+                for (int columns = 0; columns < boardSizeRowsColumns; columns++) {
+                    String key = rows + "," + columns;
+                    int subBoardsNumber = solvedBoard.findSubBoardNumber(rows, columns);
+                    if (possibleNumbers.get(key) != null && index == subBoardsNumber) {
+                        cellKeys.add(key);
+                    }
+                }
+            }
+
+            for (int number = 1; number <= maxPuzzleValue; number++) {
+                if (valuePossibleCountSubBoards[number][index] == 1) {
+                    for (String key : cellKeys) {
+                        if (possibleNumbers.get(key).contains(number) && possibleNumbers.get(key).size() > 1) {
+                            List<Integer> keyValues = new ArrayList<>(possibleNumbers.get(key));
+                            keyValues.remove((Integer) number);
+                            updatePossibleNumbersAndCounts(key, null, keyValues, false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * This method identifies and processes naked triples in rows, columns, and sub-boards of a Sudoku puzzle.
+     * It calls helper methods to handle naked triples in each specific section.
+     *
      * @author Yahya
      */
     public void nakedTriples() {
@@ -1747,10 +1749,12 @@ public class Solver
     }
 
     /**
+     * This method identifies and processes naked triples in the rows of a Sudoku puzzle.
+     * A naked triple is a set of three cells in a row that collectively contain exactly three unique possible values.
+     *
      * @author Yahya
      */
     private void nakedTriplesForRows() {
-        // Loop through all groups - starting with rows
         List<String> triples;
         for (int row = 0; row < boardSizeRowsColumns; row++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
@@ -1783,8 +1787,10 @@ public class Solver
                             // Remove these numbers from other cells' possible values in the same row
                             for (int col = 0; col < boardSizeRowsColumns; col++) {
                                 String key = row + "," + col;
-                                if(possibleNumbers.get(key)!= null && !triples.contains(key)) {
-                                    if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+                                if (possibleNumbers.get(key) != null && !triples.contains(key)) {
+                                    if (possibleNumbers.get(key).contains(tripleValues.get(0)) ||
+                                            possibleNumbers.get(key).contains(tripleValues.get(1)) ||
+                                            possibleNumbers.get(key).contains(tripleValues.get(2))) {
                                         List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
                                         updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                     }
@@ -1798,16 +1804,18 @@ public class Solver
     }
 
     /**
+     * This method identifies and processes naked triples in the columns of a Sudoku puzzle.
+     * A naked triple is a set of three cells in a column that collectively contain exactly three unique possible values.
+     *
      * @author Yahya
      */
     private void nakedTriplesForColumns() {
-        // Loop through all groups - starting with rows
         List<String> triples;
         for (int col = 0; col < boardSizeRowsColumns; col++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
             List<String> cellKeys = new ArrayList<>();
 
-            // Collect possible values and keys for all cells in the row
+            // Collect possible values and keys for all cells in the column
             for (int row = 0; row < boardSizeRowsColumns; row++) {
                 String key = row + "," + col;
                 List<Integer> cellPossibleValues = possibleNumbers.get(key);
@@ -1831,11 +1839,13 @@ public class Solver
 
                         if (possibleValues.size() == 3 && unionOfValues.size() == 3) { // A Naked Triple is found
                             List<Integer> tripleValues = new ArrayList<>(unionOfValues);
-                            // Remove these numbers from other cells' possible values in the same row
+                            // Remove these numbers from other cells' possible values in the same column
                             for (int row = 0; row < boardSizeRowsColumns; row++) {
                                 String key = row + "," + col;
                                 if (possibleNumbers.get(key) != null && !triples.contains(key)) {
-                                    if (possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+                                    if (possibleNumbers.get(key).contains(tripleValues.get(0)) ||
+                                            possibleNumbers.get(key).contains(tripleValues.get(1)) ||
+                                            possibleNumbers.get(key).contains(tripleValues.get(2))) {
                                         List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
                                         updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                     }
@@ -1849,15 +1859,14 @@ public class Solver
     }
 
     /**
+     * This method identifies and processes naked triples in the sub-boards of a Sudoku puzzle.
+     * A naked triple is a set of three cells in a sub-board that collectively contain exactly three unique possible values.
+     *
      * @author Yahya
      */
-    private void nakedTriplesForSubBoards(){
-
-        for (int i = 0; i < boardSizeRowsColumns; i++)
-        {
-            for(int j = 1; j<= maxPuzzleValue; j++)
-            {
-
+    private void nakedTriplesForSubBoards() {
+        for (int i = 0; i < boardSizeRowsColumns; i++) {
+            for (int j = 1; j <= maxPuzzleValue; j++) {
                 List<String> triples;
                 List<List<Integer>> possibleValues = new ArrayList<>();
                 List<String> cellKeys = new ArrayList<>();
@@ -1866,42 +1875,34 @@ public class Solver
                 Set<Integer> unionOfValues;
                 triples = new ArrayList<>();
 
-                for(int k = 0; k < boardSizeBoxes; k++)// added to rows
-                {
-                    for(int l = 0; l < boardSizeBoxes; l++) // added to columns
-                    {
+                for (int k = 0; k < boardSizeBoxes; k++) { // added to rows
+                    for (int l = 0; l < boardSizeBoxes; l++) { // added to columns
                         String key = (startingRow + k) + "," + (startingColumn + l);
-                        if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(j))
-                        {
+                        if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(j)) {
                             List<Integer> cellPossibleValues = possibleNumbers.get(key);
                             if (cellPossibleValues != null && cellPossibleValues.size() > 1 && cellPossibleValues.size() <= 3) {
                                 possibleValues.add(cellPossibleValues);
                                 cellKeys.add(key);
                                 triples.add(key);
-
                             }
-
                         }
-
                     }
                 }
                 unionOfValues = new HashSet<>();
-                for(List<Integer> possible: possibleValues)
-                {
+                for (List<Integer> possible : possibleValues) {
                     unionOfValues.addAll(possible);
-
                 }
 
                 if (possibleValues.size() == 3 && unionOfValues.size() == 3) { // A Naked Triple is found
                     List<Integer> tripleValues = new ArrayList<>(unionOfValues);
-                    // Remove these numbers from other cells' possible values in the same row
-                    for(int k = 0; k < boardSizeBoxes; k++)// added to rows
-                    {
-                        for(int l = 0; l < boardSizeBoxes; l++) // added to columns
-                        {
+                    // Remove these numbers from other cells' possible values in the same sub-board
+                    for (int k = 0; k < boardSizeBoxes; k++) { // added to rows
+                        for (int l = 0; l < boardSizeBoxes; l++) { // added to columns
                             String key = (startingRow + k) + "," + (startingColumn + l);
-                            if (possibleNumbers.get(key)!= null && !triples.contains(key) ) {
-                                if( possibleNumbers.get(key).contains(tripleValues.get(0)) || possibleNumbers.get(key).contains(tripleValues.get(1)) || possibleNumbers.get(key).contains(tripleValues.get(2))) {
+                            if (possibleNumbers.get(key) != null && !triples.contains(key)) {
+                                if (possibleNumbers.get(key).contains(tripleValues.get(0)) ||
+                                        possibleNumbers.get(key).contains(tripleValues.get(1)) ||
+                                        possibleNumbers.get(key).contains(tripleValues.get(2))) {
                                     List<Integer> valuesPresent = findWhichNumbersPresent(possibleNumbers.get(key), unionOfValues);
                                     updatePossibleNumbersAndCounts(key, null, valuesPresent, false);
                                 }
@@ -1909,41 +1910,40 @@ public class Solver
                         }
                     }
                 }
-
             }
-
         }
     }
 
     /**
+     * This method identifies and processes hidden triples in rows, columns, and sub-boards of a Sudoku puzzle.
+     * It calls helper methods to handle hidden triples in each specific section.
+     *
      * @author Yahya
      */
-    public void hiddenTriples(){
-
-        // hidden triples in rows
+    public void hiddenTriples() {
+        // Hidden triples in rows,columns & sub-board
         hiddenTriplesCRcombo(true);
-
-        // hidden Triples in columns
         hiddenTriplesCRcombo(false);
-
-        // hidden Triples in subboard
         hiddenTriplesForSubBoards();
     }
 
+
     /**
+     * Identifies and processes hidden triples in the sub-boards of the puzzel.
+     *
      * @author Yahya & Abinav
      */
-    private void hiddenTriplesForSubBoards(){
+    private void hiddenTriplesForSubBoards() {
         List<String> quads;
-        for(int boardNo = 0; boardNo < boardSizeRowsColumns; boardNo++) {
+        for (int boardNo = 0; boardNo < boardSizeRowsColumns; boardNo++) {
             List<List<Integer>> possibleValues = new ArrayList<>();
             List<String> cellKeys = new ArrayList<>();
             for (int row = 0; row < boardSizeRowsColumns; row++) {
                 for (int col = 0; col < boardSizeRowsColumns; col++) {
                     String key = row + "," + col;
                     List<Integer> cellPossibleValues = possibleNumbers.get(key);
-                    boolean verifySubBoardNo = solvedBoard.findSubBoardNumber(row,col) == boardNo;
-                    if(!verifySubBoardNo) continue;
+                    boolean verifySubBoardNo = solvedBoard.findSubBoardNumber(row, col) == boardNo;
+                    if (!verifySubBoardNo) continue;
                     if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
                         possibleValues.add(cellPossibleValues);
                         cellKeys.add(key);
@@ -1951,11 +1951,10 @@ public class Solver
                 }
             }
 
-            if(cellKeys.size() >= 3) {
+            if (cellKeys.size() >= 3) {
                 for (int i = 0; i < possibleValues.size(); i++) {
                     for (int j = i + 1; j < possibleValues.size(); j++) {
                         for (int k = j + 1; k < possibleValues.size(); k++) {
-
                             quads = new ArrayList<>();
                             Set<Integer> unionOfValues = new HashSet<>(possibleValues.get(i));
                             unionOfValues.addAll(possibleValues.get(j));
@@ -1965,17 +1964,16 @@ public class Solver
                             quads.add(cellKeys.get(k));
                             Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
                             boolean quadsVerified = verifyTriples(quads, combos);
-                            if ( quadsVerified) {
+                            if (quadsVerified) {
                                 for (String position : quads) {
                                     List<Integer> valuesDuplicate = findWhichNumbersPresent(possibleNumbers.get(position), unionOfValues);
                                     List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
                                     valuesPresent.removeAll(valuesDuplicate);
-                                    if(!valuesPresent.equals(valuesDuplicate)) {
+                                    if (!valuesPresent.equals(valuesDuplicate)) {
                                         updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
                                     }
                                 }
                             }
-
                         }
                     }
                 }
@@ -1984,11 +1982,12 @@ public class Solver
     }
 
     /**
+     * processes hidden triples in the rows or columns.
+     *
+     * @param processRows specifies whether to process rows (true) or columns (false)
      * @author Yahya & Abinav
      */
     private void hiddenTriplesCRcombo(boolean processRows) {
-
-
         List<String> quads;
 
         for (int intial = 0; intial < boardSizeRowsColumns; intial++) {
@@ -1997,14 +1996,14 @@ public class Solver
 
             // Collect possible values and keys for all cells in the row/column
             for (int secondary = 0; secondary < boardSizeRowsColumns; secondary++) {
-                String key = processRows? intial + "," + secondary : secondary + "," + intial;
+                String key = processRows ? intial + "," + secondary : secondary + "," + intial;
                 List<Integer> cellPossibleValues = possibleNumbers.get(key);
                 if (cellPossibleValues != null && cellPossibleValues.size() > 1) {
                     possibleValues.add(cellPossibleValues);
                     cellKeys.add(key);
                 }
             }
-            if(cellKeys.size() >= 3) {
+            if (cellKeys.size() >= 3) {
                 for (int i = 0; i < possibleValues.size(); i++) {
                     for (int j = i + 1; j < possibleValues.size(); j++) {
                         for (int k = j + 1; k < possibleValues.size(); k++) {
@@ -2019,12 +2018,12 @@ public class Solver
                             Set<Integer> combos = findHiddenTriples(unionOfValues, cellKeys, quads);
                             boolean quadsVerified = verifyTriples(quads, combos);
 
-                            if ( quadsVerified) {
+                            if (quadsVerified) {
                                 for (String position : quads) {
                                     List<Integer> valuesDuplicate = findWhichNumbersPresent(possibleNumbers.get(position), unionOfValues);
                                     List<Integer> valuesPresent = new ArrayList<>(possibleNumbers.get(position));
                                     valuesPresent.removeAll(valuesDuplicate);
-                                    if(!valuesPresent.equals(valuesDuplicate)) {
+                                    if (!valuesPresent.equals(valuesDuplicate)) {
                                         updatePossibleNumbersAndCounts(position, null, valuesPresent, false);
                                     }
                                 }
@@ -2037,38 +2036,40 @@ public class Solver
     }
 
     /**
+     * Verifies if a set of cells form valid hidden triples.
+     *
+     * @param triples the list of cell keys that form the triples
+     * @param combos the set of possible values that form the triples
+     * @return true if valid hidden triples, otherwise false
      * @author Yahya & Abinav
      */
     private boolean verifyTriples(List<String> triples, Set<Integer> combos) {
-
-
-        if(!combos.isEmpty()) {
+        if (!combos.isEmpty()) {
             boolean isHiddenTriple = false;
             boolean notContainsTwoCandidates = false;
             for (String position : triples) {
                 for (Integer number : possibleNumbers.get(position)) {
                     if (!combos.contains(number)) {
-                       isHiddenTriple = true;
-                       break;
+                        isHiddenTriple = true;
+                        break;
                     }
                 }
             }
 
-            // check if the cell contains atleast two elements of combos
-            for(String keys : triples) {
-
+            // Check if the cell contains at least two elements of combos
+            for (String keys : triples) {
                 int occurrence = 0;
-                for(Integer number : combos){
-                    if(possibleNumbers.get(keys) != null && !possibleNumbers.get(keys).contains(number)){
+                for (Integer number : combos) {
+                    if (possibleNumbers.get(keys) != null && !possibleNumbers.get(keys).contains(number)) {
                         occurrence++;
                     }
                 }
-                if(occurrence < 2){
+                if (occurrence < 2) {
                     notContainsTwoCandidates = true;
                     break;
                 }
             }
-            if(isHiddenTriple && notContainsTwoCandidates){
+            if (isHiddenTriple && notContainsTwoCandidates) {
                 return true;
             }
         }
@@ -2076,12 +2077,17 @@ public class Solver
     }
 
     /**
+     * Finds hidden triples in the union of possible values within a set of cells.
+     *
+     * @param unionOfValues the set of possible values from the union of cells
+     * @param cellKeys the list of cell keys being considered
+     * @param quads the list of cell keys forming the quads
+     * @return a set of possible values that form hidden triples
      * @author Yahya
      */
     private Set<Integer> findHiddenTriples(Set<Integer> unionOfValues, List<String> cellKeys, List<String> quads) {
-
         List<Integer> valuesList = new ArrayList<>(unionOfValues);
-        if(unionOfValues.size() >= 4) {
+        if (unionOfValues.size() >= 4) {
             for (int i = 0; i < valuesList.size(); i++) {
                 for (int j = i + 1; j < valuesList.size(); j++) {
                     for (int k = j + 1; k < valuesList.size(); k++) {
@@ -2119,18 +2125,22 @@ public class Solver
         return new HashSet<>();
     }
 
+
     /**
-     * Yahya
+     * processes empty rectangles.
+     *
+     * @author Yahya
      */
     private void emptyRectangle() {
-
         findConjugatePairs();
     }
 
     /**
-     * Yahya
+     * Finds and processes conjugate pairs of candidates.
+     *
+     * @author Yahya
      */
-    private void findConjugatePairs () {
+    private void findConjugatePairs() {
         for (int candidate = 1; candidate <= maxPuzzleValue; candidate++) {
             List<List<String>> conjugatePairs = new ArrayList<>();
             for (int row = 0; row < maxPuzzleValue; row++) {
@@ -2143,8 +2153,7 @@ public class Solver
                         }
                     }
 
-                    if(!positions.isEmpty())
-                    {
+                    if (!positions.isEmpty()) {
                         String position1 = positions.get(0);
                         String[] cell1 = position1.split(",");
                         String position2 = positions.get(1);
@@ -2152,14 +2161,12 @@ public class Solver
 
                         if ((solvedBoard.findSubBoardNumber(Integer.parseInt(cell1[0]), Integer.parseInt(cell1[1])) != (solvedBoard.findSubBoardNumber(Integer.parseInt(cell2[0]), Integer.parseInt(cell2[1]))))) {
                             conjugatePairs.add(positions);
-
                         }
                     }
                 }
             }
 
             for (int col = 0; col < boardSizeRowsColumns; col++) {
-
                 if (valuePossibleCountColumns[candidate][col] == 2) {
                     List<String> positions = new ArrayList<>();
                     for (String key : possibleNumbers.keySet()) {
@@ -2169,8 +2176,7 @@ public class Solver
                         }
                     }
 
-                    if(!positions.isEmpty())
-                    {
+                    if (!positions.isEmpty()) {
                         String position1 = positions.get(0);
                         String[] cell1 = position1.split(",");
                         String position2 = positions.get(1);
@@ -2178,7 +2184,6 @@ public class Solver
 
                         if ((solvedBoard.findSubBoardNumber(Integer.parseInt(cell1[0]), Integer.parseInt(cell1[1])) != (solvedBoard.findSubBoardNumber(Integer.parseInt(cell2[0]), Integer.parseInt(cell2[1]))))) {
                             conjugatePairs.add(positions);
-
                         }
                     }
                 }
@@ -2189,9 +2194,13 @@ public class Solver
     }
 
     /**
-     * Yahya & Danny
+     * Processes the empty rectangles for a given candidate and conjugate pairs.
+     *
+     * @param candidate the candidate number being processed
+     * @param conjugatePairs the list of conjugate pairs for the candidate
+     * @author Yahya & Danny
      */
-    private void findEmptyRectangle (int candidate, List<List<String>> conjugatePairs) {
+    private void findEmptyRectangle(int candidate, List<List<String>> conjugatePairs) {
         boolean rowColCondition;
         boolean cellFound;
         int emptyCells;
@@ -2200,7 +2209,7 @@ public class Solver
         int secRow;
         int secCol;
 
-        for(int subBoard = 0; subBoard < boardBoxes; subBoard++) {
+        for (int subBoard = 0; subBoard < boardBoxes; subBoard++) {
             rowColCondition = false;
             cellFound = false;
             emptyCells = 0;
@@ -2217,11 +2226,10 @@ public class Solver
                     int row = startingRow + addedRows;
                     int col = startingColumn + addedColumns;
                     String key = row + "," + col;
-                    if(possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(candidate))
-                    {
-                        if(cellFound && row != firstRow && col != firstCol) {
-                            secRow=row;
-                            secCol=col;
+                    if (possibleNumbers.get(key) != null && possibleNumbers.get(key).contains(candidate)) {
+                        if (cellFound && row != firstRow && col != firstCol) {
+                            secRow = row;
+                            secCol = col;
                             rowColCondition = true;
                         } else if (!cellFound) {
                             firstRow = row;
@@ -2230,34 +2238,38 @@ public class Solver
                         }
                     }
 
-                    if(solvedBoard.getBoard()[row][col] != 0 || possibleNumbers.get(key) != null && !possibleNumbers.get(key).contains(candidate))
-                    {
+                    if (solvedBoard.getBoard()[row][col] != 0 || possibleNumbers.get(key) != null && !possibleNumbers.get(key).contains(candidate)) {
                         emptyCells++;
                     }
 
-                    if((addedRows == boxSizeRowsColumns - 1) && (addedColumns == boxSizeRowsColumns - 1) && rowColCondition)
-                    {
+                    if ((addedRows == boxSizeRowsColumns - 1) && (addedColumns == boxSizeRowsColumns - 1) && rowColCondition) {
                         emptyCells = emptyCells - (5 - valuePossibleCountSubBoards[candidate][subBoard]);
 
-                        if(emptyCells == 4 && valuePossibleCountSubBoards[candidate][subBoard] <= 5) {
+                        if (emptyCells == 4 && valuePossibleCountSubBoards[candidate][subBoard] <= 5) {
                             emptyRectangleElimination(firstRow, firstCol, secRow, secCol, subBoard, candidate, conjugatePairs);
                         }
                     }
                 }
-
             }
         }
     }
 
     /**
-     * Danny, Yahya & Abinav
+     * Eliminates candidate values based on the empty rectangle technique.
+     *
+     * @param firstRow the row of the first cell in the rectangle
+     * @param firstColumn the column of the first cell in the rectangle
+     * @param secondRow the row of the second cell in the rectangle
+     * @param secondColumn the column of the second cell in the rectangle
+     * @param subBoard the sub-board index where the rectangle is found
+     * @param candidate the candidate number being eliminated
+     * @param conjugatePairs the list of conjugate pairs for the candidate
+     * @author Danny, Yahya & Abinav
      */
-    public void emptyRectangleElimination(int firstRow, int firstColumn, int secondRow, int secondColumn, int subBoard, int candidate, List<List<String>> conjugatePairs)
-    {
+    public void emptyRectangleElimination(int firstRow, int firstColumn, int secondRow, int secondColumn, int subBoard, int candidate, List<List<String>> conjugatePairs) {
         boolean eliminationIsLegal = false;
 
-        for(List<String> conjugateList : conjugatePairs)
-        {
+        for (List<String> conjugateList : conjugatePairs) {
             String[] keyA = conjugateList.get(0).split(",");
             String[] keyB = conjugateList.get(1).split(",");
             int keyARow = Integer.parseInt(keyA[0]);
@@ -2267,8 +2279,7 @@ public class Solver
             int keyASubBoard = solvedBoard.findSubBoardNumber(keyARow, keyAColumn);
             int keyBSubBoard = solvedBoard.findSubBoardNumber(keyBRow, keyBColumn);
 
-            if(keyASubBoard != subBoard && keyBSubBoard != subBoard)
-            {
+            if (keyASubBoard != subBoard && keyBSubBoard != subBoard) {
                 boolean xAlignedWithFirst = false;
                 boolean xAlignedWithSecond = false;
                 int xRow = 0;
@@ -2276,8 +2287,7 @@ public class Solver
                 int yRow = 0;
                 int yColumn = 0;
 
-                if(keyARow == firstRow || keyAColumn == firstColumn || keyARow == secondRow || keyAColumn == secondColumn)
-                {
+                if (keyARow == firstRow || keyAColumn == firstColumn || keyARow == secondRow || keyAColumn == secondColumn) {
                     xAlignedWithFirst = keyARow == firstRow || keyAColumn == firstColumn;
                     xAlignedWithSecond = !xAlignedWithFirst;
 
@@ -2285,9 +2295,7 @@ public class Solver
                     xColumn = keyAColumn;
                     yRow = keyBRow;
                     yColumn = keyBColumn;
-                }
-                else if(keyBRow == firstRow || keyBColumn == firstColumn || keyBRow == secondRow || keyBColumn == secondColumn)
-                {
+                } else if (keyBRow == firstRow || keyBColumn == firstColumn || keyBRow == secondRow || keyBColumn == secondColumn) {
                     xAlignedWithFirst = keyBRow == firstRow || keyBColumn == firstColumn;
                     xAlignedWithSecond = !xAlignedWithFirst;
 
@@ -2297,82 +2305,52 @@ public class Solver
                     yColumn = keyAColumn;
                 }
 
-                if(xAlignedWithFirst || xAlignedWithSecond)
-                {
+                if (xAlignedWithFirst || xAlignedWithSecond) {
                     boolean eliminateInRow = keyARow < yRow;
 
-                    if(valuePossibleCountSubBoards[candidate][subBoard] == 2)
-                    {
-                        if(xAlignedWithFirst)
-                        {
-                            if(eliminateInRow)
-                            {
+                    if (valuePossibleCountSubBoards[candidate][subBoard] == 2) {
+                        if (xAlignedWithFirst) {
+                            if (eliminateInRow) {
                                 eliminationIsLegal = xRow == firstRow;
-                            }
-                            else
-                            {
+                            } else {
                                 eliminationIsLegal = xColumn == firstColumn;
                             }
-                        }
-                        else
-                        {
-                            if(eliminateInRow)
-                            {
+                        } else {
+                            if (eliminateInRow) {
                                 eliminationIsLegal = xRow == secondRow;
-                            }
-                            else
-                            {
+                            } else {
                                 eliminationIsLegal = xColumn == secondColumn;
                             }
                         }
-                    }
-                    else
-                    {
-                        if(xAlignedWithFirst)
-                        {
-                            if(valuePossibleCountRows[candidate][firstRow] > 1 && !(valuePossibleCountColumns[candidate][firstColumn] > 1))
-                            {
+                    } else {
+                        if (xAlignedWithFirst) {
+                            if (valuePossibleCountRows[candidate][firstRow] > 1 && !(valuePossibleCountColumns[candidate][firstColumn] > 1)) {
                                 eliminationIsLegal = xRow == firstRow;
-                            }
-                            else if(!(valuePossibleCountRows[candidate][firstRow] > 1) && valuePossibleCountColumns[candidate][firstColumn] > 1)
-                            {
+                            } else if (!(valuePossibleCountRows[candidate][firstRow] > 1) && valuePossibleCountColumns[candidate][firstColumn] > 1) {
                                 eliminationIsLegal = xColumn == firstColumn;
                             }
-                        }
-                        else
-                        {
-                            if(valuePossibleCountRows[candidate][secondRow] > 1 && !(valuePossibleCountColumns[candidate][secondColumn] > 1))
-                            {
+                        } else {
+                            if (valuePossibleCountRows[candidate][secondRow] > 1 && !(valuePossibleCountColumns[candidate][secondColumn] > 1)) {
                                 eliminationIsLegal = xRow == secondRow;
-                            }
-                            else if(!(valuePossibleCountRows[candidate][secondRow] > 1) && valuePossibleCountColumns[candidate][secondColumn] > 1)
-                            {
+                            } else if (!(valuePossibleCountRows[candidate][secondRow] > 1) && valuePossibleCountColumns[candidate][secondColumn] > 1) {
                                 eliminationIsLegal = xColumn == secondColumn;
                             }
                         }
                     }
 
-                    if(eliminationIsLegal)
-                    {
-                        for(int rowOrCol = 0; rowOrCol < boardSizeRowsColumns; rowOrCol++)
-                        {
+                    if (eliminationIsLegal) {
+                        for (int rowOrCol = 0; rowOrCol < boardSizeRowsColumns; rowOrCol++) {
                             String key;
 
-                            if(eliminateInRow)
-                            {
+                            if (eliminateInRow) {
                                 key = yRow + "," + rowOrCol;
-                            }
-                            else
-                            {
+                            } else {
                                 key = rowOrCol + "," + yColumn;
                             }
 
-                            if(possibleNumbers.get(key) != null)
-                            {
-                                if(possibleNumbers.get(key).contains(candidate) && (xAlignedWithFirst ? (eliminateInRow ? rowOrCol == secondColumn : rowOrCol == secondRow) : (eliminateInRow ? rowOrCol == firstColumn : rowOrCol == firstRow)))
-                                {
+                            if (possibleNumbers.get(key) != null) {
+                                if (possibleNumbers.get(key).contains(candidate) && (xAlignedWithFirst ? (eliminateInRow ? rowOrCol == secondColumn : rowOrCol == secondRow) : (eliminateInRow ? rowOrCol == firstColumn : rowOrCol == firstRow))) {
                                     updatePossibleNumbersAndCounts(key, candidate, null, false);
-
                                     break;
                                 }
                             }
@@ -2383,15 +2361,23 @@ public class Solver
         }
     }
 
+
     /**
+     * Checks for and resolves a BUG (Bivalue Universal Grave) pattern in the Sudoku game.
+     *
+     * @return true if a BUG pattern is found and resolved, otherwise false
      * @author Yahya
      */
     private boolean bug() {
+        // Find all bivalue cells
         HashMap<String, List<Integer>> bivalueCells = findBivalueCells();
-        if(possibleNumbers.keySet().size()-1 == bivalueCells.size()) {
+
+        // Check if all but one cell are bivalue cells
+        if (possibleNumbers.keySet().size() - 1 == bivalueCells.size()) {
+            // Find the single trivalue cell
             String trivalueCellKey = findTrivalueCell();
             if (!trivalueCellKey.isEmpty()) {
-                // System.out.println();
+                // Check and resolve the BUG pattern
                 return checkAndResolveBug(trivalueCellKey);
             }
         }
@@ -2399,6 +2385,9 @@ public class Solver
     }
 
     /**
+     * Finds all bivalue cells in the Sudoku puzzle.
+     *
+     * @return a map of bivalue cell coordinates to their possible values
      * @author Yahya
      */
     private HashMap<String, List<Integer>> findBivalueCells() {
@@ -2413,14 +2402,14 @@ public class Solver
                 int subBoard = solvedBoard.findSubBoardNumber(row, column);
                 boolean repeatsOnlyTwice = false;
 
-                for (Integer number : values){
+                for (Integer number : values) {
                     if (valuePossibleCountRows[number][row] == 2 && valuePossibleCountColumns[number][column] == 2 && valuePossibleCountSubBoards[number][subBoard] == 2) {
                         repeatsOnlyTwice = true;
                     }
                 }
 
                 // Check the appearance frequency within row, column, and sub-board
-                if(repeatsOnlyTwice){
+                if (repeatsOnlyTwice) {
                     bivalueCells.put(key, new ArrayList<>(values));
                 }
             }
@@ -2430,6 +2419,9 @@ public class Solver
     }
 
     /**
+     * Finds the single trivalue cell in the Sudoku puzzle.
+     *
+     * @return the coordinates of the trivalue cell, or an empty string if none is found
      * @author Yahya
      */
     private String findTrivalueCell() {
@@ -2443,6 +2435,10 @@ public class Solver
     }
 
     /**
+     * Checks if the BUG pattern can be resolved using the trivalue cell and performs the resolution if possible.
+     *
+     * @param trivalueCellKey the coordinates of the trivalue cell
+     * @return true if the BUG pattern is resolved, otherwise false
      * @author Yahya
      */
     private boolean checkAndResolveBug(String trivalueCellKey) {
@@ -2465,6 +2461,7 @@ public class Solver
 
         return false;
     }
+
 
     /**
      * @author Danny
