@@ -292,14 +292,18 @@ public class Controller implements Initializable, ActionListener
                 {
                     gameModel.setGameMode(GameModes.TimedMode);
                     loadMenuButton.setDisable(true);
+                    gameModel.setUnlimitedHints(false);
                     unlimitedHintsCheckBox.setDisable(true);
+                    unlimitedHintsCheckBox.setSelected(false);
                 }
 
                 case "Death Mode" ->
                 {
                     gameModel.setGameMode(GameModes.DeathMode);
                     loadMenuButton.setDisable(true);
+                    gameModel.setUnlimitedHints(false);
                     unlimitedHintsCheckBox.setDisable(true);
+                    unlimitedHintsCheckBox.setSelected(false);
                 }
 
 
@@ -307,7 +311,9 @@ public class Controller implements Initializable, ActionListener
                 {
                     gameModel.setGameMode(GameModes.HardcoreMode);
                     loadMenuButton.setDisable(true);
+                    gameModel.setUnlimitedHints(false);
                     unlimitedHintsCheckBox.setDisable(true);
+                    unlimitedHintsCheckBox.setSelected(false);
                 }
 
                 default ->
