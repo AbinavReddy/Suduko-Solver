@@ -14,7 +14,7 @@ public class Game
     private List<String> hintInsertHistorySaved;
     private boolean solvableOnly; // menu
     private boolean unlimitedHints; // menu
-    private  long userSolveTime; // puzzle
+    private long userSolveTime; // puzzle
     private int lives;
     private long preSaveLoadUserTime;
     private boolean savingGame = false;
@@ -34,6 +34,22 @@ public class Game
     public void setBoard(Board board)
     {
         this.board = board;
+    }
+
+    /**
+     * @author Danny
+     */
+    public void setValueInsertHistory(List<Node> valueInsertHistory)
+    {
+        this.valueInsertHistory = valueInsertHistory;
+    }
+
+    /**
+     * @author Danny
+     */
+    public void setHintInsertHistory(List<Node> hintInsertHistory)
+    {
+        this.hintInsertHistory = hintInsertHistory;
     }
 
     /**

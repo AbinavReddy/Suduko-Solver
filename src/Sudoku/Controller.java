@@ -60,7 +60,7 @@ public class Controller implements Initializable, ActionListener
     private static Scene currentScene;
 
     // Game data
-    private final Game gameModel = new Game();
+    private static final Game gameModel = new Game();
     private TextField[][] boardGridCells; // puzzle, custom, solver
     private TextField activeTextField; // puzzle
     List<String> list = new ArrayList<>(List.of("Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5"));
@@ -135,17 +135,75 @@ public class Controller implements Initializable, ActionListener
      */
     public void initialize(URL url, ResourceBundle resourceBundle) // initializes game scenes and injects JavaFX fields
     {
+        Board board = gameModel.getBoard();
+        boolean gameSavedLoaded = gameModel.getGameSavedLoaded();
+
         if(gameModel.getGameScene() == GameScenes.PuzzleScene)
         {
+            if(!board.getSolver().getSolverHasRun() && !gameSavedLoaded) // needed to solve custom boards
+            {
+                board.solve();
+            }
 
+            showBoardValues(true);
+
+            gameModel.setValueInsertHistory(new ArrayList<>());
+            gameModel.setHintInsertHistory(new ArrayList<>());
+
+            if(gameSavedLoaded)
+            {
+                undoButton.setDisable(false);
+                resetButton.setDisable(false);
+            }
+            else
+            {
+                gameModel.setValueInsertHistorySaved(new ArrayList<>());
+                gameModel.setHintInsertHistorySaved(new ArrayList<>());
+
+                undoButton.setDisable(true);
+            }
+
+            gameModel.setGameSavedLoaded(false);
+            gameModel.setSavingGame(false);
+            gameModel.setClickedBack(false);
+
+            initializeGameModeSettings();
+
+            updateSoundIcon();
+            updateFilledCells();
+            feedbackField.setText("");
+            boardGrid.requestFocus();
+
+            userSolveTimer.start();
         }
         if(gameModel.getGameScene() == GameScenes.CustomScene)
         {
+            showBoardValues(true);
 
+            gameModel.setValueInsertHistory(new ArrayList<>());
+            gameModel.setHintInsertHistory(new ArrayList<>());
+
+            updateSoundIcon();
+            updateFilledCells();
+            feedbackField.setText("");
+            boardGrid.requestFocus();
         }
         if(gameModel.getGameScene() == GameScenes.SolverScene)
         {
+            if(!board.getSolver().getSolverHasRun() && !gameSavedLoaded) // needed to solve custom boards
+            {
+                board.solve();
+            }
 
+            showBoardValues(false);
+
+            boardGrid.setDisable(true); // if there are empty cells, the user should not be able to edit them
+
+            timeSolvingField.setText(formatTime(board.getSolver().getSolvingTime()));
+
+            updateSoundIcon();
+            filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
+            feedbackField.setText(createSolverFeedbackMessage());
         }
         if(gameModel.getGameScene() == GameScenes.SaveLoadScene)
         {
@@ -153,81 +211,26 @@ public class Controller implements Initializable, ActionListener
         }
         else // MenuScene
         {
+            comboBox.getItems().addAll("Normal Mode", "Timed Mode", "Death Mode", "Hardcore Mode");
 
-        }
-    }
+            comboBox.setOnAction( event -> {
+                try {
+                    handleModeSelected();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
 
-    /**
-     * @author Danny & Abinav
-     */
-    public void initializeRandomBoard() throws IOException
-    {
-        try
-        {
-            int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
-            int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
-
-            if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, requirement for being valid
+            if(gameModel.getSolvableOnly())
             {
-                gameModel.setBoard(new Board(boardSizeBoxes, boxSizeRowsColumns, gameModel.getSolvableOnly(), false));
-
-                goToPuzzleScene();
+                solvableOnlyCheckBox.setSelected(true);
             }
-            else
-            {
-                boardSizeField.clear();
-                boxSizeField.clear();
 
-                boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+            gameModel.setGameSavedLoaded(false);
+            gameModel.setSavingGame(false);
+            gameModel.setClickedBack(false);
 
-                playSoundEffect(errorSound, 0.2);
-            }
-        }
-        catch(NumberFormatException exception)
-        {
-            boardSizeField.clear();
-            boxSizeField.clear();
-
-            boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
-
-            playSoundEffect(errorSound, 0.2);
-        }
-    }
-
-    /**
-     * @author Danny
-     */
-    public void initializeCustomBoard() throws IOException
-    {
-        try
-        {
-            int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
-            int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
-
-            if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, where k and n > 0, requirement for being valid
-            {
-                gameModel.setBoard(new Board(boardSizeBoxes, boxSizeRowsColumns, false, true)); // can't force solvable on custom boards
-
-                goToCustomScene();
-            }
-            else
-            {
-                boardSizeField.clear();
-                boxSizeField.clear();
-
-                boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
-
-                playSoundEffect(errorSound, 0.2);
-            }
-        }
-        catch(NumberFormatException exception)
-        {
-            boardSizeField.clear();
-            boxSizeField.clear();
-
-            boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
-
-            playSoundEffect(errorSound, 0.2);
+            updateSoundIcon();
         }
     }
 
@@ -274,8 +277,6 @@ public class Controller implements Initializable, ActionListener
      * @author  Abinav, Danny & Yahya
      */
     private void initializeGameModeSettings() {
-        Board board = gameModel.getBoard();
-
         GameModes gameMode = gameModel.getGameMode();
 
         if(gameMode == GameModes.HardcoreMode) { // Timer countdown mode + mode allowing limited mistakes based on board size
@@ -394,6 +395,80 @@ public class Controller implements Initializable, ActionListener
                     pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
                 }
             }
+        }
+    }
+
+    /**
+     * @author Danny & Abinav
+     */
+    public void initializeRandomBoard() throws IOException
+    {
+        try
+        {
+            int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
+            int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
+
+            if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, requirement for being valid
+            {
+                gameModel.setBoard(new Board(boardSizeBoxes, boxSizeRowsColumns, gameModel.getSolvableOnly(), false));
+
+                goToPuzzleScene();
+            }
+            else
+            {
+                boardSizeField.clear();
+                boxSizeField.clear();
+
+                boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+
+                playSoundEffect(errorSound, 0.2);
+            }
+        }
+        catch(NumberFormatException exception)
+        {
+            boardSizeField.clear();
+            boxSizeField.clear();
+
+            boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+
+            playSoundEffect(errorSound, 0.2);
+        }
+    }
+
+    /**
+     * @author Danny
+     */
+    public void initializeCustomBoard() throws IOException
+    {
+        try
+        {
+            int boardSizeBoxes = Integer.parseInt(boardSizeField.getText()); // number of boxes on each side of the board
+            int boxSizeRowsColumns = Integer.parseInt(boxSizeField.getText()); // number of rows or columns on each side of the boxes
+
+            if(boardSizeBoxes != 0 && boxSizeRowsColumns != 0 && ((boardSizeBoxes * boxSizeRowsColumns) <= (boxSizeRowsColumns * boxSizeRowsColumns))) // k*n <= n^2, where k and n > 0, requirement for being valid
+            {
+                gameModel.setBoard(new Board(boardSizeBoxes, boxSizeRowsColumns, false, true)); // can't force solvable on custom boards
+
+                goToCustomScene();
+            }
+            else
+            {
+                boardSizeField.clear();
+                boxSizeField.clear();
+
+                boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+
+                playSoundEffect(errorSound, 0.2);
+            }
+        }
+        catch(NumberFormatException exception)
+        {
+            boardSizeField.clear();
+            boxSizeField.clear();
+
+            boardSizeValidationField.setText("These are invalid dimensions for Sudoku!");
+
+            playSoundEffect(errorSound, 0.2);
         }
     }
 
@@ -1017,14 +1092,23 @@ public class Controller implements Initializable, ActionListener
         }
 
         // Display the time used by the Solver to solve the puzzle
-        int totalSeconds = (int) (userSolveTime / 1000);
+        timeSolvingField.setText(formatTime(userSolveTime));
+    }
+
+    /**
+     * @author Danny
+     */
+    private String formatTime(long milliseconds)
+    {
+        int totalSeconds = (int) (milliseconds / 1000);
         int seconds = totalSeconds % 60;
         int minutes = (totalSeconds / 60) % 60;
         int hours = ((totalSeconds / 60) / 60) % 60;
-        String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + (String.valueOf((long) (((userSolveTime / 1000.0) - Math.floor(userSolveTime / 1000.0)) * 1000)).charAt(0));
+        String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + (String.valueOf((long) (((milliseconds / 1000.0) - Math.floor(milliseconds / 1000.0)) * 1000)).charAt(0));
         String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
         String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
-        timeSolvingField.setText("Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText);
+
+        return "Time: " + hoursAsText + ":" + minutesAsText + ":" + secondsAsText;
     }
 
     /**
