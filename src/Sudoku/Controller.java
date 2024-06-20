@@ -85,7 +85,9 @@ public class Controller implements Initializable, ActionListener
     @FXML
     private Text gameOverField; // puzzle
     @FXML
-    private Text livesRemainingField; // puzzle
+    private Text hintsLivesField; // puzzle
+    @FXML
+    private Text scoreField; // puzzle
     @FXML
     private Text saveLoadSceneSubtitle; // save load
     @FXML
@@ -118,12 +120,13 @@ public class Controller implements Initializable, ActionListener
     private Rectangle gameOverPausedOverlay; // puzzle
 
     // Sound
-    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/click sound.wav")).toExternalForm());
-    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/insert sound.wav")).toExternalForm());
-    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/remove sound.wav")).toExternalForm());
-    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/error sound.wav")).toExternalForm());
-    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/win sound.wav")).toExternalForm());
-    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/lose sound.wav")).toExternalForm());
+    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/click sound.wav")).toExternalForm());
+    private final Media selectSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/select sound.wav")).toExternalForm());
+    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/insert sound.wav")).toExternalForm());
+    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/remove sound.wav")).toExternalForm());
+    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/error sound.wav")).toExternalForm());
+    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/win sound.wav")).toExternalForm());
+    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/lose sound.wav")).toExternalForm());
 
     // Tools
     private static final Timer userSolveTimer = new Timer(100, null);
@@ -149,23 +152,27 @@ public class Controller implements Initializable, ActionListener
 
             if(gameSavedLoaded)
             {
+                gameModel.setGameMode(GameModes.NormalMode);
+                scoreField.setText("Score: " + gameModel.getGameScore());
                 undoButton.setDisable(false);
             }
             else
             {
+                gameModel.setGameScore(0);
+
                 gameModel.setValueInsertHistorySaved(new ArrayList<>());
                 gameModel.setHintInsertHistorySaved(new ArrayList<>());
 
                 undoButton.setDisable(true);
             }
 
-            gameModel.setGameSavedLoaded(false);
-            gameModel.setSavingGame(false);
-            gameModel.setClickedBack(false);
-
             feedbackField.setText("");
 
             initializeGameModeSettings();
+
+            gameModel.setGameSavedLoaded(false);
+            gameModel.setSavingGame(false);
+            gameModel.setClickedBack(false);
 
             updateSoundIcon();
             updateFilledCells();
@@ -207,7 +214,7 @@ public class Controller implements Initializable, ActionListener
 
             updateSoundIcon();
             filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
-            feedbackField.setText(createSolverFeedbackMessage());
+            feedbackField.setText(createSolverFeedbackMessage(""));
         }
         else if(gameModel.getGameScene() == GameScenes.SaveLoadScene)
         {
@@ -216,8 +223,8 @@ public class Controller implements Initializable, ActionListener
                 backButton.setOnAction((event -> {try {gameModel.setClickedBack(true); goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e);}}));
 
                 saveLoadSceneTitle.setText("Save");
-                saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
                 saveLoadButton.setText("Save");
+                saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
             }
             else
             {
@@ -254,6 +261,11 @@ public class Controller implements Initializable, ActionListener
 
             comboBox.getItems().addAll("Normal Mode", "Timed Mode", "Death Mode", "Hardcore Mode");
             comboBox.setOnAction( event -> {try {handleModeSelected(); } catch (IOException e) {throw new RuntimeException(e);}});
+
+            if(gameModel.getGameMode() != GameModes.NormalMode)
+            {
+                loadMenuButton.setDisable(true);
+            }
 
             if(gameModel.getSolvableOnly())
             {
@@ -323,6 +335,8 @@ public class Controller implements Initializable, ActionListener
                     unlimitedHintsCheckBox.setDisable(false);
                 }
             }
+
+            playSelectSound();
         }
     }
 
@@ -338,8 +352,8 @@ public class Controller implements Initializable, ActionListener
             undoButton.setDisable(true);
             saveButton.setDisable(true);
             gameModel.setLives(calculateLivesBasedOnBoardSize());
-            livesRemainingField.setVisible(true);
-            livesRemainingField.setText("Lives: " + gameModel.getLives());
+            hintsLivesField.setVisible(true);
+            hintsLivesField.setText("Lives: " + gameModel.getLives());
             gameModel.setUserSolveTime(calculateUserSolvingTime());
             feedbackField.setText("Welcome to Hardcore Mode!");
             pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve the puzzle before time and/or lives are depleted!"));
@@ -348,8 +362,8 @@ public class Controller implements Initializable, ActionListener
         } else if(gameMode == GameModes.DeathMode) { // Mode allowing limited mistakes based on board size
 
             gameModel.setLives(calculateLivesBasedOnBoardSize());
-            livesRemainingField.setVisible(true);
-            livesRemainingField.setText("Lives: " + gameModel.getLives());
+            hintsLivesField.setVisible(true);
+            hintsLivesField.setText("Lives: " + gameModel.getLives());
             gameModel.setUserSolveTime(0);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
@@ -360,7 +374,7 @@ public class Controller implements Initializable, ActionListener
         } else if (gameMode == GameModes.TimedMode) { // Timer countdown mode
 
             gameModel.setUserSolveTime(calculateUserSolvingTime());
-            livesRemainingField.setVisible(false);
+            hintsLivesField.setVisible(false);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
             feedbackField.setText("Welcome to Timed Mode!");
@@ -369,8 +383,8 @@ public class Controller implements Initializable, ActionListener
 
         } else {
             gameModel.setUserSolveTime(gameModel.getClickedBack() ? gameModel.getPreSaveLoadUserTime() : (gameModel.getGameSavedLoaded() ? gameModel.getSavedTimeLoaded() : 0));
-            gameModel.setHintsAvailable(calculateHintsAvailable());
-            livesRemainingField.setVisible(false);
+            gameModel.setHintsAvailable(!gameModel.getGameSavedLoaded() ? calculateHintsAvailable() : gameModel.getHintsAvailable());
+            hintsLivesField.setText("Hints: " + gameModel.getHintsAvailable());
         }
     }
 
@@ -411,11 +425,11 @@ public class Controller implements Initializable, ActionListener
 
         if (lives > 0 && (gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode)) {
             gameModel.setLives(lives - 1);
-            livesRemainingField.setText("Lives: " + gameModel.getLives());
-            livesRemainingField.setStyle("-fx-fill: red;");
+            hintsLivesField.setText("Lives: " + gameModel.getLives());
+            hintsLivesField.setStyle("-fx-fill: red;");
             pauseTransition.setDuration(Duration.seconds(1));
             pauseTransition.setOnFinished(e -> {
-                if(gameModel.getLives() > 0) livesRemainingField.setStyle("-fx-fill: white;"); // need to get lives again since lambda needs final variable
+                if(gameModel.getLives() > 0) hintsLivesField.setStyle("-fx-fill: white;"); // need to get lives again since lambda needs final variable
             }) ;
             pauseTransition.play();
             pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
@@ -425,8 +439,8 @@ public class Controller implements Initializable, ActionListener
             undoButton.setDisable(true);
             hintButton.setDisable(true);
             pauseResumeButton.setDisable(true);
-            livesRemainingField.setText("Lives: " + gameModel.getLives());
-            livesRemainingField.setStyle("-fx-fill: red;");
+            hintsLivesField.setText("Lives: " + gameModel.getLives());
+            hintsLivesField.setStyle("-fx-fill: red;");
             boardGrid.setDisable(true);
             gameOverState(true);
 
@@ -556,7 +570,7 @@ public class Controller implements Initializable, ActionListener
 
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
-        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the View board (in pixels)
+        double cellSize = Math.ceil(820.0 / boardSizeRowsColumns); // 820 = length and width the Resources board (in pixels)
 
         boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
         int cellTextSize = (int) (cellSize / 2);
@@ -641,7 +655,7 @@ public class Controller implements Initializable, ActionListener
 
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
-        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the View board (in pixels)
+        double cellSize = Math.ceil(820.0 / boardSizeRowsColumns); // 820 = length and width the Resources board (in pixels)
         double lengthOfLine;
         double widthOfLine;
 
@@ -738,6 +752,8 @@ public class Controller implements Initializable, ActionListener
                 {
                     board.setBoardValue(row, column, 0);
 
+                    changeGameScore(100, false);
+
                     valueInsertHistory.remove(activeTextField);
                     valueInsertHistorySaved.removeIf(string -> string.equals(row + "," + column));
 
@@ -801,6 +817,8 @@ public class Controller implements Initializable, ActionListener
                     {
                         board.setBoardValue(row, column, 0);
                         updateFilledCells();
+
+                        changeGameScore(100, false);
 
                         valueInsertHistory.remove(activeTextField);
                         valueInsertHistorySaved.removeIf(string -> string.equals(row + "," + column));
@@ -906,6 +924,8 @@ public class Controller implements Initializable, ActionListener
                 {
                     playSoundEffect(insertSound, 0.43);
                 }
+
+                changeGameScore(100, true);
             }
             else
             {
@@ -913,6 +933,9 @@ public class Controller implements Initializable, ActionListener
                 feedbackField.setText(board.getErrorMessage());
                 checkAndUpdateLivesRemaining();
                 updateTimeOnInsert();
+
+                changeGameScore(50, false);
+
                 playSoundEffect(errorSound, 0.2);
 
             }
@@ -963,6 +986,31 @@ public class Controller implements Initializable, ActionListener
     }
 
     /**
+     * @author Danny & Abinav
+     */
+    public void changeGameScore(int amount, boolean increaseScore)
+    {
+        int gameScore = gameModel.getGameScore();
+        long userSolveTimeCurrent = gameModel.getUserSolveTime();
+
+        int calculatedScore;
+
+        if(increaseScore)
+        {
+            calculatedScore = gameScore != 0 ? gameScore + (int) Math.ceil(((1 - (userSolveTimeCurrent - gameModel.getUserSolveTimeLastInsert()) / (double) userSolveTimeCurrent) * amount)) : amount;
+        }
+        else
+        {
+            calculatedScore = gameScore - amount;
+        }
+
+        gameModel.setGameScore(calculatedScore);
+        gameModel.setUserSolveTimeLastInsert();
+
+        scoreField.setText("Score: " + gameModel.getGameScore());
+    }
+
+    /**
      * @author Danny, Abinav & Yahya
      */
     public void undoValueInsertion()
@@ -990,6 +1038,8 @@ public class Controller implements Initializable, ActionListener
             {
                 undoButton.setDisable(true);
             }
+
+            changeGameScore(100, false);
 
             feedbackField.setText("Value insertion undone in cell (" + (row + 1) + ", " + (column + 1) + ")");
         }
@@ -1034,10 +1084,10 @@ public class Controller implements Initializable, ActionListener
 
                         if(!gameModel.getUnlimitedHints())
                         {
-                            pauseTransition.setDuration(Duration.seconds(3));
-                            pauseTransition.setOnFinished(e ->  feedbackField.setText(gameModel.getHintsAvailable() + " hints left!"));
-                            pauseTransition.play();
+                            hintsLivesField.setText("Hints: " + gameModel.getHintsAvailable());
                         }
+
+                        changeGameScore(300, false);
 
                         activeTextField = null;
                     }
@@ -1057,6 +1107,8 @@ public class Controller implements Initializable, ActionListener
         else
         {
             feedbackField.setText("No more hints available!");
+
+            playSoundEffect(errorSound, 0.2);
         }
 
         boardGrid.requestFocus(); // un-focus all cells
@@ -1118,11 +1170,9 @@ public class Controller implements Initializable, ActionListener
             gameModel.setUserSolveTime(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? calculateUserSolvingTime(): 0);
             userSolveTimer.start();
 
-            gameModel.setHintsAvailable(calculateHintsAvailable());
-
             if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode){
                 gameModel.setLives(calculateLivesBasedOnBoardSize());
-                livesRemainingField.setText("Lives: "+ gameModel.getLives());
+                hintsLivesField.setText("Lives: "+ gameModel.getLives());
             }
 
             if(boardGrid.isDisable())
@@ -1132,13 +1182,18 @@ public class Controller implements Initializable, ActionListener
 
             if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode || gameMode == GameModes.TimedMode) {
                 timeSolvingField.setStyle("-fx-fill: white;");
-                livesRemainingField.setStyle("-fx-fill: white;");
+                hintsLivesField.setStyle("-fx-fill: white;");
                 hintButton.setDisable(true);
             } else {
                 hintButton.setDisable(false);
             }
             pauseResumeButton.setDisable(false);
         }
+
+        gameModel.setHintsAvailable(calculateHintsAvailable());
+        hintsLivesField.setText("Hints: "+ gameModel.getHintsAvailable());
+        gameModel.setGameScore(0);
+        scoreField.setText("Score: "+ gameModel.getGameScore());
 
         feedbackField.setText("The puzzle has been reset!");
 
@@ -1167,9 +1222,17 @@ public class Controller implements Initializable, ActionListener
     /**
      * @author Danny
      */
-    public void playButtonClickSound()
+    public void playClickSound()
     {
         playSoundEffect(clickSound, 0.15);
+    }
+
+    /**
+     * @author Danny & Abinav
+     */
+    public void playSelectSound()
+    {
+        playSoundEffect(selectSound, 0.12);
     }
 
     /**
@@ -1190,11 +1253,11 @@ public class Controller implements Initializable, ActionListener
     {
         if(gameModel.getSoundMuted())
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound off icon.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("Resources/Media/sound off icon.png")).toExternalForm()));
         }
         else
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound on icon.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("Resources/Media/sound on icon.png")).toExternalForm()));
         }
     }
 
@@ -1353,6 +1416,7 @@ public class Controller implements Initializable, ActionListener
         jsonNode.set("savedOnDateAndTime",objectMapper.convertValue(dtf.format(currentTime), JsonNode.class));
         jsonNode.set("boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
         jsonNode.set("boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
+        jsonNode.set("score", objectMapper.convertValue(gameModel.getGameScore(), JsonNode.class));
         jsonNode.set("board", boardNode);
         jsonNode.set("solvedboard", solvedBoardNode);
         if(valueInsertHistorySaved != null){
@@ -1367,6 +1431,8 @@ public class Controller implements Initializable, ActionListener
         }
         jsonNode.set("filledcells",objectMapper.convertValue(board.getFilledCells(), JsonNode.class));
         jsonNode.put("userTime", gameModel.getUserSolveTime());
+        jsonNode.set("solverFeedback", objectMapper.convertValue(createSolverFeedbackMessage(""), JsonNode.class));
+        jsonNode.set("numberOfHints", objectMapper.convertValue(gameModel.getHintsAvailable(), JsonNode.class));
 
         return jsonNode;
     }
@@ -1450,7 +1516,7 @@ public class Controller implements Initializable, ActionListener
         saveLoadSlotList.setStyle("-fx-border-width: 3px; "
             +"-fx-border-color: ffe767; "
             + "-fx-font-size: 18px; "
-            + "-fx-font-family: 'Segoe View'; "
+            + "-fx-font-family: 'Segoe Resources'; "
             + "-fx-control-inner-background:#000000;");
         saveLoadSlotList.setFocusTraversable(false);
     }
@@ -1499,7 +1565,9 @@ public class Controller implements Initializable, ActionListener
                     long userSolvingTimeSaved = jsonNode.get("userTime").asLong();
                     int[][] boardArraySaved = objectMapper.convertValue(jsonNode.get("board"), int[][].class);
                     int[][] solvedBoardArraySaved = objectMapper.convertValue(jsonNode.get("solvedboard"), int[][].class);
-
+                    gameModel.setGameScore(jsonNode.get("score").asInt());
+                    String solverFeedBack = jsonNode.get("solverFeedback").asText();
+                    createSolverFeedbackMessage(solverFeedBack);
                     // setting the saved values
                     if(!jsonNode.get("userInsertedValues").isNull() && jsonNode.get("userInsertedValues").isArray()){
                         List<String> insertedValuesOnBoardSaved = new ArrayList<>();
@@ -1525,6 +1593,7 @@ public class Controller implements Initializable, ActionListener
                         board.getSolver().getSolvedBoard().setFilledCells(board.getAvailableCells());
                     }
                     gameModel.setSavedTimeLoaded(userSolvingTimeSaved);
+                    gameModel.setHintsAvailable(jsonNode.get("numberOfHints").asInt());
                     gameModel.setGameSavedLoaded(true);
 
                     goToPuzzleScene();
@@ -1567,9 +1636,13 @@ public class Controller implements Initializable, ActionListener
     /**
      * @author Danny
      */
-    public String createSolverFeedbackMessage()
+    public String createSolverFeedbackMessage(String feedBackForSavedGame)
     {
         Board board = gameModel.getBoard();
+
+        if(gameModel.getGameSavedLoaded() && !feedBackForSavedGame.isEmpty()){
+            return feedBackForSavedGame;
+        }
 
         if(board.getSolver().getSolvedBoard().isGameFinished())
         {
@@ -1701,7 +1774,7 @@ public class Controller implements Initializable, ActionListener
         GraphicsDevice screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         int screenResolutionY = screen.getDisplayMode().getHeight(); // smallest, therefore the one used
 
-        if(screenResolutionY != 1440) // default size
+        if(screenResolutionY != 1440) // not default screen resolution size
         {
             double adaptedAppSize = 1200 * (screenResolutionY / (double) (1200 + 240));
 
@@ -1716,7 +1789,7 @@ public class Controller implements Initializable, ActionListener
      */
     public void setActiveScene(String sceneName) throws IOException
     {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("View/Scenes/" + sceneName + ".fxml")));
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("Resources/Scenes/" + sceneName + ".fxml")));
 
         if(currentScene != null)
         {
@@ -1727,7 +1800,7 @@ public class Controller implements Initializable, ActionListener
             currentScene = new Scene(root);
         }
 
-        currentScene.widthProperty().addListener((observable) -> scaleScreen()); // used for resizing View
+        currentScene.widthProperty().addListener((observable) -> scaleScreen()); // used for resizing Resources
         currentScene.heightProperty().addListener((observable) -> scaleScreen());
 
         scaleScreen();
@@ -1735,7 +1808,7 @@ public class Controller implements Initializable, ActionListener
         appStage.setScene(currentScene); // construct scene
         appStage.setTitle("Sudoku (Group 5)"); // window title
         appStage.setResizable(true); // disable resizable window
-        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("View/Media/sudoku icon.png")))); // add app icon to stage
+        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("Resources/Media/sudoku icon.png")))); // add app icon to stage
         appStage.show(); // show window
     }
 }

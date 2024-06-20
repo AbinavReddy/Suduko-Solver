@@ -121,7 +121,7 @@ public class Board
         }
         else if(!checkPlacementRow(row, value) || !checkPlacementColumn(column, value) || !checkPlacementSubBoard(row, column, value))
         {
-            errorMessage = "Value already in row, column or sub-board!";
+            errorMessage = "Value already in row, column or box!";
 
             return false;
         }
