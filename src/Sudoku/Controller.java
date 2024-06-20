@@ -153,11 +153,13 @@ public class Controller implements Initializable, ActionListener
             if(gameSavedLoaded)
             {
                 gameModel.setGameMode(GameModes.NormalMode);
-                scoreField.setText("Score: " + gameModel.getScore());
+                scoreField.setText("Score: " + gameModel.getGameScore());
                 undoButton.setDisable(false);
             }
             else
             {
+                gameModel.setGameScore(0);
+
                 gameModel.setValueInsertHistorySaved(new ArrayList<>());
                 gameModel.setHintInsertHistorySaved(new ArrayList<>());
 
@@ -343,13 +345,6 @@ public class Controller implements Initializable, ActionListener
      */
     private void initializeGameModeSettings() {
         GameModes gameMode = gameModel.getGameMode();
-        long userSolveTime = gameModel.getUserSolveTime();
-
-        boolean getClickedBack = gameModel.getClickedBack();
-        long getPreSaveLoadUserTime = gameModel.getPreSaveLoadUserTime();
-        boolean gameSavedLoaded = gameModel.getGameSavedLoaded();
-        long getSavedTimeLoaded = gameModel.getSavedTimeLoaded();
-
 
         if(gameMode == GameModes.HardcoreMode) { // Timer countdown mode + mode allowing limited mistakes based on board size
 
@@ -387,10 +382,8 @@ public class Controller implements Initializable, ActionListener
             pauseTransition.play();
 
         } else {
-            System.out.println();
-
             gameModel.setUserSolveTime(gameModel.getClickedBack() ? gameModel.getPreSaveLoadUserTime() : (gameModel.getGameSavedLoaded() ? gameModel.getSavedTimeLoaded() : 0));
-            gameModel.setHintsAvailable(calculateHintsAvailable());
+            gameModel.setHintsAvailable(!gameModel.getGameSavedLoaded() ? calculateHintsAvailable() : gameModel.getHintsAvailable());
             hintsLivesField.setText("Hints: " + gameModel.getHintsAvailable());
         }
     }
@@ -759,6 +752,8 @@ public class Controller implements Initializable, ActionListener
                 {
                     board.setBoardValue(row, column, 0);
 
+                    changeGameScore(100, false);
+
                     valueInsertHistory.remove(activeTextField);
                     valueInsertHistorySaved.removeIf(string -> string.equals(row + "," + column));
 
@@ -822,6 +817,8 @@ public class Controller implements Initializable, ActionListener
                     {
                         board.setBoardValue(row, column, 0);
                         updateFilledCells();
+
+                        changeGameScore(100, false);
 
                         valueInsertHistory.remove(activeTextField);
                         valueInsertHistorySaved.removeIf(string -> string.equals(row + "," + column));
@@ -928,7 +925,7 @@ public class Controller implements Initializable, ActionListener
                     playSoundEffect(insertSound, 0.43);
                 }
 
-                increaseScore();
+                changeGameScore(100, true);
             }
             else
             {
@@ -936,6 +933,9 @@ public class Controller implements Initializable, ActionListener
                 feedbackField.setText(board.getErrorMessage());
                 checkAndUpdateLivesRemaining();
                 updateTimeOnInsert();
+
+                changeGameScore(50, false);
+
                 playSoundEffect(errorSound, 0.2);
 
             }
@@ -988,12 +988,26 @@ public class Controller implements Initializable, ActionListener
     /**
      * @author Danny & Abinav
      */
-    public void increaseScore()
+    public void changeGameScore(int amount, boolean increaseScore)
     {
-        int score = gameModel.getScore();
-        gameModel.setScore(score + 100);
+        int gameScore = gameModel.getGameScore();
+        long userSolveTimeCurrent = gameModel.getUserSolveTime();
 
-        scoreField.setText("Score : " + gameModel.getScore());
+        int calculatedScore;
+
+        if(increaseScore)
+        {
+            calculatedScore = gameScore != 0 ? gameScore + (int) Math.ceil(((1 - (userSolveTimeCurrent - gameModel.getUserSolveTimeLastInsert()) / (double) userSolveTimeCurrent) * amount)) : amount;
+        }
+        else
+        {
+            calculatedScore = gameScore - amount;
+        }
+
+        gameModel.setGameScore(calculatedScore);
+        gameModel.setUserSolveTimeLastInsert();
+
+        scoreField.setText("Score: " + gameModel.getGameScore());
     }
 
     /**
@@ -1024,6 +1038,8 @@ public class Controller implements Initializable, ActionListener
             {
                 undoButton.setDisable(true);
             }
+
+            changeGameScore(100, false);
 
             feedbackField.setText("Value insertion undone in cell (" + (row + 1) + ", " + (column + 1) + ")");
         }
@@ -1070,6 +1086,8 @@ public class Controller implements Initializable, ActionListener
                         {
                             hintsLivesField.setText("Hints: " + gameModel.getHintsAvailable());
                         }
+
+                        changeGameScore(300, false);
 
                         activeTextField = null;
                     }
@@ -1152,8 +1170,6 @@ public class Controller implements Initializable, ActionListener
             gameModel.setUserSolveTime(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? calculateUserSolvingTime(): 0);
             userSolveTimer.start();
 
-            gameModel.setHintsAvailable(calculateHintsAvailable());
-
             if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode){
                 gameModel.setLives(calculateLivesBasedOnBoardSize());
                 hintsLivesField.setText("Lives: "+ gameModel.getLives());
@@ -1173,6 +1189,11 @@ public class Controller implements Initializable, ActionListener
             }
             pauseResumeButton.setDisable(false);
         }
+
+        gameModel.setHintsAvailable(calculateHintsAvailable());
+        hintsLivesField.setText("Hints: "+ gameModel.getHintsAvailable());
+        gameModel.setGameScore(0);
+        scoreField.setText("Score: "+ gameModel.getGameScore());
 
         feedbackField.setText("The puzzle has been reset!");
 
@@ -1395,7 +1416,7 @@ public class Controller implements Initializable, ActionListener
         jsonNode.set("savedOnDateAndTime",objectMapper.convertValue(dtf.format(currentTime), JsonNode.class));
         jsonNode.set("boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
         jsonNode.set("boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
-        jsonNode.set("score", objectMapper.convertValue(gameModel.getScore(), JsonNode.class));
+        jsonNode.set("score", objectMapper.convertValue(gameModel.getGameScore(), JsonNode.class));
         jsonNode.set("board", boardNode);
         jsonNode.set("solvedboard", solvedBoardNode);
         if(valueInsertHistorySaved != null){
@@ -1411,6 +1432,7 @@ public class Controller implements Initializable, ActionListener
         jsonNode.set("filledcells",objectMapper.convertValue(board.getFilledCells(), JsonNode.class));
         jsonNode.put("userTime", gameModel.getUserSolveTime());
         jsonNode.set("solverFeedback", objectMapper.convertValue(createSolverFeedbackMessage(""), JsonNode.class));
+        jsonNode.set("numberOfHints", objectMapper.convertValue(gameModel.getHintsAvailable(), JsonNode.class));
 
         return jsonNode;
     }
@@ -1543,7 +1565,7 @@ public class Controller implements Initializable, ActionListener
                     long userSolvingTimeSaved = jsonNode.get("userTime").asLong();
                     int[][] boardArraySaved = objectMapper.convertValue(jsonNode.get("board"), int[][].class);
                     int[][] solvedBoardArraySaved = objectMapper.convertValue(jsonNode.get("solvedboard"), int[][].class);
-                    gameModel.setScore(jsonNode.get("score").asInt());
+                    gameModel.setGameScore(jsonNode.get("score").asInt());
                     String solverFeedBack = jsonNode.get("solverFeedback").asText();
                     createSolverFeedbackMessage(solverFeedBack);
                     // setting the saved values
@@ -1571,6 +1593,7 @@ public class Controller implements Initializable, ActionListener
                         board.getSolver().getSolvedBoard().setFilledCells(board.getAvailableCells());
                     }
                     gameModel.setSavedTimeLoaded(userSolvingTimeSaved);
+                    gameModel.setHintsAvailable(jsonNode.get("numberOfHints").asInt());
                     gameModel.setGameSavedLoaded(true);
 
                     goToPuzzleScene();
