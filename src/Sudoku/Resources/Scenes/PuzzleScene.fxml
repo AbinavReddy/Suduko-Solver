@@ -15,7 +15,7 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1200.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Sudoku.Controller">
     <children>
-      <GridPane fx:id="boardGrid" alignment="CENTER" layoutX="175.0" layoutY="175.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onKeyPressed="#userPressedKeyboard" pickOnBounds="false" prefHeight="850.0" prefWidth="850.0">
+      <GridPane fx:id="boardGrid" alignment="CENTER" layoutX="190.0" layoutY="190.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onKeyPressed="#userPressedKeyboard" pickOnBounds="false" prefHeight="820.0" prefWidth="820.0">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" />
           <ColumnConstraints hgrow="SOMETIMES" />
@@ -39,8 +39,8 @@
             <RowConstraints vgrow="SOMETIMES" />
         </rowConstraints>
       </GridPane>
-      <Rectangle fx:id="gameOverPausedOverlay" arcHeight="5.0" arcWidth="5.0" disable="true" height="858.0" layoutX="171.0" layoutY="171.0" onMouseClicked="#pauseResumeGame" opacity="0.0" stroke="BLACK" strokeType="INSIDE" width="858.0" />
-      <ImageView fitHeight="858.0" fitWidth="858.0" layoutX="171.0" layoutY="171.0" preserveRatio="true">
+      <Rectangle fx:id="gameOverPausedOverlay" arcHeight="5.0" arcWidth="5.0" disable="true" height="820.0" layoutX="190.0" layoutY="190.0" onMouseClicked="#pauseResumeGame" opacity="0.0" stroke="BLACK" strokeType="INSIDE" width="820.0" />
+      <ImageView fitHeight="828.0" fitWidth="828.0" layoutX="186.0" layoutY="186.0" preserveRatio="true">
          <image>
             <Image url="@../Media/board%20frame.png" />
          </image>

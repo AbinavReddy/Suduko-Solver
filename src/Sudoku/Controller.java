@@ -556,7 +556,7 @@ public class Controller implements Initializable, ActionListener
 
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
-        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the Resources board (in pixels)
+        double cellSize = Math.ceil(820.0 / boardSizeRowsColumns); // 820 = length and width the Resources board (in pixels)
 
         boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
         int cellTextSize = (int) (cellSize / 2);
@@ -641,7 +641,7 @@ public class Controller implements Initializable, ActionListener
 
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
-        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the Resources board (in pixels)
+        double cellSize = Math.ceil(820.0 / boardSizeRowsColumns); // 820 = length and width the Resources board (in pixels)
         double lengthOfLine;
         double widthOfLine;
 
