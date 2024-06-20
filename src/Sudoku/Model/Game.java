@@ -17,6 +17,7 @@ public class Game
     private int hintsAvailable;
     private long userSolveTime; // puzzle
     private int lives;
+    private int score;
     private long preSaveLoadUserTime;
     private boolean savingGame = false;
     private boolean gameSavedLoaded = false;
@@ -108,6 +109,14 @@ public class Game
     public void setLives(int lives)
     {
         this.lives = lives;
+    }
+
+    /**
+     * @author Danny & Abinav
+     */
+    public void setScore(int score)
+    {
+        this.score = score;
     }
 
     /**
@@ -268,6 +277,14 @@ public class Game
     public int getLives()
     {
         return lives;
+    }
+
+    /**
+     * @author Danny & Abinav
+     */
+    public int getScore()
+    {
+        return score;
     }
 
     /**

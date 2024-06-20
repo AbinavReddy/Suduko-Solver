@@ -85,7 +85,9 @@ public class Controller implements Initializable, ActionListener
     @FXML
     private Text gameOverField; // puzzle
     @FXML
-    private Text livesRemainingField; // puzzle
+    private Text hintsLivesField; // puzzle
+    @FXML
+    private Text scoreField; // puzzle
     @FXML
     private Text saveLoadSceneSubtitle; // save load
     @FXML
@@ -119,6 +121,7 @@ public class Controller implements Initializable, ActionListener
 
     // Sound
     private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/click sound.wav")).toExternalForm());
+    private final Media selectSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/select sound.wav")).toExternalForm());
     private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/insert sound.wav")).toExternalForm());
     private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/remove sound.wav")).toExternalForm());
     private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/error sound.wav")).toExternalForm());
@@ -149,6 +152,7 @@ public class Controller implements Initializable, ActionListener
 
             if(gameSavedLoaded)
             {
+                gameModel.setGameMode(GameModes.NormalMode);
                 undoButton.setDisable(false);
             }
             else
@@ -255,6 +259,11 @@ public class Controller implements Initializable, ActionListener
             comboBox.getItems().addAll("Normal Mode", "Timed Mode", "Death Mode", "Hardcore Mode");
             comboBox.setOnAction( event -> {try {handleModeSelected(); } catch (IOException e) {throw new RuntimeException(e);}});
 
+            if(gameModel.getGameMode() != GameModes.NormalMode)
+            {
+                loadMenuButton.setDisable(true);
+            }
+
             if(gameModel.getSolvableOnly())
             {
                 solvableOnlyCheckBox.setSelected(true);
@@ -323,6 +332,8 @@ public class Controller implements Initializable, ActionListener
                     unlimitedHintsCheckBox.setDisable(false);
                 }
             }
+
+            playSelectSound();
         }
     }
 
@@ -338,8 +349,8 @@ public class Controller implements Initializable, ActionListener
             undoButton.setDisable(true);
             saveButton.setDisable(true);
             gameModel.setLives(calculateLivesBasedOnBoardSize());
-            livesRemainingField.setVisible(true);
-            livesRemainingField.setText("Lives: " + gameModel.getLives());
+            hintsLivesField.setVisible(true);
+            hintsLivesField.setText("Lives: " + gameModel.getLives());
             gameModel.setUserSolveTime(calculateUserSolvingTime());
             feedbackField.setText("Welcome to Hardcore Mode!");
             pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve the puzzle before time and/or lives are depleted!"));
@@ -348,8 +359,8 @@ public class Controller implements Initializable, ActionListener
         } else if(gameMode == GameModes.DeathMode) { // Mode allowing limited mistakes based on board size
 
             gameModel.setLives(calculateLivesBasedOnBoardSize());
-            livesRemainingField.setVisible(true);
-            livesRemainingField.setText("Lives: " + gameModel.getLives());
+            hintsLivesField.setVisible(true);
+            hintsLivesField.setText("Lives: " + gameModel.getLives());
             gameModel.setUserSolveTime(0);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
@@ -360,7 +371,7 @@ public class Controller implements Initializable, ActionListener
         } else if (gameMode == GameModes.TimedMode) { // Timer countdown mode
 
             gameModel.setUserSolveTime(calculateUserSolvingTime());
-            livesRemainingField.setVisible(false);
+            hintsLivesField.setVisible(false);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
             feedbackField.setText("Welcome to Timed Mode!");
@@ -370,7 +381,7 @@ public class Controller implements Initializable, ActionListener
         } else {
             gameModel.setUserSolveTime(gameModel.getClickedBack() ? gameModel.getPreSaveLoadUserTime() : (gameModel.getGameSavedLoaded() ? gameModel.getSavedTimeLoaded() : 0));
             gameModel.setHintsAvailable(calculateHintsAvailable());
-            livesRemainingField.setVisible(false);
+            hintsLivesField.setVisible(false);
         }
     }
 
@@ -411,11 +422,11 @@ public class Controller implements Initializable, ActionListener
 
         if (lives > 0 && (gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode)) {
             gameModel.setLives(lives - 1);
-            livesRemainingField.setText("Lives: " + gameModel.getLives());
-            livesRemainingField.setStyle("-fx-fill: red;");
+            hintsLivesField.setText("Lives: " + gameModel.getLives());
+            hintsLivesField.setStyle("-fx-fill: red;");
             pauseTransition.setDuration(Duration.seconds(1));
             pauseTransition.setOnFinished(e -> {
-                if(gameModel.getLives() > 0) livesRemainingField.setStyle("-fx-fill: white;"); // need to get lives again since lambda needs final variable
+                if(gameModel.getLives() > 0) hintsLivesField.setStyle("-fx-fill: white;"); // need to get lives again since lambda needs final variable
             }) ;
             pauseTransition.play();
             pauseTransition.setDuration(Duration.seconds(3)); // resetting to back to original
@@ -425,8 +436,8 @@ public class Controller implements Initializable, ActionListener
             undoButton.setDisable(true);
             hintButton.setDisable(true);
             pauseResumeButton.setDisable(true);
-            livesRemainingField.setText("Lives: " + gameModel.getLives());
-            livesRemainingField.setStyle("-fx-fill: red;");
+            hintsLivesField.setText("Lives: " + gameModel.getLives());
+            hintsLivesField.setStyle("-fx-fill: red;");
             boardGrid.setDisable(true);
             gameOverState(true);
 
@@ -906,6 +917,8 @@ public class Controller implements Initializable, ActionListener
                 {
                     playSoundEffect(insertSound, 0.43);
                 }
+
+                increaseScore();
             }
             else
             {
@@ -960,6 +973,17 @@ public class Controller implements Initializable, ActionListener
         pauseResumeButton.setDisable(true);
 
         playSoundEffect(winSound, 0.5);
+    }
+
+    /**
+     * @author Danny & Abinav
+     */
+    public void increaseScore()
+    {
+        int score = gameModel.getScore();
+        gameModel.setScore(score + 100);
+
+        scoreField.setText("Score : " + gameModel.getScore());
     }
 
     /**
@@ -1034,9 +1058,7 @@ public class Controller implements Initializable, ActionListener
 
                         if(!gameModel.getUnlimitedHints())
                         {
-                            pauseTransition.setDuration(Duration.seconds(3));
-                            pauseTransition.setOnFinished(e ->  feedbackField.setText(gameModel.getHintsAvailable() + " hints left!"));
-                            pauseTransition.play();
+                            hintsLivesField.setText("Hints: " + gameModel.getHintsAvailable());
                         }
 
                         activeTextField = null;
@@ -1057,6 +1079,8 @@ public class Controller implements Initializable, ActionListener
         else
         {
             feedbackField.setText("No more hints available!");
+
+            playSoundEffect(errorSound, 0.2);
         }
 
         boardGrid.requestFocus(); // un-focus all cells
@@ -1122,7 +1146,7 @@ public class Controller implements Initializable, ActionListener
 
             if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode){
                 gameModel.setLives(calculateLivesBasedOnBoardSize());
-                livesRemainingField.setText("Lives: "+ gameModel.getLives());
+                hintsLivesField.setText("Lives: "+ gameModel.getLives());
             }
 
             if(boardGrid.isDisable())
@@ -1132,7 +1156,7 @@ public class Controller implements Initializable, ActionListener
 
             if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode || gameMode == GameModes.TimedMode) {
                 timeSolvingField.setStyle("-fx-fill: white;");
-                livesRemainingField.setStyle("-fx-fill: white;");
+                hintsLivesField.setStyle("-fx-fill: white;");
                 hintButton.setDisable(true);
             } else {
                 hintButton.setDisable(false);
@@ -1167,9 +1191,17 @@ public class Controller implements Initializable, ActionListener
     /**
      * @author Danny
      */
-    public void playButtonClickSound()
+    public void playClickSound()
     {
         playSoundEffect(clickSound, 0.15);
+    }
+
+    /**
+     * @author Danny & Abinav
+     */
+    public void playSelectSound()
+    {
+        playSoundEffect(selectSound, 0.12);
     }
 
     /**
