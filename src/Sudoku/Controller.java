@@ -1385,6 +1385,7 @@ public class Controller implements Initializable, ActionListener
         jsonNode.set("savedOnDateAndTime",objectMapper.convertValue(dtf.format(currentTime), JsonNode.class));
         jsonNode.set("boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
         jsonNode.set("boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
+        jsonNode.set("score", objectMapper.convertValue(gameModel.getScore(), JsonNode.class));
         jsonNode.set("board", boardNode);
         jsonNode.set("solvedboard", solvedBoardNode);
         if(valueInsertHistorySaved != null){
@@ -1531,6 +1532,7 @@ public class Controller implements Initializable, ActionListener
                     long userSolvingTimeSaved = jsonNode.get("userTime").asLong();
                     int[][] boardArraySaved = objectMapper.convertValue(jsonNode.get("board"), int[][].class);
                     int[][] solvedBoardArraySaved = objectMapper.convertValue(jsonNode.get("solvedboard"), int[][].class);
+                    gameModel.setScore(jsonNode.get("score").asInt());
 
                     // setting the saved values
                     if(!jsonNode.get("userInsertedValues").isNull() && jsonNode.get("userInsertedValues").isArray()){
