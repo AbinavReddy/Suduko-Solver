@@ -153,8 +153,8 @@ public class Controller implements Initializable, ActionListener
             if(gameSavedLoaded)
             {
                 gameModel.setGameMode(GameModes.NormalMode);
-                undoButton.setDisable(false);
                 scoreField.setText("Score: " + gameModel.getScore());
+                undoButton.setDisable(false);
             }
             else
             {
@@ -164,14 +164,13 @@ public class Controller implements Initializable, ActionListener
                 undoButton.setDisable(true);
             }
 
-            gameModel.setGameSavedLoaded(false);
-            gameModel.setSavingGame(false);
-            gameModel.setClickedBack(false);
-
-
             feedbackField.setText("");
 
             initializeGameModeSettings();
+
+            gameModel.setGameSavedLoaded(false);
+            gameModel.setSavingGame(false);
+            gameModel.setClickedBack(false);
 
             updateSoundIcon();
             updateFilledCells();
@@ -222,8 +221,8 @@ public class Controller implements Initializable, ActionListener
                 backButton.setOnAction((event -> {try {gameModel.setClickedBack(true); goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e);}}));
 
                 saveLoadSceneTitle.setText("Save");
-                saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
                 saveLoadButton.setText("Save");
+                saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
             }
             else
             {
@@ -344,6 +343,13 @@ public class Controller implements Initializable, ActionListener
      */
     private void initializeGameModeSettings() {
         GameModes gameMode = gameModel.getGameMode();
+        long userSolveTime = gameModel.getUserSolveTime();
+
+        boolean getClickedBack = gameModel.getClickedBack();
+        long getPreSaveLoadUserTime = gameModel.getPreSaveLoadUserTime();
+        boolean gameSavedLoaded = gameModel.getGameSavedLoaded();
+        long getSavedTimeLoaded = gameModel.getSavedTimeLoaded();
+
 
         if(gameMode == GameModes.HardcoreMode) { // Timer countdown mode + mode allowing limited mistakes based on board size
 
@@ -381,9 +387,11 @@ public class Controller implements Initializable, ActionListener
             pauseTransition.play();
 
         } else {
+            System.out.println();
+
             gameModel.setUserSolveTime(gameModel.getClickedBack() ? gameModel.getPreSaveLoadUserTime() : (gameModel.getGameSavedLoaded() ? gameModel.getSavedTimeLoaded() : 0));
             gameModel.setHintsAvailable(calculateHintsAvailable());
-            hintsLivesField.setVisible(false);
+            hintsLivesField.setText("Hints: " + gameModel.getHintsAvailable());
         }
     }
 
@@ -1743,7 +1751,7 @@ public class Controller implements Initializable, ActionListener
         GraphicsDevice screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         int screenResolutionY = screen.getDisplayMode().getHeight(); // smallest, therefore the one used
 
-        if(screenResolutionY != 1440) // default size
+        if(screenResolutionY != 1440) // not default screen resolution size
         {
             double adaptedAppSize = 1200 * (screenResolutionY / (double) (1200 + 240));
 
