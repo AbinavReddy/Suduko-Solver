@@ -213,7 +213,7 @@ public class Controller implements Initializable, ActionListener
 
             updateSoundIcon();
             filledCellsField.setText("Filled: " + board.getSolver().getSolvedBoard().getFilledCells() + "/" + board.getSolver().getSolvedBoard().getAvailableCells());
-            feedbackField.setText(createSolverFeedbackMessage());
+            feedbackField.setText(createSolverFeedbackMessage(""));
         }
         else if(gameModel.getGameScene() == GameScenes.SaveLoadScene)
         {
@@ -1387,7 +1387,7 @@ public class Controller implements Initializable, ActionListener
         jsonNode.set("savedOnDateAndTime",objectMapper.convertValue(dtf.format(currentTime), JsonNode.class));
         jsonNode.set("boardsizeBoxes", objectMapper.convertValue(board.getBoardSizeBoxes(), JsonNode.class));
         jsonNode.set("boxsizeRowsColumn", objectMapper.convertValue(board.getBoxSizeRowsColumns(), JsonNode.class));
-       jsonNode.set("score", objectMapper.convertValue(gameModel.getScore(), JsonNode.class));
+        jsonNode.set("score", objectMapper.convertValue(gameModel.getScore(), JsonNode.class));
         jsonNode.set("board", boardNode);
         jsonNode.set("solvedboard", solvedBoardNode);
         if(valueInsertHistorySaved != null){
@@ -1402,6 +1402,7 @@ public class Controller implements Initializable, ActionListener
         }
         jsonNode.set("filledcells",objectMapper.convertValue(board.getFilledCells(), JsonNode.class));
         jsonNode.put("userTime", gameModel.getUserSolveTime());
+        jsonNode.set("solverFeedback", objectMapper.convertValue(createSolverFeedbackMessage(""), JsonNode.class));
 
         return jsonNode;
     }
@@ -1535,8 +1536,8 @@ public class Controller implements Initializable, ActionListener
                     int[][] boardArraySaved = objectMapper.convertValue(jsonNode.get("board"), int[][].class);
                     int[][] solvedBoardArraySaved = objectMapper.convertValue(jsonNode.get("solvedboard"), int[][].class);
                     gameModel.setScore(jsonNode.get("score").asInt());
-
-
+                    String solverFeedBack = jsonNode.get("solverFeedback").asText();
+                    createSolverFeedbackMessage(solverFeedBack);
                     // setting the saved values
                     if(!jsonNode.get("userInsertedValues").isNull() && jsonNode.get("userInsertedValues").isArray()){
                         List<String> insertedValuesOnBoardSaved = new ArrayList<>();
@@ -1604,9 +1605,13 @@ public class Controller implements Initializable, ActionListener
     /**
      * @author Danny
      */
-    public String createSolverFeedbackMessage()
+    public String createSolverFeedbackMessage(String feedBackForSavedGame)
     {
         Board board = gameModel.getBoard();
+
+        if(gameModel.getGameSavedLoaded() && !feedBackForSavedGame.isEmpty()){
+            return feedBackForSavedGame;
+        }
 
         if(board.getSolver().getSolvedBoard().isGameFinished())
         {
