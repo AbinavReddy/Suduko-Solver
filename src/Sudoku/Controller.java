@@ -118,12 +118,12 @@ public class Controller implements Initializable, ActionListener
     private Rectangle gameOverPausedOverlay; // puzzle
 
     // Sound
-    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/click sound.wav")).toExternalForm());
-    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/insert sound.wav")).toExternalForm());
-    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/remove sound.wav")).toExternalForm());
-    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/error sound.wav")).toExternalForm());
-    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/win sound.wav")).toExternalForm());
-    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("View/Media/lose sound.wav")).toExternalForm());
+    private final Media clickSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/click sound.wav")).toExternalForm());
+    private final Media insertSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/insert sound.wav")).toExternalForm());
+    private final Media removeSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/remove sound.wav")).toExternalForm());
+    private final Media errorSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/error sound.wav")).toExternalForm());
+    private final Media winSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/win sound.wav")).toExternalForm());
+    private final Media loseSound = new Media(Objects.requireNonNull(getClass().getResource("Resources/Media/lose sound.wav")).toExternalForm());
 
     // Tools
     private static final Timer userSolveTimer = new Timer(100, null);
@@ -556,7 +556,7 @@ public class Controller implements Initializable, ActionListener
 
         int[][] boardToShow = unsolved ? board.getBoard() : board.getSolver().getSolvedBoard().getBoard();
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
-        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the View board (in pixels)
+        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the Resources board (in pixels)
 
         boardGridCells = new TextField[boardSizeRowsColumns][boardSizeRowsColumns];
         int cellTextSize = (int) (cellSize / 2);
@@ -641,7 +641,7 @@ public class Controller implements Initializable, ActionListener
 
         int boardSizeRowsColumns = board.getBoardSizeRowsColumns();
         int boxSizeRowsColumns = board.getBoxSizeRowsColumns();
-        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the View board (in pixels)
+        double cellSize = Math.ceil(850.0 / boardSizeRowsColumns); // 850 = length and width the Resources board (in pixels)
         double lengthOfLine;
         double widthOfLine;
 
@@ -1190,11 +1190,11 @@ public class Controller implements Initializable, ActionListener
     {
         if(gameModel.getSoundMuted())
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound off icon.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("Resources/Media/sound off icon.png")).toExternalForm()));
         }
         else
         {
-            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("View/Media/sound on icon.png")).toExternalForm()));
+            soundButtonImage.setImage(new Image(Objects.requireNonNull(getClass().getResource("Resources/Media/sound on icon.png")).toExternalForm()));
         }
     }
 
@@ -1450,7 +1450,7 @@ public class Controller implements Initializable, ActionListener
         saveLoadSlotList.setStyle("-fx-border-width: 3px; "
             +"-fx-border-color: ffe767; "
             + "-fx-font-size: 18px; "
-            + "-fx-font-family: 'Segoe View'; "
+            + "-fx-font-family: 'Segoe Resources'; "
             + "-fx-control-inner-background:#000000;");
         saveLoadSlotList.setFocusTraversable(false);
     }
@@ -1716,7 +1716,7 @@ public class Controller implements Initializable, ActionListener
      */
     public void setActiveScene(String sceneName) throws IOException
     {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("View/Scenes/" + sceneName + ".fxml")));
+        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("Resources/Scenes/" + sceneName + ".fxml")));
 
         if(currentScene != null)
         {
@@ -1727,7 +1727,7 @@ public class Controller implements Initializable, ActionListener
             currentScene = new Scene(root);
         }
 
-        currentScene.widthProperty().addListener((observable) -> scaleScreen()); // used for resizing View
+        currentScene.widthProperty().addListener((observable) -> scaleScreen()); // used for resizing Resources
         currentScene.heightProperty().addListener((observable) -> scaleScreen());
 
         scaleScreen();
@@ -1735,7 +1735,7 @@ public class Controller implements Initializable, ActionListener
         appStage.setScene(currentScene); // construct scene
         appStage.setTitle("Sudoku (Group 5)"); // window title
         appStage.setResizable(true); // disable resizable window
-        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("View/Media/sudoku icon.png")))); // add app icon to stage
+        appStage.getIcons().addAll(new Image(Objects.requireNonNull(getClass().getResourceAsStream("Resources/Media/sudoku icon.png")))); // add app icon to stage
         appStage.show(); // show window
     }
 }

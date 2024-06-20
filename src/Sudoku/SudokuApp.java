@@ -22,7 +22,7 @@ public class SudokuApp extends Application
         try
         {
             // JavaFX setup
-            FXMLLoader sceneLoader = new FXMLLoader(getClass().getResource("View/Scenes/MenuScene.fxml")); // Load FXML (initial)
+            FXMLLoader sceneLoader = new FXMLLoader(getClass().getResource("Resources/Scenes/MenuScene.fxml")); // Load FXML (initial)
             sceneLoader.load(); // Set FXML as root
 
             // Controller setup
