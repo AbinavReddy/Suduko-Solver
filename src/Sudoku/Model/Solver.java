@@ -1529,50 +1529,54 @@ public class Solver
     private void handleSFCandidates(int pairOrTriple, int number, boolean processingRows, List<List<int[]>> processForSF) {
         if (processForSF.size() >= 3) // enough candidates found
         {
-            int rowOrColumnIndex = processingRows ? 1 : 0; // 0 = row index, 1 = column index
+            int rowOrColumn = processingRows ? 1 : 0; // 0 = row index, 1 = column index
             for (int j = 0; j < processForSF.size() - 2; j++) {
                 for (int k = j + 1; k < processForSF.size() - 1; k++) {
                     for (int n = k + 1; n < processForSF.size(); n++) {
 
-                        Set<Integer> uniqueCOR = new HashSet<>();
-                        List<Integer> emptyList = new ArrayList<>();
-                        List<String> candidates = new ArrayList<>();
-
-                        int windowSize = pairOrTriple; // pairs or triples in rows/columns
-
                         int minListLength = Math.min(processForSF.get(j).size(),
-                            Math.min(processForSF.get(k).size(), processForSF.get(n).size()));
+                                Math.min(processForSF.get(k).size(), processForSF.get(n).size()));
+
+                        // Each list contains the positions of the empty cells where a specific number can be placed in a particular row or column.
+                        int sizeOfList1 = processForSF.get(j).size();
+                        int sizeOfList2 = processForSF.get(k).size();
+                        int sizeOfList3 = processForSF.get(n).size();
 
                         for (int i = 0; i < minListLength - 1; i++) {
 
-                            // For list j
-                            for (int w = i; w < i + windowSize && w < processForSF.get(j).size(); w++) {
+                            Set<Integer> uniqueCOR = new HashSet<>();
+                            List<Integer> emptyList = new ArrayList<>();
+                            List<String> candidates = new ArrayList<>();
+
+                            // For list j consisting cells of a particular row or column depending on processing row or not
+                            for (int w = i; w < i + pairOrTriple && w < sizeOfList1; w++) {
                                 int[] coord = processForSF.get(j).get(w);
-                                uniqueCOR.add(coord[rowOrColumnIndex]);
-                                emptyList.add(coord[rowOrColumnIndex]);
+                                uniqueCOR.add(coord[rowOrColumn]);
+                                emptyList.add(coord[rowOrColumn]);
                                 String key = coord[0] + "," + coord[1];
                                 candidates.add(key);
                             }
 
-                            // For list k
-                            for (int w = i; w < i + windowSize && w < processForSF.get(k).size(); w++) {
+                            // For list k consisting cells of a particular row or column depending on processing row or not
+                            for (int w = i; w < i + pairOrTriple && w < sizeOfList2; w++) {
                                 int[] coord = processForSF.get(k).get(w);
-                                uniqueCOR.add(coord[rowOrColumnIndex]);
-                                emptyList.add(coord[rowOrColumnIndex]);
+                                uniqueCOR.add(coord[rowOrColumn]);
+                                emptyList.add(coord[rowOrColumn]);
                                 String key = coord[0] + "," + coord[1];
                                 candidates.add(key);
                             }
 
-                            // For list n
-                            for (int w = i; w < i + windowSize && w < processForSF.get(n).size(); w++) {
+                            // For list n cells of a particular row or column depending on processing row or not
+                            for (int w = i; w < i + pairOrTriple && w < sizeOfList3; w++) {
                                 int[] coord = processForSF.get(n).get(w);
-                                uniqueCOR.add(coord[rowOrColumnIndex]);
-                                emptyList.add(coord[rowOrColumnIndex]);
+                                uniqueCOR.add(coord[rowOrColumn]);
+                                emptyList.add(coord[rowOrColumn]);
                                 String key = coord[0] + "," + coord[1];
                                 candidates.add(key);
                             }
                             boolean validSF = uniqueCOR.size() == 3 && checkOccurrenceOfEachElement(emptyList, uniqueCOR);
                             if(validSF){
+
                                 eliminateNonSFC(processingRows, number, uniqueCOR, candidates);
                             }
                         }
