@@ -33,6 +33,43 @@ public class Game
     private GameModes gameMode = GameModes.NormalMode;
 
     /**
+     * @author  Danny
+     */
+    public int calculateHintsAvailable()
+    {
+        return !unlimitedHints ? (int) (Math.ceil((board.getAvailableCells() - board.getFilledCells()) * 0.13)) : -1;
+    }
+
+    /**
+     * @author  Danny, Abinav & Yahya
+     */
+    public long calculateUserSolvingTime() {
+        return board.getBoardSizeRowsColumns() != 1 ? (long) ((Math.ceil(((board.getBoardSizeRowsColumns() * board.getBoardSizeRowsColumns()) / 81.0) * 10.0)) * 60000) : 10000;
+    }
+
+    /**
+     * @author  Danny, Abinav & Yahya
+     */
+    public int calculateLivesBasedOnBoardSize() {
+        return (int) (Math.ceil(((board.getBoardSizeRowsColumns() / 2.0)) * ((1 - ((double) board.getFilledCells() / board.getAvailableCells())) / 0.63)));
+    }
+
+    /**
+     * @author  Danny
+     */
+    public int calculateGameScore(int amount, boolean increaseScore)
+    {
+        if(increaseScore)
+        {
+            return gameScore != 0 ? gameScore + (int) Math.ceil(((1 - (userSolveTime - userSolveTimeLastInsert) / (double) userSolveTime) * amount)) : amount;
+        }
+        else
+        {
+            return gameScore - amount;
+        }
+    }
+
+    /**
      * @author Danny
      */
     public void setBoard(Board board)

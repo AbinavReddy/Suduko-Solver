@@ -43,14 +43,14 @@
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Label fx:id="saveLoadSceneTitle" focusTraversable="false" layoutX="503.0" layoutY="150.0" pickOnBounds="false" text="Load" textAlignment="CENTER" textFill="WHITE">
+      <Label fx:id="saveLoadSceneTitle" focusTraversable="false" layoutX="518.0" layoutY="150.0" pickOnBounds="false" text="Load" textAlignment="CENTER" textFill="WHITE">
          <font>
             <Font name="System Bold" size="72.0" />
          </font>
       </Label>
       <Text fx:id="saveLoadSceneSubtitle" fill="WHITE" layoutX="263.0" layoutY="358.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Choose a slot to load the game from!" textAlignment="CENTER" wrappingWidth="676.0">
          <font>
-            <Font name="Segoe UI Bold" size="36.0" />
+            <Font name="System Bold" size="36.0" />
          </font>
       </Text>
       <Text fx:id="loadconfirmationText" fill="WHITE" layoutX="350.0" layoutY="605.0" opacity="0.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Press confirm to load the game" wrappingWidth="176.13671875">
