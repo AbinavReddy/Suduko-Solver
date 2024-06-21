@@ -223,7 +223,7 @@ public class Controller implements Initializable, ActionListener
                 backButton.setOnAction((event -> {try {gameModel.setClickedBack(true); goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e);}}));
 
                 saveLoadSceneTitle.setText("Save");
-                saveLoadButton.setText("Save");
+                saveLoadButton.setText("Save game");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
             }
             else
