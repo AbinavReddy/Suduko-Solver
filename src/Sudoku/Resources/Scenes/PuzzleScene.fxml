@@ -39,7 +39,7 @@
             <RowConstraints vgrow="SOMETIMES" />
         </rowConstraints>
       </GridPane>
-      <Rectangle fx:id="gameOverPausedOverlay" arcHeight="5.0" arcWidth="5.0" disable="true" height="820.0" layoutX="190.0" layoutY="190.0" onMouseClicked="#pauseResumeGame" opacity="0.0" stroke="BLACK" strokeType="INSIDE" width="820.0" />
+      <Rectangle fx:id="gameOverPausedOverlay" arcHeight="5.0" arcWidth="5.0" disable="true" height="828.0" layoutX="186.0" layoutY="186.0" onMouseClicked="#pauseResumeGame" opacity="0.0" stroke="BLACK" strokeType="INSIDE" width="828.0" />
       <ImageView fitHeight="828.0" fitWidth="828.0" layoutX="186.0" layoutY="186.0" preserveRatio="true">
          <image>
             <Image url="@../Media/board%20frame.png" />
@@ -50,17 +50,43 @@
             <Image url="@../Media/puzzle%20background.png" />
          </image>
       </ImageView>
-      <Label focusTraversable="false" layoutX="492.0" layoutY="90.0" pickOnBounds="false" text="Puzzle" textAlignment="CENTER" textFill="WHITE">
+      <ImageView fitHeight="40.0" fitWidth="40.0" layoutX="47.0" layoutY="40.0" onMouseClicked="#playClickSound" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../Media/menu%20icon.png" />
+         </image>
+      </ImageView>
+      <Button focusTraversable="false" layoutX="47.0" layoutY="40.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playClickSound" opacity="0.0" prefHeight="40.0" prefWidth="40.0" text="Menu">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <ImageView fx:id="soundButtonImage" fitHeight="40.0" fitWidth="40.0" layoutX="1110.0" layoutY="40.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../Media/sound%20on%20icon.png" />
+         </image>
+      </ImageView>
+      <Button focusTraversable="false" layoutX="1110.0" layoutY="40.0" mnemonicParsing="false" onAction="#muteUnmuteSound" onMouseClicked="#playClickSound" opacity="0.0" prefHeight="40.0" prefWidth="40.0" text="Sound">
+         <font>
+            <Font name="System Bold" size="12.0" />
+         </font>
+         <cursor>
+            <Cursor fx:constant="HAND" />
+         </cursor>
+      </Button>
+      <Label focusTraversable="false" layoutX="490.0" layoutY="90.0" pickOnBounds="false" text="Puzzle" textAlignment="CENTER" textFill="WHITE">
          <font>
             <Font name="System Bold" size="72.0" />
          </font>
       </Label>
-      <Text fx:id="filledCellsField" fill="WHITE" layoutX="810.0" layoutY="168.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Filled: 0/0" textAlignment="RIGHT" wrappingWidth="200.0">
+      <Text fx:id="timeSolvingField" fill="WHITE" layoutX="190.0" layoutY="168.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Time: 00:00:00.0" wrappingWidth="200.0">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
       </Text>
-      <Text fx:id="timeSolvingField" fill="WHITE" layoutX="190.0" layoutY="168.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Time: 00:00:00.0" wrappingWidth="200.0">
+      <Text fx:id="filledCellsField" fill="WHITE" layoutX="810.0" layoutY="168.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Filled: 0/0" textAlignment="RIGHT" wrappingWidth="200.0">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
@@ -70,71 +96,55 @@
             <Font name="System Bold" size="24.0" />
          </font>
       </Text>
-      <Button fx:id="undoButton" focusTraversable="false" layoutX="360.0" layoutY="1068.0" mnemonicParsing="false" onAction="#undoValueInsertion" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Undo">
+      <Text fx:id="hintsLivesField" disable="true" fill="WHITE" layoutX="189.0" layoutY="1046.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hints: 0" wrappingWidth="120.0">
+         <font>
+            <Font name="System Bold" size="20.0" />
+         </font>
+      </Text>
+      <Text fx:id="scoreField" disable="true" fill="WHITE" layoutX="890.0" layoutY="1046.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Score: 0" textAlignment="RIGHT" wrappingWidth="120.0">
+         <font>
+            <Font name="System Bold" size="20.0" />
+         </font>
+      </Text>
+      <Button fx:id="undoButton" focusTraversable="false" layoutX="355.0" layoutY="1068.0" mnemonicParsing="false" onAction="#undoValueInsertion" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Undo">
          <font>
             <Font name="System Bold" size="16.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button fx:id="resetButton" focusTraversable="false" layoutX="441.0" layoutY="1068.0" mnemonicParsing="false" onAction="#resetBoard" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Reset">
+      <Button fx:id="resetButton" focusTraversable="false" layoutX="438.0" layoutY="1068.0" mnemonicParsing="false" onAction="#resetBoard" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Reset">
          <font>
             <Font name="System Bold" size="16.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button fx:id="pauseResumeButton" focusTraversable="false" layoutX="522.0" layoutY="1068.0" mnemonicParsing="false" onAction="#pauseResumeGame" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Pause">
+      <Button fx:id="pauseResumeButton" focusTraversable="false" layoutX="521.0" layoutY="1068.0" mnemonicParsing="false" onAction="#pauseResumeGame" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Pause">
          <font>
             <Font name="System Bold" size="16.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button fx:id="saveButton" layoutX="603.0" layoutY="1068.0" mnemonicParsing="false" onAction="#onClickedSave" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Save">
+      <Button fx:id="saveButton" layoutX="604.0" layoutY="1068.0" mnemonicParsing="false" onAction="#onClickedSave" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Save">
          <font>
             <Font name="System Bold" size="16.0" />
          </font></Button>
-      <Button fx:id="hintButton" focusTraversable="false" layoutX="684.0" layoutY="1068.0" mnemonicParsing="false" onAction="#showHint" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Hint">
+      <Button fx:id="hintButton" focusTraversable="false" layoutX="687.0" layoutY="1068.0" mnemonicParsing="false" onAction="#showHint" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Hint">
          <font>
             <Font name="System Bold" size="16.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <Button focusTraversable="false" layoutX="765.0" layoutY="1068.0" mnemonicParsing="false" onAction="#goToSolverScene" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Solver">
+      <Button focusTraversable="false" layoutX="770.0" layoutY="1068.0" mnemonicParsing="false" onAction="#goToSolverScene" onMouseClicked="#playClickSound" prefHeight="38.0" prefWidth="75.0" text="Solver">
          <font>
             <Font name="System Bold" size="16.0" />
          </font>
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor></Button>
-      <ImageView fitHeight="40.0" fitWidth="40.0" layoutX="48.0" layoutY="40.0" onMouseClicked="#playClickSound" pickOnBounds="true" preserveRatio="true">
-         <image>
-            <Image url="@../Media/menu%20icon.png" />
-         </image>
-      </ImageView>
-      <Button focusTraversable="false" layoutX="48.0" layoutY="40.0" mnemonicParsing="false" onAction="#goToMenuScene" onMouseClicked="#playClickSound" opacity="0.0" prefHeight="40.0" prefWidth="40.0" text="Menu">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
-      <ImageView fx:id="soundButtonImage" fitHeight="40.0" fitWidth="40.0" layoutX="1109.0" layoutY="40.0" pickOnBounds="true" preserveRatio="true">
-         <image>
-            <Image url="@../Media/sound%20on%20icon.png" />
-         </image>
-      </ImageView>
-      <Button focusTraversable="false" layoutX="1109.0" layoutY="40.0" mnemonicParsing="false" onAction="#muteUnmuteSound" onMouseClicked="#playClickSound" opacity="0.0" prefHeight="40.0" prefWidth="40.0" text="Sound">
-         <font>
-            <Font name="System Bold" size="12.0" />
-         </font>
-         <cursor>
-            <Cursor fx:constant="HAND" />
-         </cursor>
-      </Button>
       <Text fx:id="pausedField" disable="true" fill="WHITE" layoutX="387.0" layoutY="617.0" opacity="0.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Game paused!" textAlignment="CENTER">
          <font>
             <Font name="System Bold" size="64.0" />
@@ -143,16 +153,6 @@
       <Text fx:id="gameOverField" disable="true" fill="WHITE" layoutX="427.0" layoutY="617.0" opacity="0.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Game over!" textAlignment="CENTER">
          <font>
             <Font name="System Bold" size="64.0" />
-         </font>
-      </Text>
-      <Text fx:id="scoreField" disable="true" fill="WHITE" layoutX="890.0" layoutY="1045.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Score: 0" textAlignment="RIGHT" wrappingWidth="120.0">
-         <font>
-            <Font name="System Bold" size="18.0" />
-         </font>
-      </Text>
-      <Text fx:id="hintsLivesField" disable="true" fill="WHITE" layoutX="189.0" layoutY="1045.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hints: 0" wrappingWidth="120.0">
-         <font>
-            <Font name="System Bold" size="18.0" />
          </font>
       </Text>
     </children>

@@ -143,6 +143,9 @@ public class Controller implements Initializable, ActionListener
 
         if(gameModel.getGameScene() == GameScenes.PuzzleScene)
         {
+            gameModel.setValueInsertHistory(new ArrayList<>());
+            gameModel.setHintInsertHistory(new ArrayList<>());
+
             if(!board.getSolver().getSolverHasRun() && !gameSavedLoaded) // needed to solve custom boards
             {
                 board.solve();
@@ -189,10 +192,9 @@ public class Controller implements Initializable, ActionListener
         }
         else if(gameModel.getGameScene() == GameScenes.CustomScene)
         {
-            showBoardValues(true);
-
             gameModel.setValueInsertHistory(new ArrayList<>());
-            gameModel.setHintInsertHistory(new ArrayList<>());
+
+            showBoardValues(true);
 
             updateSoundIcon();
             updateFilledCells();
@@ -223,7 +225,7 @@ public class Controller implements Initializable, ActionListener
                 backButton.setOnAction((event -> {try {gameModel.setClickedBack(true); goToPuzzleScene(); } catch (IOException e) { throw new RuntimeException(e);}}));
 
                 saveLoadSceneTitle.setText("Save");
-                saveLoadButton.setText("Save");
+                saveLoadButton.setText("Save game");
                 saveLoadSceneSubtitle.setText("Choose a slot to save the game in!");
             }
             else
@@ -259,6 +261,8 @@ public class Controller implements Initializable, ActionListener
                 comboBox.setPromptText("Hardcore Mode");
             }
 
+            comboBox.setStyle("-fx-border-width: 0px;" + "-fx-padding: -2px;" + "-fx-font-size: 13px; " + "-fx-font-family: system; " + "-fx-font-weight: bold;");
+
             comboBox.getItems().addAll("Normal Mode", "Timed Mode", "Death Mode", "Hardcore Mode");
             comboBox.setOnAction( event -> {try {handleModeSelected(); } catch (IOException e) {throw new RuntimeException(e);}});
 
@@ -276,9 +280,6 @@ public class Controller implements Initializable, ActionListener
             {
                 unlimitedHintsCheckBox.setSelected(true);
             }
-
-            gameModel.setValueInsertHistory(new ArrayList<>());
-            gameModel.setHintInsertHistory(new ArrayList<>());
 
             gameModel.setGameSavedLoaded(false);
             gameModel.setSavingGame(false);
@@ -351,18 +352,16 @@ public class Controller implements Initializable, ActionListener
             hintButton.setDisable(true);
             undoButton.setDisable(true);
             saveButton.setDisable(true);
-            gameModel.setLives(calculateLivesBasedOnBoardSize());
-            hintsLivesField.setVisible(true);
+            gameModel.setLives(gameModel.calculateLivesBasedOnBoardSize());
             hintsLivesField.setText("Lives: " + gameModel.getLives());
-            gameModel.setUserSolveTime(calculateUserSolvingTime());
+            gameModel.setUserSolveTime(gameModel.calculateUserSolvingTime());
             feedbackField.setText("Welcome to Hardcore Mode!");
-            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve the puzzle before time and/or lives are depleted!"));
+            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve the puzzle before depleting time or lives!"));
             pauseTransition.play();
 
         } else if(gameMode == GameModes.DeathMode) { // Mode allowing limited mistakes based on board size
 
-            gameModel.setLives(calculateLivesBasedOnBoardSize());
-            hintsLivesField.setVisible(true);
+            gameModel.setLives(gameModel.calculateLivesBasedOnBoardSize());
             hintsLivesField.setText("Lives: " + gameModel.getLives());
             gameModel.setUserSolveTime(0);
             hintButton.setDisable(true);
@@ -373,8 +372,7 @@ public class Controller implements Initializable, ActionListener
 
         } else if (gameMode == GameModes.TimedMode) { // Timer countdown mode
 
-            gameModel.setUserSolveTime(calculateUserSolvingTime());
-            hintsLivesField.setVisible(false);
+            gameModel.setUserSolveTime(gameModel.calculateUserSolvingTime());
             hintButton.setDisable(true);
             saveButton.setDisable(true);
             feedbackField.setText("Welcome to Timed Mode!");
@@ -383,37 +381,9 @@ public class Controller implements Initializable, ActionListener
 
         } else {
             gameModel.setUserSolveTime(gameModel.getClickedBack() ? gameModel.getPreSaveLoadUserTime() : (gameModel.getGameSavedLoaded() ? gameModel.getSavedTimeLoaded() : 0));
-            gameModel.setHintsAvailable(!gameModel.getGameSavedLoaded() ? calculateHintsAvailable() : gameModel.getHintsAvailable());
+            gameModel.setHintsAvailable(!gameModel.getGameSavedLoaded() ? gameModel.calculateHintsAvailable() : gameModel.getHintsAvailable());
             hintsLivesField.setText("Hints: " + gameModel.getHintsAvailable());
         }
-    }
-
-    /**
-     * @author  Danny
-     */
-    private int calculateHintsAvailable()
-    {
-        Board board = gameModel.getBoard();
-
-        return !gameModel.getUnlimitedHints() ? (int) (Math.ceil((board.getAvailableCells() - board.getFilledCells()) * 0.13)) : 0;
-    }
-
-    /**
-     * @author  Danny, Abinav & Yahya
-     */
-    private long calculateUserSolvingTime() {
-        Board board = gameModel.getBoard();
-
-        return board.getBoardSizeRowsColumns() != 1 ? (long) ((Math.ceil(((board.getBoardSizeRowsColumns() * board.getBoardSizeRowsColumns()) / 81.0) * 10.0)) * 60000) : 10000;
-    }
-
-    /**
-     * @author  Danny, Abinav & Yahya
-     */
-    private int calculateLivesBasedOnBoardSize() {
-        Board board = gameModel.getBoard();
-
-        return (int) (Math.ceil(((board.getBoardSizeRowsColumns() / 2.0)) * ((1 - ((double) board.getFilledCells() / board.getAvailableCells())) / 0.63)));
     }
 
     /**
@@ -990,19 +960,7 @@ public class Controller implements Initializable, ActionListener
      */
     public void changeGameScore(int amount, boolean increaseScore)
     {
-        int gameScore = gameModel.getGameScore();
-        long userSolveTimeCurrent = gameModel.getUserSolveTime();
-
-        int calculatedScore;
-
-        if(increaseScore)
-        {
-            calculatedScore = gameScore != 0 ? gameScore + (int) Math.ceil(((1 - (userSolveTimeCurrent - gameModel.getUserSolveTimeLastInsert()) / (double) userSolveTimeCurrent) * amount)) : amount;
-        }
-        else
-        {
-            calculatedScore = gameScore - amount;
-        }
+        int calculatedScore = gameModel.calculateGameScore(amount, increaseScore);
 
         gameModel.setGameScore(calculatedScore);
         gameModel.setUserSolveTimeLastInsert();
@@ -1032,7 +990,11 @@ public class Controller implements Initializable, ActionListener
             boardGridCells[row][column].setPromptText("");
 
             valueInsertHistory.remove(valueInsertHistory.size() - 1);
-            valueInsertHistorySaved.remove(valueInsertHistorySaved.size()-1);
+
+            if(!gameModel.getValueInsertHistorySaved().isEmpty())
+            {
+                valueInsertHistorySaved.remove(valueInsertHistorySaved.size()-1);
+            }
 
             if(valueInsertHistory.isEmpty())
             {
@@ -1057,8 +1019,8 @@ public class Controller implements Initializable, ActionListener
             if(activeTextField != null)
             {
                 Board board = gameModel.getBoard();
-                List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
-                List<String> hintInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+                List<Node> hintInsertHistory = gameModel.getHintInsertHistory();
+                List<String> hintInsertHistorySaved = gameModel.getHintInsertHistorySaved();
 
                 int row = GridPane.getRowIndex(activeTextField);
                 int column = GridPane.getColumnIndex(activeTextField);
@@ -1094,7 +1056,7 @@ public class Controller implements Initializable, ActionListener
                 }
                 else
                 {
-                    feedbackField.setText("Cannot provide hint due to a wrongly inserted value!");
+                    feedbackField.setText("Hint blocked by an inserted value!");
 
                     playSoundEffect(errorSound, 0.2);
                 }
@@ -1120,8 +1082,8 @@ public class Controller implements Initializable, ActionListener
     public void undoHintInsertion()
     {
         Board board = gameModel.getBoard();
-        List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
-        List<String> hintInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+        List<Node> hintInsertHistory = gameModel.getHintInsertHistory();
+        List<String> hintInsertHistorySaved = gameModel.getHintInsertHistorySaved();
 
         if(!hintInsertHistory.isEmpty())
         {
@@ -1136,7 +1098,11 @@ public class Controller implements Initializable, ActionListener
             boardGridCells[row][column].setPromptText("");
 
             hintInsertHistory.remove(hintInsertHistory.size() - 1);
-            hintInsertHistorySaved.remove(hintInsertHistorySaved.size()-1);
+
+            if(!gameModel.getHintInsertHistorySaved().isEmpty())
+            {
+                hintInsertHistorySaved.remove(hintInsertHistorySaved.size()-1);
+            }
         }
     }
 
@@ -1146,7 +1112,7 @@ public class Controller implements Initializable, ActionListener
     public void resetBoard()
     {
         List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
-        List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
+        List<Node> hintInsertHistory = gameModel.getHintInsertHistory();
         GameScenes boardView = gameModel.getGameScene();
         GameModes gameMode = gameModel.getGameMode();
 
@@ -1167,12 +1133,17 @@ public class Controller implements Initializable, ActionListener
                 gameOverState(false);
             }
 
-            gameModel.setUserSolveTime(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? calculateUserSolvingTime(): 0);
+            gameModel.setUserSolveTime(gameMode == GameModes.TimedMode || gameMode == GameModes.HardcoreMode? gameModel.calculateUserSolvingTime(): 0);
             userSolveTimer.start();
 
             if(gameMode == GameModes.DeathMode || gameMode == GameModes.HardcoreMode){
-                gameModel.setLives(calculateLivesBasedOnBoardSize());
+                gameModel.setLives(gameModel.calculateLivesBasedOnBoardSize());
                 hintsLivesField.setText("Lives: "+ gameModel.getLives());
+            }
+            else if(gameMode != GameModes.TimedMode)
+            {
+                gameModel.setHintsAvailable(gameModel.calculateHintsAvailable());
+                hintsLivesField.setText("Hints: "+ gameModel.getHintsAvailable());
             }
 
             if(boardGrid.isDisable())
@@ -1187,11 +1158,10 @@ public class Controller implements Initializable, ActionListener
             } else {
                 hintButton.setDisable(false);
             }
+
             pauseResumeButton.setDisable(false);
         }
 
-        gameModel.setHintsAvailable(calculateHintsAvailable());
-        hintsLivesField.setText("Hints: "+ gameModel.getHintsAvailable());
         gameModel.setGameScore(0);
         scoreField.setText("Score: "+ gameModel.getGameScore());
 
@@ -1299,7 +1269,7 @@ public class Controller implements Initializable, ActionListener
         int seconds = totalSeconds % 60;
         int minutes = (totalSeconds / 60) % 60;
         int hours = ((totalSeconds / 60) / 60) % 60;
-        String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + (String.valueOf((long) (((milliseconds / 1000.0) - Math.floor(milliseconds / 1000.0)) * 1000)).charAt(0));
+        String secondsAsText = (seconds >= 10 ? String.valueOf(seconds) : "0" + seconds) + "." + (String.valueOf((long) (((milliseconds / 1000.0) - Math.floor(milliseconds / 1000.0)) * 100)).charAt(0));
         String minutesAsText = minutes >= 10 ? String.valueOf(minutes) : "0" + minutes;
         String hoursAsText = hours >= 10 ? String.valueOf(hours) : "0" + hours;
 
@@ -1648,31 +1618,31 @@ public class Controller implements Initializable, ActionListener
         {
             if(board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with hard coding!";
+                return "Solved with hard coding!";
             }
             if(!board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with strategies!";
+                return "Solved with strategies!";
             }
             else if(!board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with backtracking!";
+                return "Solved with backtracking!";
             }
             else if(board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with hard coding and strategies!";
+                return "Solved with hard coding and strategies!";
             }
             else if(board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with hard coding and backtracking!";
+                return "Solved with hard coding and backtracking!";
             }
             else if(!board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with strategies and backtracking!";
+                return "Solved with strategies and backtracking!";
             }
             else if(board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with hard coding, strategies and backtracking!";
+                return "Solved with hard coding, strategies and backtracking!";
             }
             else
             {
