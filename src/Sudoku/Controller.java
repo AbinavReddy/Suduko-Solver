@@ -1032,7 +1032,11 @@ public class Controller implements Initializable, ActionListener
             boardGridCells[row][column].setPromptText("");
 
             valueInsertHistory.remove(valueInsertHistory.size() - 1);
-            valueInsertHistorySaved.remove(valueInsertHistorySaved.size()-1);
+
+            if(!gameModel.getValueInsertHistorySaved().isEmpty())
+            {
+                valueInsertHistorySaved.remove(valueInsertHistorySaved.size()-1);
+            }
 
             if(valueInsertHistory.isEmpty())
             {
@@ -1057,8 +1061,8 @@ public class Controller implements Initializable, ActionListener
             if(activeTextField != null)
             {
                 Board board = gameModel.getBoard();
-                List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
-                List<String> hintInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+                List<Node> hintInsertHistory = gameModel.getHintInsertHistory();
+                List<String> hintInsertHistorySaved = gameModel.getHintInsertHistorySaved();
 
                 int row = GridPane.getRowIndex(activeTextField);
                 int column = GridPane.getColumnIndex(activeTextField);
@@ -1120,8 +1124,8 @@ public class Controller implements Initializable, ActionListener
     public void undoHintInsertion()
     {
         Board board = gameModel.getBoard();
-        List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
-        List<String> hintInsertHistorySaved = gameModel.getValueInsertHistorySaved();
+        List<Node> hintInsertHistory = gameModel.getHintInsertHistory();
+        List<String> hintInsertHistorySaved = gameModel.getHintInsertHistorySaved();
 
         if(!hintInsertHistory.isEmpty())
         {
@@ -1136,7 +1140,11 @@ public class Controller implements Initializable, ActionListener
             boardGridCells[row][column].setPromptText("");
 
             hintInsertHistory.remove(hintInsertHistory.size() - 1);
-            hintInsertHistorySaved.remove(hintInsertHistorySaved.size()-1);
+
+            if(!gameModel.getHintInsertHistorySaved().isEmpty())
+            {
+                hintInsertHistorySaved.remove(hintInsertHistorySaved.size()-1);
+            }
         }
     }
 
@@ -1146,7 +1154,7 @@ public class Controller implements Initializable, ActionListener
     public void resetBoard()
     {
         List<Node> valueInsertHistory = gameModel.getValueInsertHistory();
-        List<Node> hintInsertHistory = gameModel.getValueInsertHistory();
+        List<Node> hintInsertHistory = gameModel.getHintInsertHistory();
         GameScenes boardView = gameModel.getGameScene();
         GameModes gameMode = gameModel.getGameMode();
 
@@ -1187,6 +1195,7 @@ public class Controller implements Initializable, ActionListener
             } else {
                 hintButton.setDisable(false);
             }
+
             pauseResumeButton.setDisable(false);
         }
 
