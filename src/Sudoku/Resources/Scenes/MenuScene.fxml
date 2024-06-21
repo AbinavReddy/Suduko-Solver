@@ -69,7 +69,7 @@
             <Font name="System Bold" size="16.0" />
          </font></Button>
       <ComboBox fx:id="comboBox" focusTraversable="false" layoutX="680.0" layoutY="463.0" prefHeight="50.0" prefWidth="140.0" promptText="Normal Mode" />
-      <Button fx:id="loadMenuButton" focusTraversable="false" layoutX="529.0" layoutY="594.0" mnemonicParsing="false" onAction="#goToSaveLoadScene" onMouseClicked="#playClickSound" prefHeight="50.0" prefWidth="134.0" text="Load Game">
+      <Button fx:id="loadMenuButton" focusTraversable="false" layoutX="529.0" layoutY="564.0" mnemonicParsing="false" onAction="#goToSaveLoadScene" onMouseClicked="#playClickSound" prefHeight="50.0" prefWidth="134.0" text="Load Game">
          <font>
             <Font name="System Bold" size="16.0" />
          </font></Button>

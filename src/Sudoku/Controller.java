@@ -158,6 +158,15 @@ public class Controller implements Initializable, ActionListener
                 gameModel.setGameMode(GameModes.NormalMode);
                 scoreField.setText("Score: " + gameModel.getGameScore());
                 undoButton.setDisable(false);
+
+                if(!gameModel.getValueInsertHistorySaved().isEmpty())
+                {
+                    undoButton.setDisable(false);
+                }
+                else
+                {
+                    undoButton.setDisable(false);
+                }
             }
             else
             {
@@ -572,7 +581,6 @@ public class Controller implements Initializable, ActionListener
                     temp.setPromptText(String.valueOf(boardToShow[row][column]));
 
                     if(gameModel.getGameSavedLoaded() && valueInsertHistorySaved != null && valueInsertHistorySaved.contains(row+","+column) ){
-                        temp.setDisable(false);
                         temp.setEditable(true);
                         temp.setStyle("-fx-border-width: 1px; "
                             + "-fx-padding: 1px;"
@@ -591,7 +599,6 @@ public class Controller implements Initializable, ActionListener
 
                 boardGrid.add(temp, column, row); // fill the grid with created cells
             }
-
         }
 
         if(gameModel.getGameSavedLoaded()) {
@@ -732,7 +739,7 @@ public class Controller implements Initializable, ActionListener
                         undoButton.setDisable(true);
                     }
 
-                    playSoundEffect(removeSound, 0.03);
+                    //playSoundEffect(removeSound, 0.03);
                 }
 
                 updateFilledCells();
