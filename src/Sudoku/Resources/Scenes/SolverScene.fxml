@@ -91,7 +91,7 @@
             <Font name="System Bold" size="24.0" />
          </font>
       </Text>
-      <Text fx:id="feedbackField" fill="WHITE" layoutX="331.0" layoutY="1075.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Feedback" textAlignment="CENTER" wrappingWidth="538.0">
+      <Text fx:id="feedbackField" fill="WHITE" layoutX="252.0" layoutY="1053.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Feedback" textAlignment="CENTER" wrappingWidth="696.0">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>

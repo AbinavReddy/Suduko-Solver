@@ -352,17 +352,15 @@ public class Controller implements Initializable, ActionListener
             undoButton.setDisable(true);
             saveButton.setDisable(true);
             gameModel.setLives(calculateLivesBasedOnBoardSize());
-            hintsLivesField.setVisible(true);
             hintsLivesField.setText("Lives: " + gameModel.getLives());
             gameModel.setUserSolveTime(calculateUserSolvingTime());
             feedbackField.setText("Welcome to Hardcore Mode!");
-            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve the puzzle before time and/or lives are depleted!"));
+            pauseTransition.setOnFinished(e ->  feedbackField.setText("Solve the puzzle before depleting time or lives!"));
             pauseTransition.play();
 
         } else if(gameMode == GameModes.DeathMode) { // Mode allowing limited mistakes based on board size
 
             gameModel.setLives(calculateLivesBasedOnBoardSize());
-            hintsLivesField.setVisible(true);
             hintsLivesField.setText("Lives: " + gameModel.getLives());
             gameModel.setUserSolveTime(0);
             hintButton.setDisable(true);
@@ -374,7 +372,6 @@ public class Controller implements Initializable, ActionListener
         } else if (gameMode == GameModes.TimedMode) { // Timer countdown mode
 
             gameModel.setUserSolveTime(calculateUserSolvingTime());
-            hintsLivesField.setVisible(false);
             hintButton.setDisable(true);
             saveButton.setDisable(true);
             feedbackField.setText("Welcome to Timed Mode!");
@@ -1098,7 +1095,7 @@ public class Controller implements Initializable, ActionListener
                 }
                 else
                 {
-                    feedbackField.setText("Cannot provide hint due to a wrongly inserted value!");
+                    feedbackField.setText("Hint blocked by an inserted value!");
 
                     playSoundEffect(errorSound, 0.2);
                 }
@@ -1182,6 +1179,11 @@ public class Controller implements Initializable, ActionListener
                 gameModel.setLives(calculateLivesBasedOnBoardSize());
                 hintsLivesField.setText("Lives: "+ gameModel.getLives());
             }
+            else if(gameMode != GameModes.TimedMode)
+            {
+                gameModel.setHintsAvailable(calculateHintsAvailable());
+                hintsLivesField.setText("Hints: "+ gameModel.getHintsAvailable());
+            }
 
             if(boardGrid.isDisable())
             {
@@ -1199,8 +1201,6 @@ public class Controller implements Initializable, ActionListener
             pauseResumeButton.setDisable(false);
         }
 
-        gameModel.setHintsAvailable(calculateHintsAvailable());
-        hintsLivesField.setText("Hints: "+ gameModel.getHintsAvailable());
         gameModel.setGameScore(0);
         scoreField.setText("Score: "+ gameModel.getGameScore());
 
@@ -1657,31 +1657,31 @@ public class Controller implements Initializable, ActionListener
         {
             if(board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with hard coding!";
+                return "Solved with hard coding!";
             }
             if(!board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with strategies!";
+                return "Solved with strategies!";
             }
             else if(!board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with backtracking!";
+                return "Solved with backtracking!";
             }
             else if(board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && !board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with hard coding and strategies!";
+                return "Solved with hard coding and strategies!";
             }
             else if(board.getSolver().getSolvedWithHardCoding() && !board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with hard coding and backtracking!";
+                return "Solved with hard coding and backtracking!";
             }
             else if(!board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with strategies and backtracking!";
+                return "Solved with strategies and backtracking!";
             }
             else if(board.getSolver().getSolvedWithHardCoding() && board.getSolver().getSolvedWithStrategies() && board.getSolver().getSolvedWithBacktracking())
             {
-                return "The puzzle was solved with hard coding, strategies and backtracking!";
+                return "Solved with hard coding, strategies and backtracking!";
             }
             else
             {
