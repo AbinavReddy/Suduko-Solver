@@ -336,14 +336,6 @@ public class Game
     /**
      * @author Danny
      */
-    public long getUserSolveTimeLastInsert()
-    {
-        return userSolveTimeLastInsert;
-    }
-
-    /**
-     * @author Danny
-     */
     public long getPreSaveLoadUserTime()
     {
         return preSaveLoadUserTime;
